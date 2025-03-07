@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 class PrimaryButton extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
+  final IconData? icon;
 
   const PrimaryButton({
     required this.text,
     required this.onPressed,
+    this.icon,
     super.key,
   });
 
@@ -22,10 +24,7 @@ class PrimaryButton extends StatelessWidget {
           ),
         ),
         onPressed: onPressed,
-        child: Text(
-          text,
-          style: const TextStyle(fontSize: 16),
-        ),
+        child: Text(text),
       ),
     );
   }
