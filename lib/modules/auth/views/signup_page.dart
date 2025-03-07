@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 
-class MyTextField  extends StatelessWidget {
-  const MyTextField ({super.key});
+class SignupPage  extends StatelessWidget {
+  const SignupPage ({super.key});
 
   @override
   Widget build(BuildContext context) {

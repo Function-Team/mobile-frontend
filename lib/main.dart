@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/modules/auth/views/login_page.dart';
+import 'package:function_mobile/routes/routes.dart';
 import 'package:function_mobile/theme/theme_data.dart';
+import 'package:get/get_navigation/src/root/get_material_app.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MainApp());
 }
 
@@ -11,10 +14,11 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
+    return GetMaterialApp(
       theme: AppTheme.themeData,
       home: LoginPage(),
+      initialRoute: MyRoutes.login,
+      getPages: MyRoutes.pages,
     );
   }
 }

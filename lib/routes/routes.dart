@@ -1,3 +1,5 @@
+import 'package:function_mobile/modules/auth/bindings/auth_binding.dart';
+import 'package:function_mobile/modules/auth/views/signup_page.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/auth/views/login_page.dart';
 import 'package:function_mobile/modules/home/views/home_page.dart';
@@ -13,12 +15,17 @@ class MyRoutes {
   static const String favorites = '/favorites';
   static const String detailVenue = '/detailVenue';
 
-  static final pageRoutes = {
+  static final List<GetPage> pages = [
     GetPage(
       name: login,
       page: () => LoginPage(),
+      binding: AuthBinding(),
     ),
-
+    GetPage(
+      name: signup,
+      page: () => SignupPage(),
+      binding: AuthBinding(),
+    ),
     GetPage(name: home, page: () => HomePage()),
-  };
+  ];
 }
