@@ -86,7 +86,7 @@ class AppTheme {
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
         textStyle: const TextStyle(
-            fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w600),
+            fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.bold),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
         padding: const EdgeInsets.symmetric(vertical: 12),
       ),
@@ -97,7 +97,7 @@ class AppTheme {
         foregroundColor: primaryColor,
         side: const BorderSide(color: primaryColor, width: 2),
         textStyle: const TextStyle(
-            fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w500),
+            fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.bold),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
         padding: const EdgeInsets.symmetric(vertical: 12),
       ),
@@ -107,7 +107,7 @@ class AppTheme {
       style: TextButton.styleFrom(
         foregroundColor: primaryDark,
         textStyle: const TextStyle(
-            fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w500),
+            fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.bold),
       ),
     ),
   );
