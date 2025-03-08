@@ -1,9 +1,9 @@
 import 'package:function_mobile/modules/auth/models/auth_model.dart';
-import 'package:get/get_connect/http/src/request/request.dart';
+// import 'package:get/get_connect/http/src/request/request.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  static const String _baseUrl = 'https://api-placholder.inimshdummy.com';
+  //TODO: static const String _baseUrl = 'https://api-placholder.inimshdummy.com';
 
   Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
