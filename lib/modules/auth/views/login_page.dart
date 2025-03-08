@@ -14,8 +14,8 @@ class LoginPage extends StatelessWidget {
     final AuthController authController = Get.put(AuthController());
 
     return Scaffold(
-      body: SingleChildScrollView(
-        child: SafeArea(
+      body: SafeArea(
+        child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
