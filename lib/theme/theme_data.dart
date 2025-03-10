@@ -28,6 +28,7 @@ class AppTheme {
       onSecondary: Colors.black,
       onSurface: Colors.black,
       onError: Colors.white,
+      tertiary: textSecondary,
       brightness: Brightness.light,
     ),
 
@@ -75,7 +76,12 @@ class AppTheme {
           color: textSecondary),
       labelLarge: TextStyle(
           fontFamily: 'Inter',
-          fontSize: 14,
+          fontSize: 18,
+          fontWeight: FontWeight.w500,
+          color: textColor),
+      labelMedium: TextStyle(
+          fontFamily: 'Inter',
+          fontSize: 16,
           fontWeight: FontWeight.w500,
           color: textColor),
     ),
@@ -83,8 +89,6 @@ class AppTheme {
     // Theme untuk tombol
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
         textStyle: const TextStyle(
             fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.bold),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
@@ -94,11 +98,11 @@ class AppTheme {
 
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: primaryColor,
-        side: const BorderSide(color: primaryColor, width: 2),
+        foregroundColor: textColor,
+        side: const BorderSide(color: primaryDark, width: .5),
         textStyle: const TextStyle(
             fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.bold),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6.0)),
         padding: const EdgeInsets.symmetric(vertical: 12),
       ),
     ),
