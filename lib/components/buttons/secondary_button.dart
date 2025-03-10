@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-class PrimaryButton extends StatelessWidget {
+class SecondaryButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
   final IconData? icon;
 
-  const PrimaryButton({
+  const SecondaryButton({
     required this.text,
     required this.onPressed,
     this.icon,
@@ -19,8 +19,8 @@ class PrimaryButton extends StatelessWidget {
       height: 50,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          foregroundColor: Theme.of(context).colorScheme.onPrimary,
+          backgroundColor: Theme.of(context).colorScheme.secondary,
+          foregroundColor: Theme.of(context).colorScheme.onSecondary,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(6.0),
           ),

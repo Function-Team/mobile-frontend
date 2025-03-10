@@ -10,40 +10,28 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AuthController authController = Get.find<AuthController>();
-    
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Home'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: () => authController.logout(),
-            tooltip: 'Logout',
-          ),
-        ],
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Welcome to Home Page',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 40),
-            ElevatedButton.icon(
-              icon: Icon(Icons.exit_to_app),
-              label: Text('Logout'),
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        body: SafeArea(
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.all(18),
+          child: Column(
+            children: [
+              Text('Home', style: Theme.of(context).textTheme.displaySmall),
+              SizedBox(height: 18),
+              Text('Welcome ${authController.user.value?.email ?? 'Guest'}'),
+              SizedBox(height: 18),
+              ElevatedButton(
+                onPressed: () {
+                  authController.logout();
+                },
+                child: Text('Sign Out'),
               ),
-              onPressed: () {
-                authController.logout();
-              },
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    );
+    ));
   }
 }
