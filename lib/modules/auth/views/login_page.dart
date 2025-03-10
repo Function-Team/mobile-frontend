@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/components/buttons/primary_button.dart';
-import 'package:function_mobile/components/inputs/custom_text_field.dart';
+import 'package:function_mobile/components/inputs/auth_text_field.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:function_mobile/components/buttons/outline_button.dart';
 import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
@@ -43,7 +43,7 @@ class LoginPage extends StatelessWidget {
                     Text("Email/Username",
                         style: Theme.of(context).textTheme.bodyLarge),
                     SizedBox(height: 8),
-                    CustomTextField(
+                    AuthTextField(
                       hintText: 'Enter your email or username',
                       isPassword: false,
                       controller: authController.emailLoginController,
@@ -55,7 +55,7 @@ class LoginPage extends StatelessWidget {
                   Text("Password",
                       style: Theme.of(context).textTheme.bodyLarge),
                   SizedBox(height: 8),
-                  CustomTextField(
+                  AuthTextField(
                       hintText: 'Enter your password',
                       isPassword: true,
                       controller: authController.passwordLoginController),

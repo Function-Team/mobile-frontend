@@ -4,9 +4,11 @@ import 'package:function_mobile/modules/legal/privacy_policy_page.dart';
 import 'package:function_mobile/modules/auth/views/login_page.dart';
 import 'package:function_mobile/modules/home/views/home_page.dart';
 import 'package:function_mobile/modules/legal/terms_of_service_page.dart';
+import 'package:function_mobile/components/views/components_view.dart';
 import 'package:get/get.dart';
 
 class MyRoutes {
+  static const String componentView = '/componentView';
   static const String login = '/login';
   static const String signup = '/signup';
   static const String home = '/home';
@@ -33,5 +35,6 @@ class MyRoutes {
     GetPage(name: home, page: () => HomePage()),
     GetPage(name: privacyPolicy, page: () => PrivacyPolicyPage()),
     GetPage(name: termsOfService, page: () => TermsOfServicePage()),
+    GetPage(name: componentView, page: () => ComponentsView()),
   ];
 }

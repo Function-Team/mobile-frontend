@@ -4,7 +4,7 @@ import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/components/buttons/outline_button.dart';
 import 'package:function_mobile/components/buttons/primary_button.dart';
-import 'package:function_mobile/components/inputs/custom_text_field.dart';
+import 'package:function_mobile/components/inputs/auth_text_field.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class SignupPage extends StatelessWidget {
@@ -44,7 +44,7 @@ class SignupPage extends StatelessWidget {
                     Text("Username",
                         style: Theme.of(context).textTheme.bodyLarge),
                     SizedBox(height: 8),
-                    CustomTextField(
+                    AuthTextField(
                       hintText: 'Enter your username',
                       isPassword: false,
                       controller: authController.emailLoginController,
@@ -57,7 +57,7 @@ class SignupPage extends StatelessWidget {
                   children: [
                     Text("Email", style: Theme.of(context).textTheme.bodyLarge),
                     SizedBox(height: 8),
-                    CustomTextField(
+                    AuthTextField(
                       hintText: 'Enter your email',
                       isPassword: false,
                       controller: authController.emailLoginController,
@@ -69,7 +69,7 @@ class SignupPage extends StatelessWidget {
                   Text("Password",
                       style: Theme.of(context).textTheme.bodyLarge),
                   SizedBox(height: 8),
-                  CustomTextField(
+                  AuthTextField(
                       hintText: 'Enter your password',
                       isPassword: true,
                       controller: authController.passwordLoginController),
@@ -79,7 +79,7 @@ class SignupPage extends StatelessWidget {
                   Text("Confirm Password",
                       style: Theme.of(context).textTheme.bodyLarge),
                   SizedBox(height: 8),
-                  CustomTextField(
+                  AuthTextField(
                       hintText: 'Confirm your password',
                       isPassword: true,
                       controller: authController.passwordLoginController),

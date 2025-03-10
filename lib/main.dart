@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/components/views/components_view.dart';
 import 'package:function_mobile/modules/auth/bindings/auth_binding.dart';
 import 'package:function_mobile/modules/auth/views/login_page.dart';
 import 'package:function_mobile/modules/home/views/home_page.dart';
@@ -19,8 +20,8 @@ class MainApp extends StatelessWidget {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       theme: AppTheme.themeData,
-      home: HomePage(),
-      initialRoute: MyRoutes.home,
+      home: ComponentsView(),
+      initialRoute: MyRoutes.componentView,
       initialBinding: AuthBinding(),
       getPages: MyRoutes.pages,
     );
