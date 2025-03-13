@@ -24,7 +24,7 @@ class OutlineButton extends StatelessWidget {
       height: 50,
       child: OutlinedButton(
         onPressed: isLoading ? null : onPressed,
-        style: Theme.of(context).outlinedButtonTheme.style, // Pakai theme global
+        style: Theme.of(context).outlinedButtonTheme.style,
         child: isLoading
             ? const SizedBox(
                 width: 20,
@@ -35,9 +35,7 @@ class OutlineButton extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (icon != null) ...[
-                    useFaIcon
-                        ? FaIcon(icon, size: 20) // Pakai FaIcon jika true
-                        : Icon(icon, size: 20),  // Pakai Icon biasa jika false
+                    useFaIcon ? FaIcon(icon, size: 20) : Icon(icon, size: 20),
                     const SizedBox(width: 8),
                   ],
                   Text(text),
