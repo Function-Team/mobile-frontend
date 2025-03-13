@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/modules/auth/services/auth_service.dart';
-import 'package:function_mobile/routes/routes.dart';
+import 'package:function_mobile/common/routes/routes.dart';
 import 'package:get/get.dart';
 
 class AuthController extends GetxController {

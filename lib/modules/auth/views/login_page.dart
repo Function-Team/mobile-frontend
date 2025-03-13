@@ -1,8 +1,10 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
-import 'package:function_mobile/components/buttons/primary_button.dart';
-import 'package:function_mobile/components/inputs/auth_text_field.dart';
+import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
+import 'package:function_mobile/common/widgets/inputs/auth_text_field.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:function_mobile/components/buttons/outline_button.dart';
+import 'package:function_mobile/common/widgets/buttons/outline_button.dart';
 import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 import 'package:get/get.dart';
 
