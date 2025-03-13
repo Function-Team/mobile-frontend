@@ -3,7 +3,9 @@ import 'package:function_mobile/common/widgets/buttons/custom_text_button.dart';
 import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 import 'package:function_mobile/common/widgets/buttons/secondary_button.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
+import 'package:function_mobile/modules/venue/controllers/venue_detail_controller.dart';
 import 'package:function_mobile/modules/venue/widgets/category_chip.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 class VenueDetailPage extends StatelessWidget {
@@ -11,60 +13,117 @@ class VenueDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final VenueDetailController controller = Get.find<VenueDetailController>();
+
     return Scaffold(
-      body: Stack(
-        children: [
-          // Content
-          SingleChildScrollView(
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (controller.hasError.value) {
+          return Center(
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildVenueImageHeader(context),
-                _buildVenueType('Meeting Room', '1-100', '100m²',
-                    'Wonokromo, South Surabaya', 'Vickie Streich'),
-                SizedBox(height: 16),
-                _buildAboutVenue('a space for meeting, workshop, and seminar, '
-                    'with a capacity of 50 people, equipped with a projector, '
-                    'sound system, and whiteboard, suitable for small meetings'),
-                SizedBox(height: 8),
-                _buildVenueOwner('Vickie Streich'),
-                SizedBox(height: 8),
-                _buildVenueLocation(context, 'Wonokromo, South Surabaya'),
-                SizedBox(height: 8),
-                _buildFacilities(context),
-                SizedBox(height: 8),
-                _buildReviews(),
-                SizedBox(height: 8),
-                _buildSchedule(context),
-                // Modify to show the Widget behind Fixed Price and Booking
-                SizedBox(height: 100),
+                Text(
+                  'Error loading venue data',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 16),
+                Text(controller.errorMessage.value),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: controller.retryLoading,
+                  child: const Text('Retry'),
+                ),
               ],
             ),
-          ),
-          // Fixed Price and Booking
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: _buildPriceAndBooking(context),
-          ),
-        ],
-      ),
+          );
+        }
+
+        return Stack(
+          children: [
+            // Content
+            SingleChildScrollView(
+              child: Column(
+                children: [
+                  _buildVenueImageHeader(context, controller),
+                  const SizedBox(height: 16),
+                  _buildVenueTypeCard(
+                    context,
+                    controller.venue.value?.category?.name ??
+                        "Data gagal difetch",
+                    "${controller.venue.value?.maxCapacity ?? 0}",
+                    "data tidak ada",
+                  ),
+                  const SizedBox(height: 16),
+                  _buildAboutVenueCard(
+                    context,
+                    controller.venue.value?.name ?? "Real Space",
+                    controller.venue.value?.description ??
+                        "Venue for various events such as weddings, parties, exhibitions, etc., can be used for modern and calm themes.",
+                  ),
+                  const SizedBox(height: 16),
+                  _buildVenueOwnerCard(
+                    context,
+                    controller,
+                    controller.venue.value?.host?.user?.username ?? "Kim Minji",
+                  ),
+                  const SizedBox(height: 16),
+                  _buildVenueLocation(
+                    context,
+                    controller.venue.value?.address ??
+                        "Wonokromo, South Surabaya",
+                  ),
+                  const SizedBox(height: 16),
+                  _buildFacilities(context, controller),
+                  const SizedBox(height: 16),
+                  _buildReviews(context, controller),
+                  const SizedBox(height: 16),
+                  _buildSchedule(context, controller),
+                  // Space at bottom to ensure content isn't hidden by price and booking section
+                  const SizedBox(height: 100),
+                ],
+              ),
+            ),
+            // Fixed Price and Booking
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: _buildPriceAndBooking(context, controller),
+            ),
+          ],
+        );
+      }),
     );
   }
 
-// This function return a widget that contains the venue image header
-  Widget _buildVenueImageHeader(BuildContext context) {
+  // This function returns a widget that contains the venue image header
+  Widget _buildVenueImageHeader(
+      BuildContext context, VenueDetailController controller) {
     return Stack(
       children: [
         // Venue image
         GestureDetector(
           onTap: () {
+            // Handle image tap to show full screen gallery
             print('Image Clicked');
           },
           child: SizedBox(
             height: 280,
             width: double.infinity,
-            child: NetworkImageWithLoader(imageUrl: ''),
+            child: controller.venue.value?.firstPictureUrl != null
+                ? NetworkImageWithLoader(
+                    imageUrl: controller.venue.value!.firstPictureUrl!,
+                  )
+                : Container(
+                    color: Colors.grey[300],
+                    child: const Center(
+                      child: Text('No image available'),
+                    ),
+                  ),
           ),
         ),
 
@@ -78,7 +137,7 @@ class VenueDetailPage extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
             ),
             child: IconButton(
-              icon: Icon(Icons.arrow_back, color: Colors.black),
+              icon: const Icon(Icons.arrow_back, color: Colors.black),
               onPressed: () => Navigator.pop(context),
             ),
           ),
@@ -90,8 +149,8 @@ class VenueDetailPage extends StatelessWidget {
           left: 0,
           right: 0,
           child: Container(
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
+            padding: const EdgeInsets.all(16),
+            decoration: const BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(20),
@@ -106,8 +165,8 @@ class VenueDetailPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Real Space',
-                        style: TextStyle(
+                        controller.venue.value?.name ?? "Real Space",
+                        style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                         ),
@@ -118,15 +177,16 @@ class VenueDetailPage extends StatelessWidget {
                         },
                         child: Row(
                           children: [
-                            Icon(Icons.star, color: Colors.amber, size: 18),
+                            const Icon(Icons.star,
+                                color: Colors.amber, size: 18),
                             Text(
-                              ' 5.0 (100 Reviews)',
+                              ' ${controller.venue.value?.rating?.toStringAsFixed(1) ?? "5.0"} (${controller.venue.value?.reviewCount ?? 100} Reviews)',
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.grey[700],
                               ),
                             ),
-                            Icon(Icons.arrow_forward,
+                            const Icon(Icons.arrow_forward,
                                 color: Colors.grey, size: 16),
                           ],
                         ),
@@ -137,12 +197,17 @@ class VenueDetailPage extends StatelessWidget {
                 Row(
                   children: [
                     IconButton(
-                      icon: Icon(Icons.share, color: Colors.black),
-                      onPressed: () {},
+                      icon: const Icon(Icons.share, color: Colors.black),
+                      onPressed: () {
+                        // Share venue
+                      },
                     ),
                     IconButton(
-                      icon: Icon(Icons.favorite_border, color: Colors.black),
-                      onPressed: () {},
+                      icon: const Icon(Icons.favorite_border,
+                          color: Colors.black),
+                      onPressed: () {
+                        // Add to favorites
+                      },
                     ),
                   ],
                 ),
@@ -154,42 +219,49 @@ class VenueDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildVenueType(String venueType, String capacityType,
-      String venueSize, String location, String owner) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildVenueTypeCard(
+    BuildContext context,
+    String venueType,
+    String capacityType,
+    String venueSize,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
         children: [
-          // Venue type tags
-          Row(
-            children: [
-              CategoryChip(label: venueType, color: Colors.blue),
-              SizedBox(width: 8),
-              CategoryChip(
-                label: capacityType,
-                color: Colors.blue,
-                icon: Icons.groups_2,
-              ),
-              SizedBox(width: 8),
-              CategoryChip(
-                  label: venueSize, color: Colors.blue, icon: Icons.straighten),
-            ],
+          CategoryChip(
+            label: venueType.isNotEmpty ? venueType : "Mansion",
+            color: Theme.of(context).primaryColor,
+          ),
+          const SizedBox(width: 8),
+          CategoryChip(
+            label: "1-$capacityType",
+            icon: Icons.groups_2,
+            color: Theme.of(context).primaryColor,
+          ),
+          const SizedBox(width: 8),
+          CategoryChip(
+            label: venueSize,
+            icon: Icons.straighten,
+            color: Theme.of(context).primaryColor,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildAboutVenue(String aboutVenue) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16),
+  // Updated to match the new card UI style from the image
+  Widget _buildAboutVenueCard(
+      BuildContext context, String venueName, String aboutVenue) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(8)),
-          border: Border.all(color: Colors.grey[300]!),
           color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey[300]!),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -197,7 +269,7 @@ class VenueDetailPage extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
+                const Text(
                   'About Venue',
                   style: TextStyle(
                     fontSize: 16,
@@ -205,8 +277,9 @@ class VenueDetailPage extends StatelessWidget {
                   ),
                 ),
                 CustomTextButton(
-                  text: 'See more',
+                  text: 'Selengkapnya',
                   onTap: () {
+                    // Show full description
                     print('See More Clicked');
                   },
                   icon: Icons.arrow_forward,
@@ -214,14 +287,12 @@ class VenueDetailPage extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               aboutVenue,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey[700],
+                color: Colors.grey[800],
               ),
             ),
           ],
@@ -230,56 +301,74 @@ class VenueDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildVenueOwner(String owner) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16),
+  // Updated to match the new card UI style from the image
+  Widget _buildVenueOwnerCard(
+    BuildContext context,
+    VenueDetailController controller,
+    String owner,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(8)),
-          border: Border.all(color: Colors.grey[300]!),
           color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey[300]!),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Venue Owner',
+            const Text(
+              'Pemilik Venue',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                GestureDetector(
-                  onTap: () {
-                    print('Owner Clicked');
-                  },
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 16,
-                        backgroundColor: Colors.blue,
-                        child: Text('V', style: TextStyle(color: Colors.white)),
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor: Theme.of(context).primaryColor,
+                      child: controller
+                                  .venue.value?.host?.user?.profilePictureUrl !=
+                              null
+                          ? ClipOval(
+                              child: NetworkImageWithLoader(
+                                imageUrl: controller.venue.value!.host!.user!
+                                    .profilePictureUrl!,
+                                width: 40,
+                                height: 40,
+                              ),
+                            )
+                          : Text(
+                              owner.isNotEmpty ? owner[0].toUpperCase() : "V",
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      owner,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
                       ),
-                      SizedBox(width: 8),
-                      Text(
-                        owner,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
                 PrimaryButton(
-                  text: 'Contact',
-                  onPressed: () {},
-                  width: 100,
+                  text: 'Hubungi',
+                  onPressed: controller.contactHost,
+                  width: 120,
                   height: 40,
                 ),
               ],
@@ -290,69 +379,69 @@ class VenueDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildVenueLocation(BuildContext context, String location) {
+  Widget _buildVenueLocation(
+    BuildContext context,
+    String location,
+  ) {
     return GestureDetector(
       onTap: () {
+        // Open map
         print('Location Clicked');
       },
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          children: [
-            GestureDetector(
-              onTap: () {
-                print('Location Clicked');
-              },
-              child: Container(
-                padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey[300]!),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      location,
-                      style: TextStyle(fontSize: 14),
-                    ),
-                    Icon(Icons.location_on,
-                        color: Theme.of(context).colorScheme.primary),
-                  ],
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  location,
+                  style: const TextStyle(fontSize: 14),
                 ),
               ),
-            )
-          ],
+              Icon(
+                Icons.location_on,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildFacilities(BuildContext context) {
+  Widget _buildFacilities(
+      BuildContext context, VenueDetailController controller) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(8)),
+          borderRadius: const BorderRadius.all(Radius.circular(8)),
           border: Border.all(color: Colors.grey[300]!),
           color: Colors.white,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            //Facilities Title
+            // Facilities Title
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
+                const Text(
                   'Fasilitas',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                //Navigation to see more
+                // Navigation to see more
                 CustomTextButton(
                   text: 'See more',
                   onTap: () {
@@ -363,69 +452,90 @@ class VenueDetailPage extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: 10),
-            //Facilities Items
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildFacilityItem(Icons.chair, 'Chair', true),
-                      _buildFacilityItem(Icons.table_bar, 'Table', true),
-                      _buildFacilityItem(Icons.speaker, 'Speaker', true),
-                    ],
-                  ),
+            const SizedBox(height: 10),
+
+            // Loading state or error state
+            if (controller.isLoadingFacilities.value)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: CircularProgressIndicator(),
                 ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildFacilityItem(Icons.wifi, 'Wifi', true),
-                      _buildFacilityItem(Icons.local_parking, 'Parking', true),
-                      _buildFacilityItem(Icons.ac_unit, 'AC', true),
-                    ],
+              )
+            else if (controller.facilities.isEmpty)
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text('No facilities data available'),
+              )
+            // Facilities Items displayed in two columns
+            else
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: controller.facilities
+                          .take(controller.facilities.length ~/ 2 +
+                              controller.facilities.length % 2)
+                          .map((facility) => _buildFacilityItem(
+                                facility.icon ?? Icons.apps,
+                                facility.name ?? "Data gagal difetch",
+                                facility.isAvailable ?? true,
+                              ))
+                          .toList(),
+                    ),
                   ),
-                ),
-              ],
-            ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: controller.facilities
+                          .skip(controller.facilities.length ~/ 2 +
+                              controller.facilities.length % 2)
+                          .map((facility) => _buildFacilityItem(
+                                facility.icon ?? Icons.apps,
+                                facility.name ?? "Data gagal difetch",
+                                facility.isAvailable ?? true,
+                              ))
+                          .toList(),
+                    ),
+                  ),
+                ],
+              ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildFacilityItem(IconData? icon, String text, bool isAvailable) {
+  Widget _buildFacilityItem(IconData icon, String text, bool isAvailable) {
     return Container(
       height: 30,
       child: Row(
         children: [
-          if (icon != null) ...[
-            Icon(icon, color: Colors.grey[700], size: 20),
-            SizedBox(width: 8),
-            Text(
-              text,
-              style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-            ),
-            SizedBox(width: 4),
-            Icon(
-              isAvailable ? Icons.check_circle : Icons.cancel,
-              color: isAvailable ? Colors.green : Colors.red,
-              size: 16,
-            ),
-          ],
+          Icon(icon, color: Colors.grey[700], size: 20),
+          const SizedBox(width: 8),
+          Text(
+            text,
+            style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+          ),
+          const SizedBox(width: 4),
+          Icon(
+            isAvailable ? Icons.check_circle : Icons.cancel,
+            color: isAvailable ? Colors.green : Colors.red,
+            size: 16,
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildReviews() {
+  Widget _buildReviews(BuildContext context, VenueDetailController controller) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(8)),
+          borderRadius: const BorderRadius.all(Radius.circular(8)),
           border: Border.all(color: Colors.grey[300]!),
           color: Colors.white,
         ),
@@ -435,7 +545,7 @@ class VenueDetailPage extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
+                const Text(
                   'Reviews',
                   style: TextStyle(
                     fontSize: 16,
@@ -452,17 +562,51 @@ class VenueDetailPage extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                    child: _buildReviewCard('John', 5, 'Great place',
-                        'https://img.freepik.com/free-photo/lifestyle-people-emotions-casual-concept-confident-nice-smiling-asian-woman-cross-arms-chest-confident-ready-help-listening-coworkers-taking-part-conversation_1258-59335.jpg')),
-                SizedBox(width: 12),
-                Expanded(
-                    child: _buildReviewCard('Richard', 4.8, 'Great place', '')),
-              ],
-            ),
+            const SizedBox(height: 10),
+
+            // Show loading, error, or reviews
+            if (controller.isLoadingReviews.value)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            else if (controller.reviews.isEmpty)
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text('No reviews yet'),
+              )
+            else
+              Row(
+                children: [
+                  Expanded(
+                    child: controller.reviews.isNotEmpty
+                        ? _buildReviewCard(
+                            controller.reviews[0].user?.username ??
+                                "Data gagal difetch",
+                            controller.reviews[0].rating?.toDouble() ?? 0.0,
+                            controller.reviews[0].comment ??
+                                "Data gagal difetch",
+                            controller.reviews[0].user?.profilePictureUrl,
+                          )
+                        : const SizedBox(),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: controller.reviews.length > 1
+                        ? _buildReviewCard(
+                            controller.reviews[1].user?.username ??
+                                "Data gagal difetch",
+                            controller.reviews[1].rating?.toDouble() ?? 0.0,
+                            controller.reviews[1].comment ??
+                                "Data gagal difetch",
+                            controller.reviews[1].user?.profilePictureUrl,
+                          )
+                        : const SizedBox(),
+                  ),
+                ],
+              ),
           ],
         ),
       ),
@@ -476,7 +620,7 @@ class VenueDetailPage extends StatelessWidget {
     String? profilePicture,
   ) {
     return Container(
-      padding: EdgeInsets.all(12),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.grey[300]!),
@@ -500,22 +644,23 @@ class VenueDetailPage extends StatelessWidget {
                       )
                     : Text(
                         name.isNotEmpty ? name[0].toUpperCase() : '?',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
               ),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Text(
                 name,
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                style:
+                    const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
               ),
-              Spacer(),
+              const Spacer(),
               Text(
-                rating.toString(),
-                style: TextStyle(
+                rating.toStringAsFixed(1),
+                style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: Colors.amber,
@@ -523,7 +668,7 @@ class VenueDetailPage extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
             reviews,
             style: TextStyle(fontSize: 12, color: Colors.grey[700]),
@@ -535,79 +680,25 @@ class VenueDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildPriceAndBooking(
-    BuildContext context,
-  ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Container(
-            padding: EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Start From',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[700],
-                          )),
-                      Row(
-                        children: [
-                          Text(NumberFormat("#,##0", "id_ID").format(1900000),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleLarge
-                                  ?.copyWith(
-                                      fontSize: 20,
-                                      color:
-                                          Theme.of(context).colorScheme.primary,
-                                      fontWeight: FontWeight.bold)),
-                          Text(' / hour',
-                              style: TextStyle(
-                                  fontSize: 14, color: Colors.grey[700]))
-                        ],
-                      ),
-                      Text('Include tax',
-                          style:
-                              TextStyle(fontSize: 12, color: Colors.grey[700]))
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: SecondaryButton(text: 'Book This', onPressed: () {}),
-                )
-              ],
-            )),
-      ),
-    );
-  }
+  Widget _buildSchedule(
+      BuildContext context, VenueDetailController controller) {
+    // Default schedule if none is available from API
+    final defaultSchedule = [
+      {'day': 'Monday', 'time': '08:00 - 17:00'},
+      {'day': 'Tuesday', 'time': '08:00 - 17:00'},
+      {'day': 'Wednesday', 'time': '08:00 - 17:00'},
+      {'day': 'Thursday', 'time': '08:00 - 17:00'},
+      {'day': 'Friday', 'time': '08:00 - 17:00'},
+      {'day': 'Saturday', 'time': '08:00 - 17:00'},
+      {'day': 'Sunday', 'time': 'Closed'},
+    ];
 
-  Widget _buildSchedule(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(8)),
+          borderRadius: const BorderRadius.all(Radius.circular(8)),
           border: Border.all(color: Colors.grey[300]!),
           color: Colors.white,
         ),
@@ -617,7 +708,7 @@ class VenueDetailPage extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
+                const Text(
                   'Schedule',
                   style: TextStyle(
                     fontSize: 16,
@@ -634,17 +725,27 @@ class VenueDetailPage extends StatelessWidget {
                 ),
               ],
             ),
-            Column(
-              children: [
-                _buildScheduleItem('Monday', '08:00 - 17:00'),
-                _buildScheduleItem('Tuesday', '08:00 - 17:00'),
-                _buildScheduleItem('Wednesday', '08:00 - 17:00'),
-                _buildScheduleItem('Thursday', '08:00 - 17:00'),
-                _buildScheduleItem('Friday', '08:00 - 17:00'),
-                _buildScheduleItem('Saturday', '08:00 - 17:00'),
-                _buildScheduleItem('Sunday', 'Closed'),
-              ],
-            ),
+
+            // Display schedules from API if available, otherwise use default
+            if (controller.venue.value?.schedules?.isNotEmpty == true)
+              Column(
+                children: controller.venue.value!.schedules!.map((schedule) {
+                  return _buildScheduleItem(
+                      schedule.day ?? "Data gagal difetch",
+                      schedule.isClosed == true
+                          ? "Closed"
+                          : "${schedule.openTime ?? '00:00'} - ${schedule.closeTime ?? '00:00'}");
+                }).toList(),
+              )
+            else
+              Column(
+                children: defaultSchedule.map((schedule) {
+                  return _buildScheduleItem(
+                    schedule['day'] ?? "Data gagal difetch",
+                    schedule['time'] ?? "Data gagal difetch",
+                  );
+                }).toList(),
+              ),
           ],
         ),
       ),
@@ -653,8 +754,8 @@ class VenueDetailPage extends StatelessWidget {
 
   Widget _buildScheduleItem(String day, String time) {
     return Container(
-      padding: EdgeInsets.all(8),
-      margin: EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.all(8),
+      margin: const EdgeInsets.only(top: 8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.grey[300]!),
@@ -664,13 +765,104 @@ class VenueDetailPage extends StatelessWidget {
         children: [
           Text(
             day,
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
           ),
           Text(
             time,
-            style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+            style: TextStyle(
+                fontSize: 12,
+                color: time.toLowerCase() == 'closed'
+                    ? Colors.red
+                    : Colors.grey[700]),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPriceAndBooking(
+    BuildContext context,
+    VenueDetailController controller,
+  ) {
+    int displayPrice = controller.venue.value?.price ?? 0;
+    if (displayPrice == 0 &&
+        controller.venue.value?.rooms?.isNotEmpty == true) {
+      displayPrice = controller.venue.value!.rooms!.fold<int>(
+        controller.venue.value!.rooms!.first.price ?? 0,
+        (min, room) =>
+            room.price != null && room.price! < min ? room.price! : min,
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Container(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Start From',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          Text(
+                            NumberFormat("#,##0", "id_ID").format(displayPrice),
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(
+                                    fontSize: 20,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
+                                    fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            ' / hour',
+                            style: TextStyle(
+                                fontSize: 14, color: Colors.grey[700]),
+                          )
+                        ],
+                      ),
+                      Text(
+                        'Include tax',
+                        style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                      )
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: SecondaryButton(
+                    text: 'Book This',
+                    onPressed: controller.bookVenue,
+                  ),
+                )
+              ],
+            )),
       ),
     );
   }
