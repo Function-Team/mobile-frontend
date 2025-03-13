@@ -18,7 +18,6 @@ class HomePage extends StatelessWidget {
             children: [
               Text('Home', style: Theme.of(context).textTheme.displaySmall),
               SizedBox(height: 18),
-              SizedBox(height: 18),
               ElevatedButton(
                 onPressed: () {
                   authController.logout();

@@ -20,7 +20,7 @@ class MainApp extends StatelessWidget {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       theme: AppTheme.themeData,
-      initialRoute: MyRoutes.detailVenue,
+      initialRoute: MyRoutes.home,
       initialBinding: AuthBinding(),
       getPages: MyRoutes.pages,
     );
