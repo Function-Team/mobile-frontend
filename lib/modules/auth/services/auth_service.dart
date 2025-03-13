@@ -26,13 +26,13 @@ class AuthService {
       print('API URL: $baseUrl/api/login');
 
       final response = await http.post(
-        Uri.parse('$baseUrl/api/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'username': username,
-          'password': password,
-        }),
-      );
+      Uri.parse('$baseUrl/api/login'),
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: {
+        'username': username,
+        'password': password,
+      },
+    );
 
       print('Login response status: ${response.statusCode}');
       print('Login response body: ${response.body}');
@@ -51,7 +51,6 @@ class AuthService {
           final errorData = json.decode(response.body);
           if (errorData['detail'] != null) {
             if (errorData['detail'] is List) {
-              // Handle FastAPI validation error format
               final details = errorData['detail'] as List;
               if (details.isNotEmpty) {
                 errorMessage = details.map((e) => e['msg']).join(", ");
