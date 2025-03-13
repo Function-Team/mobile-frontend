@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:function_mobile/components/buttons/primary_button.dart';
-import 'package:function_mobile/components/buttons/secondary_button.dart';
-import 'package:function_mobile/components/buttons/outline_button.dart';
-import 'package:function_mobile/components/inputs/auth_text_field.dart';
-import 'package:function_mobile/components/inputs/search_text_field.dart';
+import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
+import 'package:function_mobile/common/widgets/buttons/secondary_button.dart';
+import 'package:function_mobile/common/widgets/buttons/outline_button.dart';
+import 'package:function_mobile/common/widgets/inputs/auth_text_field.dart';
+import 'package:function_mobile/common/widgets/inputs/search_text_field.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:function_mobile/modules/venue/components/venue_card.dart';
+import 'package:function_mobile/modules/venue/widgets/venue_card.dart';
 
 class ComponentsView extends StatelessWidget {
   const ComponentsView({super.key});
@@ -44,14 +44,16 @@ class ComponentsView extends StatelessWidget {
               ),
               SizedBox(height: 18),
               VenueCard(
-                onTap: () => {},
+                onTap: () => {print('Card Clicked')},
+                capacityType: '1-100',
+                roomType: 'Working Space',
                 venueName: 'Venue Name',
-                location: 'Location',
+                location: 'Surabaya',
                 rating: 4.5,
                 ratingCount: 4000,
                 price: 100000,
                 imageUrl:
-                    'https://www.wework.com/ideas/wp-content/uploads/sites/4/2021/08/20201008-199WaterSt-2_fb.jpg?fit=1200%2C675',
+                    'https://i.pinimg.com/736x/c8/93/72/c89372f59e7e81590dec89117249b4ea.jpg',
                 priceType: 'Rp',
               )
             ],
