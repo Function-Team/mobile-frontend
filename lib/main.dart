@@ -21,7 +21,7 @@ class MainApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.themeData,
       home: ComponentsView(),
-      initialRoute: MyRoutes.componentView,
+      initialRoute: MyRoutes.login,
       initialBinding: AuthBinding(),
       getPages: MyRoutes.pages,
     );

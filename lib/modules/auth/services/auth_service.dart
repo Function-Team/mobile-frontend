@@ -1,81 +1,159 @@
-import 'package:function_mobile/modules/auth/models/auth_model.dart';
-// import 'package:get/get_connect/http/src/request/request.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  //TODO: static const String _baseUrl = 'https://api-placholder.inimshdummy.com';
+  static const String baseUrl = 'http://backend.thefunction.id';
 
   Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('auth_token', token);
+    await prefs.setString('access_token', token);
   }
 
   Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('auth_token');
+    return prefs.getString('access_token');
   }
 
-  Future<void> clearToken() async {
+  Future<void> removeToken() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('auth_token');
+    await prefs.remove('access_token');
   }
 
-  Future<AuthResponse> login(LoginRequest request) async {
+  Future<Map<String, dynamic>> login(String username, String password) async {
     try {
-      await Future.delayed(const Duration(seconds: 1));
+      print('Attempting login with username: $username');
+      print('API URL: $baseUrl/api/login');
 
-      // TODO: nanti diganti pake kode untuk manggil API FastAPI
-      // final response = await http.post(
-      //   Uri.parse('$_baseUrl/auth/login'),
-      //   headers: {'Content-Type': 'application/json'},
-      //   body: jsonEncode(request.toJson()),
-      // );
-
-      if (request.email == "test123@gmail.com" &&
-          request.password == "12345678") {
-        final mockUser = User(
-            id: '1',
-            email: request.email,
-            username: 'codeblue',
-            token: 'mock_token_${DateTime.now().millisecondsSinceEpoch}');
-        await saveToken(mockUser.token ?? '');
-
-        return AuthResponse(
-            success: true, message: "Login succesfull", user: mockUser);
-      }
-      return AuthResponse(success: false, message: "Invalid email or password");
-    } catch (e) {
-      return AuthResponse(
-        success: false,
-        message: "Login failed: ${e.toString()}",
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'username': username,
+          'password': password,
+        }),
       );
+
+      print('Login response status: ${response.statusCode}');
+      print('Login response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['access_token'] != null) {
+          await saveToken(data['access_token']);
+        }
+        return data;
+      } else {
+        String errorMessage =
+            'Login failed with status: ${response.statusCode}';
+
+        try {
+          final errorData = json.decode(response.body);
+          if (errorData['detail'] != null) {
+            if (errorData['detail'] is List) {
+              // Handle FastAPI validation error format
+              final details = errorData['detail'] as List;
+              if (details.isNotEmpty) {
+                errorMessage = details.map((e) => e['msg']).join(", ");
+              }
+            } else {
+              errorMessage = errorData['detail'];
+            }
+          }
+        } catch (e) {
+          if (response.body.isNotEmpty) {
+            errorMessage = 'Server error: ${response.body}';
+          }
+        }
+
+        throw Exception(errorMessage);
+      }
+    } catch (e) {
+      print('Error during login: $e');
+      throw Exception('Error during login: $e');
     }
   }
 
-  Future<AuthResponse> register(RegisterRequest request) async {
+  Future<Map<String, dynamic>> signup(String username, String password) async {
     try {
-      await Future.delayed(const Duration(seconds: 1));
+      final response = await http
+          .post(
+        Uri.parse('$baseUrl/api/signup'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'username': username, 'password': password}),
+      )
+          .timeout(Duration(seconds: 10), onTimeout: () {
+        throw Exception('Network timeout. Please check your connection.');
+      });
 
-      // TODO: Ganti dengan kode untuk memanggil API FastAPI nanti
-      // final response = await http.post(
-      //   Uri.parse('$_baseUrl/auth/register'),
-      //   headers: {'Content-Type': 'application/json'},
-      //   body: jsonEncode(request.toJson()),
-      // );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        try {
+          final data = json.decode(response.body);
+          if (data['access_token'] != null) {
+            await saveToken(data['access_token']);
+          }
+          return data;
+        } catch (e) {
+          throw Exception('Invalid response format from server');
+        }
+      } else {
+        String errorMessage =
+            'Signup failed with status: ${response.statusCode}';
+        try {
+          final errorData = json.decode(response.body);
+          errorMessage = errorData['detail'] ?? errorMessage;
+        } catch (e) {
+          if (response.body.isNotEmpty) {
+            errorMessage = 'Server error: ${response.body}';
+          }
+        }
 
-      final mockUser = User(
-        id: '${DateTime.now().millisecondsSinceEpoch}',
-        email: request.email,
-        username: request.username,
-        token: 'mock_token_${DateTime.now().millisecondsSinceEpoch}',
-      );
-      await saveToken(mockUser.token ?? '');
+        // Handle the specific 500 error case
+        if (response.statusCode == 500 &&
+            response.body.contains('Internal Server Error')) {
+          errorMessage =
+              'The server is currently unavailable. Please try again later or contact support.';
+        }
 
-      return AuthResponse(
-          success: true, message: 'Login succesful', user: mockUser);
+        throw Exception(errorMessage);
+      }
     } catch (e) {
-      return AuthResponse(
-          success: false, message: 'Login Failed: ${e.toString()}');
+      print('Error during signup: $e');
+      if (e.toString().contains('FormatException')) {
+        throw Exception(
+            'Server returned an invalid response. Please try again later.');
+      } else {
+        throw Exception('Error during signup: $e');
+      }
+    }
+  }
+
+  Future<Map<String, String>> getAuthHeaders() async {
+    final token = await getToken();
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+  }
+
+  Future<dynamic> fetchProtectedData(String endPoint) async {
+    final headers = await getAuthHeaders();
+    final response = await http
+        .get(
+      Uri.parse('$baseUrl$endPoint'),
+      headers: headers,
+    )
+        .timeout(Duration(seconds: 10), onTimeout: () {
+      throw Exception('Network timeout. Please check your connection.');
+    });
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else if (response.statusCode == 401) {
+      await removeToken();
+      throw Exception('Unauthorized, please login again');
+    } else {
+      throw Exception('Failed to fetch data');
     }
   }
 
@@ -85,6 +163,6 @@ class AuthService {
   }
 
   Future<void> logout() async {
-    await clearToken();
+    await removeToken();
   }
 }

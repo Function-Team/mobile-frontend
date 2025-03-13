@@ -47,42 +47,57 @@ class SignupPage extends StatelessWidget {
                     AuthTextField(
                       hintText: 'Enter your username',
                       isPassword: false,
-                      controller: authController.emailLoginController,
+                      controller: authController.usernameSignUpController,
+                    ),
+                  ],
+                ),
+                // Since the API doesn't use email, we can make this optional
+                // or comment it out if not needed
+                SizedBox(height: 18),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Email (Optional)", 
+                        style: Theme.of(context).textTheme.bodyLarge),
+                    SizedBox(height: 8),
+                    AuthTextField(
+                      hintText: 'Enter your email (optional)',
+                      isPassword: false,
+                      controller: authController.emailSignUpController,
                     ),
                   ],
                 ),
                 SizedBox(height: 18),
                 Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start, 
                   children: [
-                    Text("Email", style: Theme.of(context).textTheme.bodyLarge),
+                    Text("Password",
+                        style: Theme.of(context).textTheme.bodyLarge),
                     SizedBox(height: 8),
                     AuthTextField(
-                      hintText: 'Enter your email',
-                      isPassword: false,
-                      controller: authController.emailLoginController,
+                        hintText: 'Enter your password',
+                        isPassword: true,
+                        controller: authController.passwordSignUpController),
+                    SizedBox(height: 5),
+                    Text(
+                      "Password must be at least 6 characters",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
                     ),
-                  ],
-                ),
-                SizedBox(height: 18),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text("Password",
-                      style: Theme.of(context).textTheme.bodyLarge),
-                  SizedBox(height: 8),
-                  AuthTextField(
-                      hintText: 'Enter your password',
-                      isPassword: true,
-                      controller: authController.passwordLoginController),
                 ]),
                 SizedBox(height: 18),
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text("Confirm Password",
-                      style: Theme.of(context).textTheme.bodyLarge),
-                  SizedBox(height: 8),
-                  AuthTextField(
-                      hintText: 'Confirm your password',
-                      isPassword: true,
-                      controller: authController.passwordLoginController),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start, 
+                  children: [
+                    Text("Confirm Password",
+                        style: Theme.of(context).textTheme.bodyLarge),
+                    SizedBox(height: 8),
+                    AuthTextField(
+                        hintText: 'Confirm your password',
+                        isPassword: true,
+                        controller: authController.confirmSignUpPasswordController),
                 ]),
                 SizedBox(height: 18),
                 Obx(() => PrimaryButton(
@@ -92,7 +107,7 @@ class SignupPage extends StatelessWidget {
                       onPressed: authController.isLoading.value
                           ? null
                           : () {
-                              authController.login();
+                              authController.signup();
                             },
                     )),
                 SizedBox(height: 18),
