@@ -169,6 +169,7 @@ packages:
     source: hosted
     version: "4.7.2"
   http:
+    dependency: "direct main"
     dependency: transitive
     description:
       name: http
