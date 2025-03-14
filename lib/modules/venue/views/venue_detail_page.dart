@@ -396,7 +396,7 @@ class VenueDetailPage extends StatelessWidget {
   }
 
   Widget _buildFacilityItem(IconData? icon, String text, bool isAvailable) {
-    return Container(
+    return SizedBox(
       height: 30,
       child: Row(
         children: [

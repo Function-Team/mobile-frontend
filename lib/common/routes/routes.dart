@@ -5,6 +5,8 @@ import 'package:function_mobile/modules/auth/views/login_page.dart';
 import 'package:function_mobile/modules/home/views/home_page.dart';
 import 'package:function_mobile/modules/legal/terms_of_service_page.dart';
 import 'package:function_mobile/common/widgets/views/components_view.dart';
+import 'package:function_mobile/modules/navigation/bindings/bottom_nav_binding.dart';
+import 'package:function_mobile/modules/navigation/views/bottom_nav_view.dart';
 import 'package:function_mobile/modules/venue/bindings/venue_binding.dart';
 import 'package:function_mobile/modules/venue/views/venue_detail_page.dart';
 import 'package:function_mobile/modules/venue/views/venue_list_page.dart';
@@ -37,6 +39,7 @@ class MyRoutes {
       binding: AuthBinding(),
     ),
     GetPage(name: home, page: () => HomePage()),
+    GetPage(name: bottomNav, page: () => BottomNavView(), binding: BottomNavBinding()),
     GetPage(name: privacyPolicy, page: () => PrivacyPolicyPage()),
     GetPage(name: termsOfService, page: () => TermsOfServicePage()),
     GetPage(name: componentView, page: () => ComponentsView()),
