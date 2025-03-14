@@ -34,7 +34,7 @@ class AppColors {
   // Static ColorScheme
   static const ColorScheme colorScheme = ColorScheme(
     primary: primaryColor,
-    primaryContainer: primaryDark,
+    primaryContainer: primaryDarker,
     secondary: accentColor,
     secondaryContainer: successColor,
     surface: surfaceColor,
