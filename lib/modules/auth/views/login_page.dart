@@ -42,13 +42,13 @@ class LoginPage extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Email/Username",
+                    Text("Username",
                         style: Theme.of(context).textTheme.bodyLarge),
                     SizedBox(height: 8),
                     AuthTextField(
-                      hintText: 'Enter your email or username',
+                      hintText: 'Enter your username',
                       isPassword: false,
-                      controller: authController.emailLoginController,
+                      controller: authController.usernameLoginController,
                     ),
                   ],
                 ),
