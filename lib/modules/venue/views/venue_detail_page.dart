@@ -108,6 +108,7 @@ class VenueDetailPage extends StatelessWidget {
       }),
     );
   }
+
   Widget _buildVenueInfoCard(
       BuildContext context, VenueDetailController controller) {
     return Container(
@@ -135,8 +136,9 @@ class VenueDetailPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        controller.venue.value?.name ?? 'Kudos Cafe',
+                        controller.venue.value?.name ?? 'Data tidak ada',
                         style: const TextStyle(
+                          color: Colors.black,
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                         ),
@@ -201,7 +203,6 @@ class VenueDetailPage extends StatelessWidget {
               ],
             ),
           ),
-
           const SizedBox(height: 16),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -214,6 +215,7 @@ class VenueDetailPage extends StatelessWidget {
                     const Text(
                       'About Venue',
                       style: TextStyle(
+                        color: Colors.black,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -248,6 +250,7 @@ class VenueDetailPage extends StatelessWidget {
                 const Text(
                   'Pemilik Venue',
                   style: TextStyle(
+                    color: Colors.black,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
@@ -277,6 +280,7 @@ class VenueDetailPage extends StatelessWidget {
                           controller.venue.value?.host?.user?.username ??
                               'Vickie Streich',
                           style: const TextStyle(
+                            color: Colors.black,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -298,6 +302,7 @@ class VenueDetailPage extends StatelessWidget {
       ),
     );
   }
+
   Widget _buildLocationSection(
       BuildContext context, VenueDetailController controller) {
     return Container(
@@ -324,7 +329,7 @@ class VenueDetailPage extends StatelessWidget {
                     Text(
                       controller.venue.value?.address ??
                           'Pakuwon Square AK 2 No. 3, Jl. Yono Suwoyo No. 100, Surabaya',
-                      style: const TextStyle(fontSize: 14),
+                      style: const TextStyle(fontSize: 14, color: Colors.black),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -357,6 +362,7 @@ class VenueDetailPage extends StatelessWidget {
           const Text(
             'Fasilitas',
             style: TextStyle(
+              color: Colors.black,
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
@@ -430,6 +436,7 @@ class VenueDetailPage extends StatelessWidget {
               const Text(
                 'Reviews',
                 style: TextStyle(
+                  color: Colors.black,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -510,8 +517,10 @@ class VenueDetailPage extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 name,
-                style:
-                    const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black),
               ),
               const Spacer(),
               Text(
@@ -555,6 +564,7 @@ class VenueDetailPage extends StatelessWidget {
               const Text(
                 'Schedule',
                 style: TextStyle(
+                  color: Colors.black,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
