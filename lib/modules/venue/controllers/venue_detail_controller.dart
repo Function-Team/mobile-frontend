@@ -1,4 +1,3 @@
-// lib/modules/venue/controllers/venue_detail_controller.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
