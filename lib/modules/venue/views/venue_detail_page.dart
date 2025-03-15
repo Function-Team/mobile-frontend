@@ -77,30 +77,17 @@ class VenueDetailPage extends StatelessWidget {
                         ),
                       ],
                     ),
-
-                    // Venue Info Section (with negative margin to create overlap)
                     Transform.translate(
                       offset: const Offset(0, -60),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Column(
                           children: [
-                            // Venue Info Card
                             _buildVenueInfoCard(context, controller),
-
-                            // Location section
                             _buildLocationSection(context, controller),
-
-                            // Facilities section
                             _buildFacilitiesSection(context, controller),
-
-                            // Reviews section
                             _buildReviewsSection(context, controller),
-
-                            // Schedule section
                             _buildScheduleSection(context, controller),
-
-                            // Padding at bottom to account for booking bar
                             const SizedBox(height: 80),
                           ],
                         ),
@@ -109,8 +96,6 @@ class VenueDetailPage extends StatelessWidget {
                   ],
                 ),
               ),
-
-              // Fixed bottom bar
               Positioned(
                 bottom: 0,
                 left: 0,
@@ -123,8 +108,6 @@ class VenueDetailPage extends StatelessWidget {
       }),
     );
   }
-
-  // Venue info card with title, rating, categories, about venue, and owner
   Widget _buildVenueInfoCard(
       BuildContext context, VenueDetailController controller) {
     return Container(
@@ -142,7 +125,6 @@ class VenueDetailPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Venue title and action buttons
           Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -197,8 +179,6 @@ class VenueDetailPage extends StatelessWidget {
               ],
             ),
           ),
-
-          // Category chips
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Wrap(
@@ -223,8 +203,6 @@ class VenueDetailPage extends StatelessWidget {
           ),
 
           const SizedBox(height: 16),
-
-          // About Venue section
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
@@ -320,8 +298,6 @@ class VenueDetailPage extends StatelessWidget {
       ),
     );
   }
-
-  // Location section
   Widget _buildLocationSection(
       BuildContext context, VenueDetailController controller) {
     return Container(
@@ -341,12 +317,10 @@ class VenueDetailPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Location text with flexible width
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // If address is too long, it shows in multiple lines
                     Text(
                       controller.venue.value?.address ??
                           'Pakuwon Square AK 2 No. 3, Jl. Yono Suwoyo No. 100, Surabaya',
@@ -357,9 +331,7 @@ class VenueDetailPage extends StatelessWidget {
                   ],
                 ),
               ),
-              // Fixed padding to keep icon separate
               const SizedBox(width: 12),
-              // Location icon
               Icon(Icons.location_on,
                   color: Theme.of(context).colorScheme.primary),
             ],
@@ -369,7 +341,6 @@ class VenueDetailPage extends StatelessWidget {
     );
   }
 
-  // Facilities section
   Widget _buildFacilitiesSection(
       BuildContext context, VenueDetailController controller) {
     return Container(
@@ -418,7 +389,6 @@ class VenueDetailPage extends StatelessWidget {
     );
   }
 
-  // Facility item helper
   Widget _buildFacilityItem(IconData icon, String text, bool isAvailable) {
     return SizedBox(
       height: 30,
@@ -441,7 +411,6 @@ class VenueDetailPage extends StatelessWidget {
     );
   }
 
-  // Reviews section
   Widget _buildReviewsSection(
       BuildContext context, VenueDetailController controller) {
     return Container(
@@ -500,7 +469,6 @@ class VenueDetailPage extends StatelessWidget {
     );
   }
 
-  // Review card helper
   Widget _buildReviewCard(
     String name,
     double rating,
@@ -568,7 +536,6 @@ class VenueDetailPage extends StatelessWidget {
     );
   }
 
-  // Schedule section
   Widget _buildScheduleSection(
       BuildContext context, VenueDetailController controller) {
     return Container(
@@ -618,7 +585,6 @@ class VenueDetailPage extends StatelessWidget {
     );
   }
 
-  // Schedule item helper
   Widget _buildScheduleItem(String day, String time) {
     return Container(
       padding: const EdgeInsets.all(8),
@@ -643,7 +609,6 @@ class VenueDetailPage extends StatelessWidget {
     );
   }
 
-  // Price and booking bar at bottom
   Widget _buildPriceAndBooking(
     BuildContext context,
     VenueDetailController controller,
