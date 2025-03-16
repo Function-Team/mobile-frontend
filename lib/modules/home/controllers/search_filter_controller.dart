@@ -9,10 +9,6 @@ class SearchFilterController extends GetxController {
   final capacityController = TextEditingController();
   final dateController = TextEditingController();
 
-  @override
-  void onInit() {
-    super.onInit();
-  }
 
   @override
   void onClose() {

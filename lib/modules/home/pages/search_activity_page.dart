@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 class SearchActivityPage extends StatelessWidget {
   final TextEditingController searchController = TextEditingController();
 
+  SearchActivityPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -50,11 +52,10 @@ class SearchActivityPage extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
-            _buildVenueItem('WoW Hall', 'assets/images/wow_hall.png'),
-            _buildVenueItem(
-                'Surya Working Space', 'assets/images/surya_ws.png'),
-            _buildVenueItem('Wonder Studio', 'assets/images/wonder_studio.png'),
-            _buildVenueItem('The Workstation', 'assets/images/workstation.png'),
+            _buildVenueItem('WoW Hall', ''),
+            _buildVenueItem('Surya Working Space', ''),
+            _buildVenueItem('Wonder Studio', ''),
+            _buildVenueItem('The Workstation', ''),
           ],
         ),
       ),

@@ -32,46 +32,47 @@ class HomePage extends StatelessWidget {
                         ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        // stops: [0.5, 1],
                       ),
                     ),
                   ),
-                  Padding(
+                  Container(
                     padding: EdgeInsets.fromLTRB(16, 30, 16, 16),
-                    child: Positioned(
-                      child: Column(
-                        children: [
-                          _buildHeader(context, '', 'John Doe'),
-                          SizedBox(height: 40),
-                          SearchContainer(
-                              controllerActivity:
-                                  searchController.activityController,
-                              controllerLocation:
-                                  searchController.locationController,
-                              controllerCapacity:
-                                  searchController.capacityController,
-                              controllerDate: searchController.dateController),
-                        ],
-                      ),
+                    child: Column(
+                      children: [
+                        _buildHeader(context, '', 'John Doe'),
+                        SizedBox(height: 40),
+                        SearchContainer(
+                          controllerActivity:
+                              searchController.activityController,
+                          controllerLocation:
+                              searchController.locationController,
+                          controllerCapacity:
+                              searchController.capacityController,
+                          controllerDate: searchController.dateController,
+                        ),
+                      ],
                     ),
-                  )
+                  ),
                 ],
 
               ),
               Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      _buildRecommendation(context,
-                          imageUrl:
-                              'https://images.unsplash.com/photo-1612830720303-4b3b3b3b3b3b',
-                          venueName: 'The Grand Ballroom',
-                          location: 'Jakarta',
-                          capacity: '1000 people',
-                          price: 'Rp 10.000.000',
-                          rating: '4.5'),
-                    ],
-                  ))
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    _buildRecommendation(
+                      context,
+                      imageUrl:
+                          'https://images.unsplash.com/photo-1612830720303-4b3b3b3b3b3b',
+                      venueName: 'The Grand Ballroom',
+                      location: 'Jakarta',
+                      capacity: '1000 people',
+                      price: 'Rp 10.000.000',
+                      rating: '4.5',
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -158,7 +159,7 @@ class HomePage extends StatelessWidget {
           Text('Recommendation',
               style: Theme.of(context).textTheme.headlineSmall),
           SizedBox(height: 10),
-          Container(
+          SizedBox(
             height: 220,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,

@@ -6,12 +6,14 @@ import 'package:function_mobile/modules/legal/privacy_policy_page.dart';
 import 'package:function_mobile/modules/auth/views/login_page.dart';
 import 'package:function_mobile/modules/legal/terms_of_service_page.dart';
 import 'package:function_mobile/common/widgets/views/components_view.dart';
+import 'package:function_mobile/modules/profile/bindings/profile_binding.dart';
 import 'package:function_mobile/modules/venue/bindings/venue_detail_binding.dart';
 import 'package:function_mobile/modules/navigation/bindings/bottom_nav_binding.dart';
 import 'package:function_mobile/modules/navigation/views/bottom_nav_view.dart';
 import 'package:function_mobile/modules/venue/bindings/venue_binding.dart';
 import 'package:function_mobile/modules/venue/views/venue_detail_page.dart';
 import 'package:function_mobile/modules/venue/views/venue_list_page.dart';
+import 'package:function_mobile/modules/profile/views/profile_page.dart';
 import 'package:get/get.dart';
 
 class MyRoutes {
@@ -56,5 +58,7 @@ class MyRoutes {
         name: detailVenue,
         page: () => VenueDetailPage(),
         binding: VenueBinding()),
+    GetPage(
+        name: profile, page: () => ProfilePage(), binding: ProfileBinding()),
   ];
 }
