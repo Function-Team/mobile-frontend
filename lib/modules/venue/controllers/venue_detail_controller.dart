@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/common/routes/routes.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:function_mobile/modules/venue/data/repositories/venue_repository.dart';
@@ -12,15 +13,12 @@ class VenueDetailController extends GetxController {
   final RxBool hasError = false.obs;
   final RxString errorMessage = ''.obs;
   
-  // For reviews
   final RxList<ReviewModel> reviews = <ReviewModel>[].obs;
   final RxBool isLoadingReviews = true.obs;
   
-  // For facilities
   final RxList<FacilityModel> facilities = <FacilityModel>[].obs;
   final RxBool isLoadingFacilities = true.obs;
   
-  // Initialize icons map for facilities
   final Map<String, IconData> facilityIcons = {
     'Chair': Icons.chair,
     'Table': Icons.table_bar,
@@ -43,20 +41,17 @@ class VenueDetailController extends GetxController {
     loadVenueDetails(venueId);
   }
   
-  // Load venue details
   Future<void> loadVenueDetails(int venueId) async {
     try {
       isLoading.value = true;
       hasError.value = false;
       errorMessage.value = '';
       
-      // Fetch venue details
       final venueData = await _venueRepository.getVenueById(venueId);
       
       if (venueData != null) {
         venue.value = venueData;
         
-        // Fetch reviews and facilities in parallel
         await Future.wait([
           loadVenueReviews(venueId),
           loadVenueFacilities(venueId),
@@ -73,7 +68,6 @@ class VenueDetailController extends GetxController {
     }
   }
   
-  // Load venue reviews
   Future<void> loadVenueReviews(int venueId) async {
     try {
       isLoadingReviews.value = true;
@@ -86,7 +80,6 @@ class VenueDetailController extends GetxController {
     }
   }
   
-  // Load venue facilities
   Future<void> loadVenueFacilities(int venueId) async {
     try {
       isLoadingFacilities.value = true;
@@ -113,11 +106,9 @@ class VenueDetailController extends GetxController {
     }
   }
   
-  // Handle booking button click
   void bookVenue() {
-    // Navigation logic for booking
     if (venue.value?.id != null) {
-      Get.toNamed('/booking', arguments: {'venueId': venue.value!.id});
+      Get.toNamed(MyRoutes.bookinglist, arguments: {'venueId': venue.value!.id});
     } else {
       Get.snackbar(
         'Error',
@@ -127,9 +118,7 @@ class VenueDetailController extends GetxController {
     }
   }
   
-  // Handle contact host button click
   void contactHost() {
-    // Navigation logic for contacting host
     if (venue.value?.host?.id != null) {
       Get.toNamed('/chat', arguments: {'hostId': venue.value!.host!.id});
     } else {

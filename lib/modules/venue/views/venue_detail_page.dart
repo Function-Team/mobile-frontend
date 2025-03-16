@@ -36,11 +36,9 @@ class VenueDetailPage extends StatelessWidget {
         } else {
           return Stack(
             children: [
-              // Main scrollable content with all sections in a natural flow
               SingleChildScrollView(
                 child: Column(
                   children: [
-                    // Background image
                     Stack(
                       children: [
                         SizedBox(
@@ -52,7 +50,6 @@ class VenueDetailPage extends StatelessWidget {
                             fit: BoxFit.cover,
                           ),
                         ),
-                        // Back button overlay
                         Positioned(
                           top: 40,
                           left: 16,
@@ -71,7 +68,7 @@ class VenueDetailPage extends StatelessWidget {
                             child: IconButton(
                               icon: const Icon(Icons.arrow_back,
                                   color: Colors.black),
-                              onPressed: () => Navigator.pop(context),
+                              onPressed: () => Get.back(result: true),
                             ),
                           ),
                         ),

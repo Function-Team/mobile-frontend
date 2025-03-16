@@ -14,10 +14,13 @@ class AuthController extends GetxController {
   final TextEditingController passwordLoginController = TextEditingController();
 
   // For register
-  final TextEditingController usernameSignUpController = TextEditingController();
+  final TextEditingController usernameSignUpController =
+      TextEditingController();
   final TextEditingController emailSignUpController = TextEditingController();
-  final TextEditingController passwordSignUpController = TextEditingController();
-  final TextEditingController confirmSignUpPasswordController = TextEditingController();
+  final TextEditingController passwordSignUpController =
+      TextEditingController();
+  final TextEditingController confirmSignUpPasswordController =
+      TextEditingController();
 
   @override
   void onInit() {
@@ -38,12 +41,12 @@ class AuthController extends GetxController {
 
   void goToLogin() {
     errorMessage.value = '';
-    Get.toNamed('/login');
+    Get.toNamed(MyRoutes.login);
   }
 
   void goToSignup() {
     errorMessage.value = '';
-    Get.toNamed('/signup');
+    Get.toNamed(MyRoutes.signup);
   }
 
   Future<void> checkLoginStatus() async {
@@ -76,18 +79,19 @@ class AuthController extends GetxController {
         usernameLoginController.text.trim(),
         passwordLoginController.text,
       );
-      Get.offAllNamed('/home');
+      Get.offAllNamed(MyRoutes.detailVenue);
     } catch (e) {
       String message = e.toString();
       if (message.contains('Exception:')) {
         message = message.split('Exception:')[1].trim();
       }
-      
-      // error message user-friendly
-      if (message.contains('FormatException') || message.contains('Internal Server Error')) {
-        message = 'The server is currently unavailable. Please try again later.';
+
+      if (message.contains('FormatException') ||
+          message.contains('Internal Server Error')) {
+        message =
+            'The server is currently unavailable. Please try again later.';
       }
-      
+
       errorMessage.value = message;
     } finally {
       isLoading.value = false;
@@ -109,7 +113,7 @@ class AuthController extends GetxController {
       errorMessage.value = 'Passwords do not match';
       return;
     }
-    
+
     // Additional validation
     if (passwordSignUpController.text.length < 6) {
       errorMessage.value = 'Password must be at least 6 characters';
@@ -124,18 +128,19 @@ class AuthController extends GetxController {
         usernameSignUpController.text.trim(),
         passwordSignUpController.text,
       );
-      Get.offAllNamed('/home');
+      Get.offAllNamed(MyRoutes.detailVenue);
     } catch (e) {
       String message = e.toString();
       if (message.contains('Exception:')) {
         message = message.split('Exception:')[1].trim();
       }
-      
-      // error message user-friendly
-      if (message.contains('FormatException') || message.contains('Internal Server Error')) {
-        message = 'The server is currently unavailable. Please try again later.';
+
+      if (message.contains('FormatException') ||
+          message.contains('Internal Server Error')) {
+        message =
+            'The server is currently unavailable. Please try again later.';
       }
-      
+
       errorMessage.value = message;
     } finally {
       isLoading.value = false;
@@ -145,7 +150,7 @@ class AuthController extends GetxController {
   Future<void> logout() async {
     try {
       await _authService.logout();
-      Get.offAllNamed('/login');
+      Get.offAllNamed(MyRoutes.login);
     } catch (e) {
       errorMessage.value = 'Error during logout: ${e.toString()}';
     }
