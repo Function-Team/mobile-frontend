@@ -9,7 +9,6 @@ import 'package:function_mobile/common/widgets/views/components_view.dart';
 import 'package:function_mobile/modules/venue/bindings/venue_detail_binding.dart';
 import 'package:function_mobile/modules/navigation/bindings/bottom_nav_binding.dart';
 import 'package:function_mobile/modules/navigation/views/bottom_nav_view.dart';
-import 'package:function_mobile/modules/venue/bindings/venue_binding.dart';
 import 'package:function_mobile/modules/venue/views/venue_detail_page.dart';
 import 'package:function_mobile/modules/venue/views/venue_list_page.dart';
 import 'package:get/get.dart';
