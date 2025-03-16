@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class DateSelectionPage extends StatefulWidget {
+  const DateSelectionPage({super.key});
+
   @override
   _DateSelectionPageState createState() => _DateSelectionPageState();
 }
@@ -87,11 +89,11 @@ class _DateSelectionPageState extends State<DateSelectionPage> {
               'endTime': endTime,
             });
           },
-          child: Text('Continue'),
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.amber,
             minimumSize: Size(double.infinity, 48),
           ),
+          child: Text('Continue'),
         ),
       ),
     );

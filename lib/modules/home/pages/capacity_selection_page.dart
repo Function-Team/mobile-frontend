@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class CapacitySelectionPage extends StatelessWidget {
+  const CapacitySelectionPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,11 +26,11 @@ class CapacitySelectionPage extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         child: ElevatedButton(
           onPressed: () => Get.back(),
-          child: Text('Continue'),
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.amber,
             minimumSize: Size(double.infinity, 48),
           ),
+          child: Text('Continue'),
         ),
       ),
     );

@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 class SearchLocationPage extends StatelessWidget {
   final TextEditingController searchController = TextEditingController();
 
+  SearchLocationPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

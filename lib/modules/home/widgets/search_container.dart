@@ -13,12 +13,12 @@ class SearchContainer extends StatelessWidget {
   final TextEditingController controllerDate;
 
   const SearchContainer({
-    Key? key,
+    super.key,
     required this.controllerActivity,
     required this.controllerLocation,
     required this.controllerCapacity,
     required this.controllerDate,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
