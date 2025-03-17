@@ -47,57 +47,42 @@ class SignupPage extends StatelessWidget {
                     AuthTextField(
                       hintText: 'Enter your username',
                       isPassword: false,
-                      controller: authController.usernameSignUpController,
+                      controller: authController.emailLoginController,
                     ),
                   ],
                 ),
-                // Since the API doesn't use email, we can make this optional
-                // or comment it out if not needed
                 SizedBox(height: 18),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Email (Optional)", 
-                        style: Theme.of(context).textTheme.bodyLarge),
+                    Text("Email", style: Theme.of(context).textTheme.bodyLarge),
                     SizedBox(height: 8),
                     AuthTextField(
-                      hintText: 'Enter your email (optional)',
+                      hintText: 'Enter your email',
                       isPassword: false,
-                      controller: authController.emailSignUpController,
+                      controller: authController.emailLoginController,
                     ),
                   ],
                 ),
                 SizedBox(height: 18),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start, 
-                  children: [
-                    Text("Password",
-                        style: Theme.of(context).textTheme.bodyLarge),
-                    SizedBox(height: 8),
-                    AuthTextField(
-                        hintText: 'Enter your password',
-                        isPassword: true,
-                        controller: authController.passwordSignUpController),
-                    SizedBox(height: 5),
-                    Text(
-                      "Password must be at least 6 characters",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
-                    ),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text("Password",
+                      style: Theme.of(context).textTheme.bodyLarge),
+                  SizedBox(height: 8),
+                  AuthTextField(
+                      hintText: 'Enter your password',
+                      isPassword: true,
+                      controller: authController.passwordLoginController),
                 ]),
                 SizedBox(height: 18),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start, 
-                  children: [
-                    Text("Confirm Password",
-                        style: Theme.of(context).textTheme.bodyLarge),
-                    SizedBox(height: 8),
-                    AuthTextField(
-                        hintText: 'Confirm your password',
-                        isPassword: true,
-                        controller: authController.confirmSignUpPasswordController),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text("Confirm Password",
+                      style: Theme.of(context).textTheme.bodyLarge),
+                  SizedBox(height: 8),
+                  AuthTextField(
+                      hintText: 'Confirm your password',
+                      isPassword: true,
+                      controller: authController.passwordLoginController),
                 ]),
                 SizedBox(height: 18),
                 Obx(() => PrimaryButton(
@@ -107,7 +92,7 @@ class SignupPage extends StatelessWidget {
                       onPressed: authController.isLoading.value
                           ? null
                           : () {
-                              authController.signup();
+                              authController.login();
                             },
                     )),
                 SizedBox(height: 18),
