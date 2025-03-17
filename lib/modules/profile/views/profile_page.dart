@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/common/routes/routes.dart';
+import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
+import 'package:get/get.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -7,101 +10,121 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              // Handle settings navigation
-            },
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Stack(
-                children: [
-                  Container(
-                    height: 140,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Theme.of(context).colorScheme.primary,
-                          Theme.of(context).colorScheme.primaryContainer,
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(16, 30, 16, 16),
-                    child: Column(
-                      children: [
-                        _buildProfileCard(context, "https://picsum.photos/200",
-                            "John Doe", ""),
-                        const SizedBox(height: 24),
-                        _buildProfileOptions(context),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Stack(
+              children: [
+                Container(
+                  height: 140,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Theme.of(context).colorScheme.primary,
+                        Theme.of(context).colorScheme.primaryContainer,
                       ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
                     ),
                   ),
-                ],
-              ),
-            ],
-          ),
+                ),
+                Container(
+                  padding: const EdgeInsets.fromLTRB(16, 30, 16, 16),
+                  child: Column(
+                    children: [
+                      _buildProfileCard(
+                        context: context,
+                        profilePicture: "https://picsum.photos/200",
+                        name: "John Doe",
+                        email: "user@gmail.com",
+                        onEdit: () {
+                          Get.toNamed(MyRoutes.editProfile);
+                        },
+                        onTapViewProfile: () {},
+                      ),
+                      SizedBox(height: 40),
+                      _buildProfileOptions(context),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildProfileCard(
-      BuildContext context, String imageUrl, String username, String email) {
-    return Column(
-      children: [
-        Stack(
-          children: [
-            CircleAvatar(
-              radius: 50,
-              backgroundColor: Colors.white,
-              child: NetworkImageWithLoader(
-                imageUrl: imageUrl,
-                width: 100,
-                height: 100,
+      {required BuildContext context,
+      String? profilePicture,
+      required String name,
+      required String email,
+      required VoidCallback onEdit,
+      required VoidCallback onTapViewProfile}) {
+    return Container(
+      decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.background,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.tertiary,
+            width: 0.25,
+          )),
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(top: 60),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              profilePicture != null && profilePicture.isNotEmpty
+                  ? NetworkImageWithLoader(
+                      imageUrl: profilePicture,
+                      width: 70,
+                      height: 70,
+                      borderRadius: BorderRadius.all(Radius.circular(100)),
+                      fit: BoxFit.cover,
+                    )
+                  : CircleAvatar(
+                      radius: 20,
+                      backgroundColor: Colors.grey[400],
+                      child: Text(
+                        name.isNotEmpty ? name[0].toUpperCase() : '?',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                  Text(
+                    email,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
               ),
-            ),
-            Positioned(
-              bottom: 0,
-              right: 0,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.edit,
-                  size: 20,
-                  color: Colors.white,
-                ),
+              SizedBox(width: 16),
+              IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: onEdit,
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Text(
-          username,
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          email,
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-      ],
+            ],
+          ),
+          SizedBox(height: 16),
+          PrimaryButton(
+            text: 'View your Profile',
+            onPressed: onTapViewProfile,
+            width: double.infinity,
+          )
+        ],
+      ),
     );
   }
 
@@ -109,31 +132,76 @@ class ProfilePage extends StatelessWidget {
     return Column(
       children: [
         _buildOptionTile(
+          context: context,
+          icon: Icons.account_balance_wallet_outlined,
+          title: 'Payment Methods',
+          subtitle: 'Add or remove payment methods',
+          onTap: () {
+            // Handle PAYMENT METHODS
+          },
+        ),
+        SizedBox(height: 16),
+        _buildOptionTile(
+          context: context,
           icon: Icons.person_outline,
-          title: 'Edit Profile',
+          title: 'Your Details',
+          subtitle: 'Update your personal details',
           onTap: () {
-            // Handle edit profile
+            // Handle your details
           },
         ),
         _buildOptionTile(
-          icon: Icons.notifications_outlined,
-          title: 'Notifications',
+          context: context,
+          icon: Icons.money_off,
+          title: 'Refunds',
+          subtitle: 'Request a refund',
           onTap: () {
-            // Handle notifications
+            // Handle refunds
           },
         ),
         _buildOptionTile(
+          context: context,
           icon: Icons.privacy_tip_outlined,
           title: 'Privacy',
+          subtitle: 'View our privacy policy',
           onTap: () {
             // Handle privacy
           },
         ),
         _buildOptionTile(
+          context: context,
           icon: Icons.help_outline,
           title: 'Help & Support',
+          subtitle: 'Get help with your account',
           onTap: () {
             // Handle help & support
+          },
+        ),
+        _buildOptionTile(
+          context: context,
+          icon: Icons.headset_mic_outlined,
+          title: 'Contact Us',
+          subtitle: 'Get in touch with us',
+          onTap: () {
+            // Handle contact us
+          },
+        ),
+        _buildOptionTile(
+          context: context,
+          icon: Icons.info_outline,
+          title: 'About Us',
+          subtitle: 'Learn more about us',
+          onTap: () {
+            // Handle about us
+          },
+        ),
+        _buildOptionTile(
+          context: context,
+          icon: Icons.settings_outlined,
+          title: 'Settings',
+          subtitle: 'Manage your account settings',
+          onTap: () {
+            // Handle settings
           },
         ),
       ],
@@ -141,15 +209,31 @@ class ProfilePage extends StatelessWidget {
   }
 
   Widget _buildOptionTile({
+    required BuildContext context,
     required IconData icon,
     required String title,
+    required String subtitle,
     required VoidCallback onTap,
   }) {
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(title),
-      trailing: const Icon(Icons.chevron_right),
+    return GestureDetector(
       onTap: onTap,
+      child: Container(
+        margin: EdgeInsets.symmetric(vertical: 6),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.background,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.tertiary,
+            width: 0.25,
+          ),
+        ),
+        child: ListTile(
+          leading: Icon(icon),
+          title: Text(title),
+          subtitle: Text(subtitle),
+          trailing: const Icon(Icons.chevron_right),
+        ),
+      ),
     );
   }
 }

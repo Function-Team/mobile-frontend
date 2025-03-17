@@ -60,12 +60,13 @@ class NetworkImageWithLoader extends StatelessWidget {
         children: [
           Icon(
             Icons.image_not_supported,
-            size: 40,
+            size: 20,
             color: Colors.grey[600],
           ),
           const SizedBox(height: 4),
           Text(
             'Image not available',
+            overflow: TextOverflow.values[0],
             style: TextStyle(
               color: Colors.grey[600],
               fontSize: 12,

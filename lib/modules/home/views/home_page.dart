@@ -19,50 +19,58 @@ class HomePage extends StatelessWidget {
     final HomeController homeController = Get.put(HomeController());
 
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Stack(
-              children: [
-                Container(
-                  height: 250,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Theme.of(context).colorScheme.primary,
-                        Theme.of(context).colorScheme.primaryContainer,
-                      ],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Stack(
+                children: [
+                  Container(
+                    height: 250,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Theme.of(context).colorScheme.primary,
+                          Theme.of(context).colorScheme.primaryContainer,
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
                     ),
                   ),
-                ),
-                Container(
-                  padding: EdgeInsets.fromLTRB(16, 30, 16, 16),
-                  child: Column(
-                    children: [
-                      _buildHeader(context, '', authController.username),
-                      SizedBox(height: 40),
-                      SearchContainer(
-                        controllerActivity: searchController.activityController,
-                        controllerLocation: searchController.locationController,
-                        controllerCapacity: searchController.capacityController,
-                        controllerDate: searchController.dateController,
-                      ),
-                    ],
+                  Container(
+                    padding: EdgeInsets.fromLTRB(16, 30, 16, 16),
+                    child: Column(
+                      children: [
+                        _buildHeader(
+                            context, 'https://picsum.photos', 'John Doe'),
+                        SizedBox(height: 40),
+                        SearchContainer(
+                          controllerActivity:
+                              searchController.activityController,
+                          controllerLocation:
+                              searchController.locationController,
+                          controllerCapacity:
+                              searchController.capacityController,
+                          controllerDate: searchController.dateController,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-            Padding(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  _buildRecommendation(context),
                 ],
               ),
-            ),
-          ],
+              Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    _buildRecommendation(
+                      context,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -75,53 +83,53 @@ class HomePage extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            flex: 10,
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: Colors.grey[400],
-                  child: profilePicture != null && profilePicture.isNotEmpty
-                      ? ClipOval(
-                          child: NetworkImageWithLoader(
-                            imageUrl: profilePicture,
-                            width: 20,
-                            height: 20,
-                            fit: BoxFit.cover,
-                          ),
+              flex: 10,
+              child: Row(
+                children: [
+                  profilePicture != null && profilePicture.isNotEmpty
+                      ? NetworkImageWithLoader(
+                          imageUrl: profilePicture,
+                          width: 40,
+                          height: 40,
+                          borderRadius: BorderRadius.all(Radius.circular(100)),
+                          fit: BoxFit.cover,
                         )
-                      : Text(
-                          name.isNotEmpty ? name[0].toUpperCase() : '?',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
+                      : CircleAvatar(
+                          radius: 20,
+                          backgroundColor: Colors.grey[400],
+                          child: Text(
+                            name.isNotEmpty ? name[0].toUpperCase() : '?',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
-                ),
-                SizedBox(width: 8),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Hello, ',
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall
-                          ?.copyWith(color: Colors.grey[300]),
-                    ),
-                    Text(
-                      name,
-                      style:
-                          Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onPrimary,
-                              ),
-                    ),
-                  ],
-                )
-              ],
-            ),
-          ),
+                  SizedBox(width: 8),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Hello, ',
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineSmall
+                            ?.copyWith(color: Colors.grey[300]),
+                      ),
+                      Text(
+                        name,
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineSmall
+                            ?.copyWith(
+                              color: Theme.of(context).colorScheme.onPrimary,
+                            ),
+                      ),
+                    ],
+                  )
+                ],
+              )),
           Expanded(
             flex: 1,
             child: Icon(Icons.notifications,
@@ -135,67 +143,65 @@ class HomePage extends StatelessWidget {
   Widget _buildRecommendation(BuildContext context) {
     final controller = Get.find<HomeController>();
 
-    return Container(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Recommendation',
-              style: Theme.of(context).textTheme.headlineSmall),
-          SizedBox(height: 10),
-          Obx(() {
-            if (controller.isLoading.value) {
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Recommendation',
+            style: Theme.of(context).textTheme.headlineSmall),
+        SizedBox(height: 10),
+        Obx(() {
+          if (controller.isLoading.value) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
 
-            if (controller.recommendedVenues.isEmpty) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Text(
-                    'No venues available at the moment',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
+          if (controller.recommendedVenues.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Text(
+                  'No venues available at the moment',
+                  style: Theme.of(context).textTheme.bodyLarge,
                 ),
-              );
-            }
-
-            return SizedBox(
-              height: 220,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: controller.recommendedVenues.length,
-                itemBuilder: (context, index) {
-                  print('Building venue item $index');
-                  final venue = controller.recommendedVenues[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 12.0),
-                    child: VenueRecommendCard(
-                      imageUrl: venue.firstPictureUrl ??
-                          'https://via.placeholder.com/150',
-                      venueName: venue.name ?? 'Unknown Venue',
-                      location: venue.city?.name ??
-                          venue.address?.split(',').last.trim() ??
-                          'Unknown Location',
-                      capacity: '${venue.maxCapacity ?? 100} people',
-                      price:
-                          'Rp ${NumberFormat("#,##0", "id_ID").format(venue.price ?? 0)}',
-                      rating: '${venue.rating?.toStringAsFixed(1) ?? '4.5'}',
-                      onTap: () {
-                        if (venue.id != null) {
-                          Get.toNamed('/detailVenue',
-                              arguments: {'venueId': venue.id});
-                        }
-                      },
-                    ),
-                  );
-                },
               ),
             );
-          }),
-        ],
-      ),
+          }
+
+          return SizedBox(
+            height: 220,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: controller.recommendedVenues.length,
+              itemBuilder: (context, index) {
+                print('Building venue item $index');
+                final venue = controller.recommendedVenues[index];
+                return Padding(
+                  padding: const EdgeInsets.only(right: 12.0),
+                  child: VenueRecommendCard(
+                    imageUrl: venue.firstPictureUrl ??
+                        'https://via.placeholder.com/150',
+                    venueName: venue.name ?? 'Unknown Venue',
+                    location: venue.city?.name ??
+                        venue.address?.split(',').last.trim() ??
+                        'Unknown Location',
+                    capacity: '${venue.maxCapacity ?? 100} people',
+                    price:
+                        'Rp ${NumberFormat("#,##0", "id_ID").format(venue.price ?? 0)}',
+                    rating: venue.rating?.toStringAsFixed(1) ?? '4.5',
+                    onTap: () {
+                      if (venue.id != null) {
+                        Get.toNamed('/detailVenue',
+                            arguments: {'venueId': venue.id});
+                      }
+                    },
+                  ),
+                );
+              },
+            ),
+          );
+        }),
+      ],
     );
   }
 }
