@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/modules/auth/models/auth_model.dart';
 import 'package:function_mobile/modules/auth/services/auth_service.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:get/get.dart';
@@ -8,6 +9,7 @@ class AuthController extends GetxController {
 
   final RxBool isLoading = false.obs;
   final RxString errorMessage = ''.obs;
+  final Rx<User?> user = Rx<User?>(null);
 
   // For login
   final TextEditingController usernameLoginController = TextEditingController();
@@ -25,7 +27,7 @@ class AuthController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // checkLoginStatus();
+    checkLoginStatus();
   }
 
   @override
@@ -53,7 +55,16 @@ class AuthController extends GetxController {
     try {
       final isLoggedIn = await _authService.isLoggedIn();
       if (isLoggedIn) {
-        Get.offAllNamed(MyRoutes.home);
+        try {
+          final userData =
+              await _authService.fetchProtectedData('/api/user/me');
+          if (userData != null) {
+            user.value = User.fromJson(userData);
+          }
+        } catch (e) {
+          print('Error getting user data: $e');
+        }
+        Get.offAllNamed(MyRoutes.bottomNav);
       }
     } catch (e) {
       print('Error checking login status: $e');
@@ -75,11 +86,22 @@ class AuthController extends GetxController {
     errorMessage.value = '';
 
     try {
-      await _authService.login(
+      final userData = await _authService.login(
         usernameLoginController.text.trim(),
         passwordLoginController.text,
       );
-      Get.offAllNamed(MyRoutes.detailVenue);
+
+      if (userData != null && userData['access_token'] != null) {
+        if (userData['user'] != null) {
+          user.value = User.fromJson(userData['user']);
+        } else {
+          user.value = User(
+              id: 'temp_id',
+              username: usernameLoginController.text.trim(),
+              email: '');
+        }
+      }
+      Get.offAllNamed(MyRoutes.bottomNav);
     } catch (e) {
       String message = e.toString();
       if (message.contains('Exception:')) {
@@ -124,11 +146,22 @@ class AuthController extends GetxController {
     errorMessage.value = '';
 
     try {
-      await _authService.signup(
+      final userData = await _authService.signup(
         usernameSignUpController.text.trim(),
         passwordSignUpController.text,
       );
-      Get.offAllNamed(MyRoutes.detailVenue);
+
+      if (userData != null && userData['access_token'] != null) {
+        if (userData['user'] != null) {
+          user.value = User.fromJson(userData['user']);
+        } else {
+          user.value = User(
+              id: 'temp_id',
+              username: usernameSignUpController.text.trim(),
+              email: emailSignUpController.text.trim());
+        }
+      }
+      Get.offAllNamed(MyRoutes.bottomNav);
     } catch (e) {
       String message = e.toString();
       if (message.contains('Exception:')) {
@@ -150,9 +183,12 @@ class AuthController extends GetxController {
   Future<void> logout() async {
     try {
       await _authService.logout();
+      user.value = null;
       Get.offAllNamed(MyRoutes.login);
     } catch (e) {
       errorMessage.value = 'Error during logout: ${e.toString()}';
     }
   }
+
+  String get username => user.value?.username ?? 'Guest';
 }
