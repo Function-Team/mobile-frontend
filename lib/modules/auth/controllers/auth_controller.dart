@@ -7,21 +7,21 @@ import 'package:get/get.dart';
 class AuthController extends GetxController {
   final AuthService _authService = AuthService();
 
-  final Rx<User?> user = Rx<User?>(null);
   final RxBool isLoading = false.obs;
   final RxString errorMessage = ''.obs;
+  final Rx<User?> user = Rx<User?>(null);
 
-  //untuk login
-  final TextEditingController emailLoginController = TextEditingController();
+  // For login
+  final TextEditingController usernameLoginController = TextEditingController();
   final TextEditingController passwordLoginController = TextEditingController();
 
-  //untuk register
-  final TextEditingController emailRegisterController = TextEditingController();
-  final TextEditingController usernameRegisterController =
+  // For register
+  final TextEditingController usernameSignUpController =
       TextEditingController();
-  final TextEditingController passwordRegisterController =
+  final TextEditingController emailSignUpController = TextEditingController();
+  final TextEditingController passwordSignUpController =
       TextEditingController();
-  final TextEditingController confirmPasswordController =
+  final TextEditingController confirmSignUpPasswordController =
       TextEditingController();
 
   @override
@@ -32,144 +32,149 @@ class AuthController extends GetxController {
 
   @override
   void onClose() {
-    emailLoginController.dispose();
+    usernameSignUpController.dispose();
+    emailSignUpController.dispose();
+    passwordSignUpController.dispose();
+    confirmSignUpPasswordController.dispose();
+    usernameLoginController.dispose();
     passwordLoginController.dispose();
-    emailRegisterController.dispose();
-    usernameRegisterController.dispose();
-    passwordRegisterController.dispose();
-    confirmPasswordController.dispose();
     super.onClose();
   }
 
-  //check apakah user sudah login saat buka aplikasi
+  void goToLogin() {
+    errorMessage.value = '';
+    Get.toNamed(MyRoutes.login);
+  }
+
+  void goToSignup() {
+    errorMessage.value = '';
+    Get.toNamed(MyRoutes.signup);
+  }
+
   Future<void> checkLoginStatus() async {
-    final isLoggedIn = await _authService.isLoggedIn();
-    if (isLoggedIn) {
-      Get.offAllNamed(MyRoutes.home);
+    try {
+      final isLoggedIn = await _authService.isLoggedIn();
+      if (isLoggedIn) {
+        try {
+          final userData =
+              await _authService.fetchProtectedData('/api/user/me');
+          if (userData != null) {
+            user.value = User.fromJson(userData);
+          }
+        } catch (e) {
+          print('Error getting user data: $e');
+        }
+        Get.offAllNamed(MyRoutes.bottomNav);
+      }
+    } catch (e) {
+      print('Error checking login status: $e');
     }
   }
 
-  Future<void> login() async{
-    try{
-   // Reset error message
-      errorMessage.value = '';
-      
-      // Validasi input
-      if (emailLoginController.text.isEmpty || passwordLoginController.text.isEmpty) {
-        errorMessage.value = 'Please fill in all fields';
-        return;
-      }
-      
-      // Set loading state
-      isLoading.value = true;
-      
-      // Buat request
-      final request = LoginRequest(
-        email: emailLoginController.text.trim(),
-        password: passwordLoginController.text,
+  Future<void> login() async {
+    if (usernameLoginController.text.isEmpty) {
+      errorMessage.value = 'Username cannot be empty';
+      return;
+    }
+
+    if (passwordLoginController.text.isEmpty) {
+      errorMessage.value = 'Password cannot be empty';
+      return;
+    }
+
+    isLoading.value = true;
+    errorMessage.value = '';
+
+    try {
+      final userData = await _authService.login(
+        usernameLoginController.text.trim(),
+        passwordLoginController.text,
       );
-      
-      // Panggil service
-      final response = await _authService.login(request);
-      
-      // Handle response
-      if (response.success && response.user != null) {
-        user.value = response.user;
-        Get.offAllNamed(MyRoutes.home);
-        Get.snackbar(
-          'Success',
-          'Login successful',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
-      } else {
-        errorMessage.value = response.message;
-        Get.snackbar(
-          'Error',
-          response.message,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+
+      if (userData != null && userData['access_token'] != null) {
+        if (userData['user'] != null) {
+          user.value = User.fromJson(userData['user']);
+        } else {
+          user.value = User(
+              id: 'temp_id',
+              username: usernameLoginController.text.trim(),
+              email: '');
+        }
       }
+      Get.offAllNamed(MyRoutes.bottomNav);
     } catch (e) {
-      errorMessage.value = 'An error occurred: ${e.toString()}';
-      Get.snackbar(
-        'Error',
-        'An error occurred during login',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      String message = e.toString();
+      if (message.contains('Exception:')) {
+        message = message.split('Exception:')[1].trim();
+      }
+
+      if (message.contains('FormatException') ||
+          message.contains('Internal Server Error')) {
+        message =
+            'The server is currently unavailable. Please try again later.';
+      }
+
+      errorMessage.value = message;
     } finally {
       isLoading.value = false;
     }
   }
 
-   Future<void> register() async {
+  Future<void> signup() async {
+    if (usernameSignUpController.text.isEmpty) {
+      errorMessage.value = 'Username cannot be empty';
+      return;
+    }
+
+    if (passwordSignUpController.text.isEmpty) {
+      errorMessage.value = 'Password cannot be empty';
+      return;
+    }
+
+    if (passwordSignUpController.text != confirmSignUpPasswordController.text) {
+      errorMessage.value = 'Passwords do not match';
+      return;
+    }
+
+    // Additional validation
+    if (passwordSignUpController.text.length < 6) {
+      errorMessage.value = 'Password must be at least 6 characters';
+      return;
+    }
+
+    isLoading.value = true;
+    errorMessage.value = '';
+
     try {
-      // Reset error message
-      errorMessage.value = '';
-      
-      // Validasi input
-      if (emailRegisterController.text.isEmpty ||
-          usernameRegisterController.text.isEmpty ||
-          passwordRegisterController.text.isEmpty ||
-          confirmPasswordController.text.isEmpty) {
-        errorMessage.value = 'Please fill in all fields';
-        return;
-      }
-      
-      // Validasi password match
-      if (passwordRegisterController.text != confirmPasswordController.text) {
-        errorMessage.value = 'Passwords do not match';
-        return;
-      }
-      
-      // Set loading state
-      isLoading.value = true;
-      
-      // Buat request
-      final request = RegisterRequest(
-        email: emailRegisterController.text.trim(),
-        username: usernameRegisterController.text.trim(),
-        password: passwordRegisterController.text,
+      final userData = await _authService.signup(
+        usernameSignUpController.text.trim(),
+        passwordSignUpController.text,
       );
-      
-      // Panggil service
-      final response = await _authService.register(request);
-      
-      // Handle response
-      if (response.success && response.user != null) {
-        user.value = response.user;
-        Get.offAllNamed(MyRoutes.home);
-        Get.snackbar(
-          'Success',
-          'Registration successful',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
-      } else {
-        errorMessage.value = response.message;
-        Get.snackbar(
-          'Error',
-          response.message,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+
+      if (userData != null && userData['access_token'] != null) {
+        if (userData['user'] != null) {
+          user.value = User.fromJson(userData['user']);
+        } else {
+          user.value = User(
+              id: 'temp_id',
+              username: usernameSignUpController.text.trim(),
+              email: emailSignUpController.text.trim());
+        }
       }
+      Get.offAllNamed(MyRoutes.bottomNav);
     } catch (e) {
-      errorMessage.value = 'An error occurred: ${e.toString()}';
-      Get.snackbar(
-        'Error',
-        'An error occurred during registration',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      String message = e.toString();
+      if (message.contains('Exception:')) {
+        message = message.split('Exception:')[1].trim();
+      }
+
+      if (message.contains('FormatException') ||
+          message.contains('Internal Server Error')) {
+        message =
+            'The server is currently unavailable. Please try again later.';
+      }
+
+      errorMessage.value = message;
     } finally {
       isLoading.value = false;
     }
@@ -180,39 +185,10 @@ class AuthController extends GetxController {
       await _authService.logout();
       user.value = null;
       Get.offAllNamed(MyRoutes.login);
-      Get.snackbar(
-        'Success',
-        'Logout successful',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'An error occurred during logout',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      errorMessage.value = 'Error during logout: ${e.toString()}';
     }
   }
 
-  void goToSignup() {
-    // Reset controllers
-    emailRegisterController.clear();
-    usernameRegisterController.clear();
-    passwordRegisterController.clear();
-    confirmPasswordController.clear();
-    
-    Get.toNamed(MyRoutes.signup);
-  }
-
-  void goToLogin() {
-    // Reset controllers
-    emailLoginController.clear();
-    passwordLoginController.clear();
-    
-    Get.toNamed(MyRoutes.login);
-  }
+  String get username => user.value?.username ?? 'Guest';
 }

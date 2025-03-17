@@ -1,0 +1,43 @@
+import 'package:flutter/material.dart';
+import 'package:function_mobile/modules/booking/views/booking_page.dart';
+import 'package:get/get.dart';
+import 'package:function_mobile/modules/home/views/home_page.dart';
+import 'package:function_mobile/modules/profile/views/profile_page.dart';
+import 'package:function_mobile/modules/navigation/controllers/bottom_nav_controller.dart';
+
+class BottomNavView extends StatelessWidget {
+  final BottomNavController controller = Get.find();
+
+  BottomNavView({super.key});
+  final List<Widget> pages = [
+    // Add your pages here
+    HomePage(),
+    BookingsPage(),
+    // FavoritesPage(),
+    // ChatPage(),
+    ProfilePage(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: PageView(
+          controller: controller.pageController,
+          onPageChanged: (index) => controller.currentIndex.value = index,
+          children: pages),
+      bottomNavigationBar: Obx(
+        () => BottomNavigationBar(
+          currentIndex: controller.currentIndex.value,
+          onTap: controller.changePage,
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+            BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Bookings'),
+            // BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Favorites'),
+            // BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+          ],
+        ),
+      ),
+    );
+  }
+}

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/common/widgets/images/network_image.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -41,9 +42,8 @@ class ProfilePage extends StatelessWidget {
                     padding: const EdgeInsets.fromLTRB(16, 30, 16, 16),
                     child: Column(
                       children: [
-                        _buildProfileCard(context),
-                        const SizedBox(height: 24),
-                        _buildStatsRow(),
+                        _buildProfileCard(context, "https://picsum.photos/200",
+                            "John Doe", ""),
                         const SizedBox(height: 24),
                         _buildProfileOptions(context),
                       ],
@@ -58,14 +58,20 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileCard(BuildContext context) {
+  Widget _buildProfileCard(
+      BuildContext context, String imageUrl, String username, String email) {
     return Column(
       children: [
         Stack(
           children: [
-            const CircleAvatar(
+            CircleAvatar(
               radius: 50,
-              backgroundImage: NetworkImage('https://via.placeholder.com/150'),
+              backgroundColor: Colors.white,
+              child: NetworkImageWithLoader(
+                imageUrl: imageUrl,
+                width: 100,
+                height: 100,
+              ),
             ),
             Positioned(
               bottom: 0,
@@ -87,71 +93,15 @@ class ProfilePage extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Text(
-          'John Doe',
+          username,
           style: Theme.of(context).textTheme.headlineMedium,
         ),
         const SizedBox(height: 8),
         Text(
-          'john.doe@example.com',
+          email,
           style: Theme.of(context).textTheme.bodyMedium,
         ),
       ],
-    );
-  }
-
-  Widget _buildStatsRow() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 5,
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildStatItem('Posts', '28'),
-          _buildVerticalDivider(),
-          _buildStatItem('Followers', '458'),
-          _buildVerticalDivider(),
-          _buildStatItem('Following', '269'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatItem(String label, String value) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.grey,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildVerticalDivider() {
-    return Container(
-      height: 30,
-      width: 1,
-      color: Colors.grey.withOpacity(0.2),
     );
   }
 

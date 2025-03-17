@@ -4,100 +4,127 @@ import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 import 'package:function_mobile/common/widgets/buttons/secondary_button.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
 import 'package:function_mobile/modules/venue/widgets/category_chip.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:function_mobile/modules/venue/controllers/venue_detail_controller.dart';
 
 class VenueDetailPage extends StatelessWidget {
   const VenueDetailPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.find<VenueDetailController>();
+
     return Scaffold(
-      body: Stack(
-        children: [
-          // Content
-          SingleChildScrollView(
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (controller.hasError.value) {
+          return Center(
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildVenueImageHeader(context),
-                _buildVenueType('Meeting Room', '1-100', '100m²',
-                    'Wonokromo, South Surabaya', 'Vickie Streich'),
-                SizedBox(height: 16),
-                _buildAboutVenue('a space for meeting, workshop, and seminar, '
-                    'with a capacity of 50 people, equipped with a projector, '
-                    'sound system, and whiteboard, suitable for small meetings'),
-                SizedBox(height: 8),
-                _buildVenueOwner('Vickie Streich'),
-                SizedBox(height: 8),
-                _buildVenueLocation(context, 'Wonokromo, South Surabaya'),
-                SizedBox(height: 8),
-                _buildFacilities(context),
-                SizedBox(height: 8),
-                _buildReviews(),
-                SizedBox(height: 8),
-                _buildSchedule(context),
-                // Modify to show the Widget behind Fixed Price and Booking
-                SizedBox(height: 100),
+                Text(controller.errorMessage.value),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: controller.retryLoading,
+                  child: const Text('Retry'),
+                ),
               ],
             ),
-          ),
-          // Fixed Price and Booking
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: _buildPriceAndBooking(context),
-          ),
-        ],
-      ),
+          );
+        } else {
+          return Stack(
+            children: [
+              SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Stack(
+                      children: [
+                        SizedBox(
+                          height: 280,
+                          width: double.infinity,
+                          child: NetworkImageWithLoader(
+                            imageUrl:
+                                controller.venue.value?.firstPictureUrl ?? '',
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        Positioned(
+                          top: 40,
+                          left: 16,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.arrow_back,
+                                  color: Colors.black),
+                              onPressed: () => Get.back(result: true),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Transform.translate(
+                      offset: const Offset(0, -60),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Column(
+                          children: [
+                            _buildVenueInfoCard(context, controller),
+                            _buildLocationSection(context, controller),
+                            _buildFacilitiesSection(context, controller),
+                            _buildReviewsSection(context, controller),
+                            _buildScheduleSection(context, controller),
+                            const SizedBox(height: 80),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: _buildPriceAndBooking(context, controller),
+              ),
+            ],
+          );
+        }
+      }),
     );
   }
 
-// This function return a widget that contains the venue image header
-  Widget _buildVenueImageHeader(BuildContext context) {
-    return Stack(
-      children: [
-        // Venue image
-        GestureDetector(
-          onTap: () {
-            print('Image Clicked');
-          },
-          child: SizedBox(
-            height: 280,
-            width: double.infinity,
-            child: NetworkImageWithLoader(imageUrl: ''),
+  Widget _buildVenueInfoCard(
+      BuildContext context, VenueDetailController controller) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-        ),
-
-        // Back button
-        Positioned(
-          top: 40,
-          left: 16,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: IconButton(
-              icon: Icon(Icons.arrow_back, color: Colors.black),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-        ),
-
-        // Venue info card at bottom of image
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: Container(
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
-              ),
-            ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -106,74 +133,258 @@ class VenueDetailPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Real Space',
-                        style: TextStyle(
+                        controller.venue.value?.name ?? 'Data tidak ada',
+                        style: const TextStyle(
+                          color: Colors.black,
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      GestureDetector(
-                        onTap: () {
-                          print('Rating Clicked');
-                        },
-                        child: Row(
-                          children: [
-                            Icon(Icons.star, color: Colors.amber, size: 18),
-                            Text(
-                              ' 5.0 (100 Reviews)',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[700],
-                              ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(Icons.star, color: Colors.amber, size: 18),
+                          Text(
+                            ' ${controller.venue.value?.rating?.toStringAsFixed(1) ?? '5.0'} (${controller.venue.value?.reviewCount ?? '100'} Reviews)',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[700],
                             ),
-                            Icon(Icons.arrow_forward,
-                                color: Colors.grey, size: 16),
-                          ],
-                        ),
-                      )
+                          ),
+                          const Icon(Icons.arrow_forward,
+                              color: Colors.grey, size: 16),
+                        ],
+                      ),
                     ],
                   ),
                 ),
                 Row(
                   children: [
                     IconButton(
-                      icon: Icon(Icons.share, color: Colors.black),
+                      icon: const Icon(Icons.share, size: 22),
                       onPressed: () {},
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
                     ),
+                    const SizedBox(width: 16),
                     IconButton(
-                      icon: Icon(Icons.favorite_border, color: Colors.black),
+                      icon: const Icon(Icons.favorite_border, size: 22),
                       onPressed: () {},
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
                     ),
                   ],
                 ),
               ],
             ),
           ),
-        ),
-      ],
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Wrap(
+              spacing: 8,
+              children: [
+                CategoryChip(
+                  label: controller.venue.value?.category?.name ?? 'Mansion',
+                  color: Colors.blue,
+                ),
+                CategoryChip(
+                  label: '1-${controller.venue.value?.maxCapacity ?? 31}',
+                  color: Colors.blue,
+                  icon: Icons.groups_2,
+                ),
+                CategoryChip(
+                  label: '1000 m²',
+                  color: Colors.blue,
+                  icon: Icons.straighten,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'About Venue',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    CustomTextButton(
+                      text: 'Selengkapnya',
+                      onTap: () {
+                        print('See More Clicked');
+                      },
+                      icon: Icons.arrow_forward,
+                      isrightIcon: true,
+                    ),
+                  ],
+                ),
+                Text(
+                  controller.venue.value?.description ??
+                      '- Ruang meeting dengan nuansa kayu dan warna hangat\n- WiFi gratis',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[700],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Pemilik Venue',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 16,
+                          backgroundColor: Colors.blue,
+                          child: Text(
+                            (controller.venue.value?.host?.user?.username
+                                        ?.isNotEmpty ??
+                                    false)
+                                ? controller
+                                    .venue.value!.host!.user!.username![0]
+                                    .toUpperCase()
+                                : 'V',
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          controller.venue.value?.host?.user?.username ??
+                              'Vickie Streich',
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    PrimaryButton(
+                      text: 'Hubungi',
+                      onPressed: () {},
+                      width: 120,
+                      height: 42,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildVenueType(String venueType, String capacityType,
-      String venueSize, String location, String owner) {
+  Widget _buildLocationSection(
+      BuildContext context, VenueDetailController controller) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16),
+      margin: const EdgeInsets.only(top: 16),
+      child: GestureDetector(
+        onTap: () {
+          print('Location Clicked');
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      controller.venue.value?.address ??
+                          'Pakuwon Square AK 2 No. 3, Jl. Yono Suwoyo No. 100, Surabaya',
+                      style: const TextStyle(fontSize: 14, color: Colors.black),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Icon(Icons.location_on,
+                  color: Theme.of(context).colorScheme.primary),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFacilitiesSection(
+      BuildContext context, VenueDetailController controller) {
+    return Container(
+      margin: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Venue type tags
+          const Text(
+            'Fasilitas',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
           Row(
             children: [
-              CategoryChip(label: venueType, color: Colors.blue),
-              SizedBox(width: 8),
-              CategoryChip(
-                label: capacityType,
-                color: Colors.blue,
-                icon: Icons.groups_2,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildFacilityItem(Icons.table_bar, 'Table', true),
+                    _buildFacilityItem(Icons.speaker, 'Speaker', true),
+                  ],
+                ),
               ),
-              SizedBox(width: 8),
-              CategoryChip(
-                  label: venueSize, color: Colors.blue, icon: Icons.straighten),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildFacilityItem(Icons.local_parking, 'Parking', true),
+                    _buildFacilityItem(Icons.ac_unit, 'AC', true),
+                  ],
+                ),
+              ),
             ],
           ),
         ],
@@ -181,290 +392,83 @@ class VenueDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildAboutVenue(String aboutVenue) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(8)),
-          border: Border.all(color: Colors.grey[300]!),
-          color: Colors.white,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'About Venue',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                CustomTextButton(
-                  text: 'See more',
-                  onTap: () {
-                    print('See More Clicked');
-                  },
-                  icon: Icons.arrow_forward,
-                  isrightIcon: true,
-                ),
-              ],
-            ),
-            SizedBox(height: 8),
-            Text(
-              aboutVenue,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[700],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildVenueOwner(String owner) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(8)),
-          border: Border.all(color: Colors.grey[300]!),
-          color: Colors.white,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Venue Owner',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    print('Owner Clicked');
-                  },
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 16,
-                        backgroundColor: Colors.blue,
-                        child: Text('V', style: TextStyle(color: Colors.white)),
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        owner,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                PrimaryButton(
-                  text: 'Contact',
-                  onPressed: () {},
-                  width: 100,
-                  height: 40,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildVenueLocation(BuildContext context, String location) {
-    return GestureDetector(
-      onTap: () {
-        print('Location Clicked');
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          children: [
-            GestureDetector(
-              onTap: () {
-                print('Location Clicked');
-              },
-              child: Container(
-                padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey[300]!),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      location,
-                      style: TextStyle(fontSize: 14),
-                    ),
-                    Icon(Icons.location_on,
-                        color: Theme.of(context).colorScheme.primary),
-                  ],
-                ),
-              ),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFacilities(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(8)),
-          border: Border.all(color: Colors.grey[300]!),
-          color: Colors.white,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            //Facilities Title
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Fasilitas',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                //Navigation to see more
-                CustomTextButton(
-                  text: 'See more',
-                  onTap: () {
-                    print('See More Clicked');
-                  },
-                  icon: Icons.arrow_forward,
-                  isrightIcon: true,
-                ),
-              ],
-            ),
-            SizedBox(height: 10),
-            //Facilities Items
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildFacilityItem(Icons.chair, 'Chair', true),
-                      _buildFacilityItem(Icons.table_bar, 'Table', true),
-                      _buildFacilityItem(Icons.speaker, 'Speaker', true),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildFacilityItem(Icons.wifi, 'Wifi', true),
-                      _buildFacilityItem(Icons.local_parking, 'Parking', true),
-                      _buildFacilityItem(Icons.ac_unit, 'AC', true),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFacilityItem(IconData? icon, String text, bool isAvailable) {
-    return Container(
+  Widget _buildFacilityItem(IconData icon, String text, bool isAvailable) {
+    return SizedBox(
       height: 30,
       child: Row(
         children: [
-          if (icon != null) ...[
-            Icon(icon, color: Colors.grey[700], size: 20),
-            SizedBox(width: 8),
-            Text(
-              text,
-              style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-            ),
-            SizedBox(width: 4),
-            Icon(
-              isAvailable ? Icons.check_circle : Icons.cancel,
-              color: isAvailable ? Colors.green : Colors.red,
-              size: 16,
-            ),
-          ],
+          Icon(icon, color: Colors.grey[700], size: 20),
+          const SizedBox(width: 8),
+          Text(
+            text,
+            style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+          ),
+          const SizedBox(width: 4),
+          Icon(
+            isAvailable ? Icons.check_circle : Icons.cancel,
+            color: isAvailable ? Colors.green : Colors.red,
+            size: 16,
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildReviews() {
+  Widget _buildReviewsSection(
+      BuildContext context, VenueDetailController controller) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(8)),
-          border: Border.all(color: Colors.grey[300]!),
-          color: Colors.white,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Reviews',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+      margin: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Reviews',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
-                CustomTextButton(
-                  text: 'See more',
-                  onTap: () {
-                    print('See More Clicked');
-                  },
-                  icon: Icons.arrow_forward,
-                  isrightIcon: true,
-                ),
-              ],
-            ),
-            SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                    child: _buildReviewCard('John', 5, 'Great place',
-                        'https://img.freepik.com/free-photo/lifestyle-people-emotions-casual-concept-confident-nice-smiling-asian-woman-cross-arms-chest-confident-ready-help-listening-coworkers-taking-part-conversation_1258-59335.jpg')),
-                SizedBox(width: 12),
-                Expanded(
-                    child: _buildReviewCard('Richard', 4.8, 'Great place', '')),
-              ],
-            ),
-          ],
-        ),
+              ),
+              CustomTextButton(
+                text: 'See more',
+                onTap: () {
+                  print('See More Clicked');
+                },
+                icon: Icons.arrow_forward,
+                isrightIcon: true,
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: _buildReviewCard(
+                    'John',
+                    5.0,
+                    'I\'ve been consistently impressed with the quality...',
+                    ''),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildReviewCard(
+                    'Richard',
+                    4.8,
+                    'I\'ve been consistently impressed with the quality...',
+                    ''),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -476,7 +480,7 @@ class VenueDetailPage extends StatelessWidget {
     String? profilePicture,
   ) {
     return Container(
-      padding: EdgeInsets.all(12),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.grey[300]!),
@@ -500,22 +504,25 @@ class VenueDetailPage extends StatelessWidget {
                       )
                     : Text(
                         name.isNotEmpty ? name[0].toUpperCase() : '?',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
               ),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Text(
                 name,
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black),
               ),
-              Spacer(),
+              const Spacer(),
               Text(
                 rating.toString(),
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: Colors.amber,
@@ -523,7 +530,7 @@ class VenueDetailPage extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
             reviews,
             style: TextStyle(fontSize: 12, color: Colors.grey[700]),
@@ -535,126 +542,60 @@ class VenueDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildPriceAndBooking(
-    BuildContext context,
-  ) {
+  Widget _buildScheduleSection(
+      BuildContext context, VenueDetailController controller) {
     return Container(
+      margin: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: Offset(0, -2),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Schedule',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              CustomTextButton(
+                text: 'See more',
+                onTap: () {
+                  print('See More Clicked');
+                },
+                icon: Icons.arrow_forward,
+                isrightIcon: true,
+              ),
+            ],
+          ),
+          Column(
+            children: [
+              _buildScheduleItem('Monday', '7:00 - 21:00'),
+              _buildScheduleItem('Tuesday', '7:00 - 21:00'),
+              _buildScheduleItem('Wednesday', '7:00 - 21:00'),
+              _buildScheduleItem('Thursday', '7:00 - 21:00'),
+              _buildScheduleItem('Friday', '7:00 - 21:00'),
+              _buildScheduleItem('Saturday', '7:00 - 21:00'),
+              _buildScheduleItem('Sunday', 'Closed'),
+            ],
           ),
         ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Container(
-            padding: EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Start From',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[700],
-                          )),
-                      Row(
-                        children: [
-                          Text(NumberFormat("#,##0", "id_ID").format(1900000),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleLarge
-                                  ?.copyWith(
-                                      fontSize: 20,
-                                      color:
-                                          Theme.of(context).colorScheme.primary,
-                                      fontWeight: FontWeight.bold)),
-                          Text(' / hour',
-                              style: TextStyle(
-                                  fontSize: 14, color: Colors.grey[700]))
-                        ],
-                      ),
-                      Text('Include tax',
-                          style:
-                              TextStyle(fontSize: 12, color: Colors.grey[700]))
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: SecondaryButton(text: 'Book This', onPressed: () {}),
-                )
-              ],
-            )),
-      ),
-    );
-  }
-
-  Widget _buildSchedule(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(8)),
-          border: Border.all(color: Colors.grey[300]!),
-          color: Colors.white,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Schedule',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                CustomTextButton(
-                  text: 'See more',
-                  onTap: () {
-                    print('See More Clicked');
-                  },
-                  icon: Icons.arrow_forward,
-                  isrightIcon: true,
-                ),
-              ],
-            ),
-            Column(
-              children: [
-                _buildScheduleItem('Monday', '08:00 - 17:00'),
-                _buildScheduleItem('Tuesday', '08:00 - 17:00'),
-                _buildScheduleItem('Wednesday', '08:00 - 17:00'),
-                _buildScheduleItem('Thursday', '08:00 - 17:00'),
-                _buildScheduleItem('Friday', '08:00 - 17:00'),
-                _buildScheduleItem('Saturday', '08:00 - 17:00'),
-                _buildScheduleItem('Sunday', 'Closed'),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }
 
   Widget _buildScheduleItem(String day, String time) {
     return Container(
-      padding: EdgeInsets.all(8),
-      margin: EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.all(8),
+      margin: const EdgeInsets.only(top: 8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.grey[300]!),
@@ -664,13 +605,91 @@ class VenueDetailPage extends StatelessWidget {
         children: [
           Text(
             day,
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
           ),
           Text(
             time,
             style: TextStyle(fontSize: 12, color: Colors.grey[700]),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPriceAndBooking(
+    BuildContext context,
+    VenueDetailController controller,
+  ) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Color.fromRGBO(0, 0, 0, 0.1),
+            blurRadius: 4,
+            offset: Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Start From',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          "IDR ${NumberFormat("#,##0", "id_ID").format(controller.venue.value?.price ?? 100000)}",
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(
+                                fontSize: 20,
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                        Text(
+                          '/Hour',
+                          style:
+                              TextStyle(fontSize: 14, color: Colors.grey[700]),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      'Include tax',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: SecondaryButton(
+                  text: 'Book this',
+                  onPressed: () {},
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
