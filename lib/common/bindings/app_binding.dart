@@ -3,7 +3,6 @@ import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 import 'package:function_mobile/modules/home/controllers/search_filter_controller.dart';
 import 'package:function_mobile/modules/home/controllers/home_controller.dart';
 import 'package:function_mobile/modules/navigation/controllers/bottom_nav_controller.dart';
-import 'package:function_mobile/modules/profile/controllers/profile_controller.dart';
 
 class AppBinding extends Bindings {
   @override
