@@ -13,7 +13,7 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final AuthController authController = Get.put(AuthController());
+    final AuthController authController = Get.find();
 
     return Scaffold(
       body: SafeArea(
@@ -64,6 +64,7 @@ class LoginPage extends StatelessWidget {
                 ]),
                 SizedBox(height: 18),
                 Obx(() => PrimaryButton(
+                      width: double.infinity,
                       text: authController.isLoading.value
                           ? 'Logging in...'
                           : 'Login',
@@ -75,7 +76,8 @@ class LoginPage extends StatelessWidget {
                     )),
                 SizedBox(height: 18),
                 TextButton(
-                    onPressed: () {}, child: const Text('Forgot Password?')),
+                    onPressed: authController.goToForgotPassword,
+                    child: const Text('Forgot Password?')),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

@@ -57,7 +57,7 @@ class SignupPage extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Email (Optional)", 
+                    Text("Email (Optional)",
                         style: Theme.of(context).textTheme.bodyLarge),
                     SizedBox(height: 8),
                     AuthTextField(
@@ -68,39 +68,37 @@ class SignupPage extends StatelessWidget {
                   ],
                 ),
                 SizedBox(height: 18),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start, 
-                  children: [
-                    Text("Password",
-                        style: Theme.of(context).textTheme.bodyLarge),
-                    SizedBox(height: 8),
-                    AuthTextField(
-                        hintText: 'Enter your password',
-                        isPassword: true,
-                        controller: authController.passwordSignUpController),
-                    SizedBox(height: 5),
-                    Text(
-                      "Password must be at least 6 characters",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text("Password",
+                      style: Theme.of(context).textTheme.bodyLarge),
+                  SizedBox(height: 8),
+                  AuthTextField(
+                      hintText: 'Enter your password',
+                      isPassword: true,
+                      controller: authController.passwordSignUpController),
+                  SizedBox(height: 5),
+                  Text(
+                    "Password must be at least 6 characters",
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
                     ),
+                  ),
                 ]),
                 SizedBox(height: 18),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start, 
-                  children: [
-                    Text("Confirm Password",
-                        style: Theme.of(context).textTheme.bodyLarge),
-                    SizedBox(height: 8),
-                    AuthTextField(
-                        hintText: 'Confirm your password',
-                        isPassword: true,
-                        controller: authController.confirmSignUpPasswordController),
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text("Confirm Password",
+                      style: Theme.of(context).textTheme.bodyLarge),
+                  SizedBox(height: 8),
+                  AuthTextField(
+                      hintText: 'Confirm your password',
+                      isPassword: true,
+                      controller:
+                          authController.confirmSignUpPasswordController),
                 ]),
                 SizedBox(height: 18),
                 Obx(() => PrimaryButton(
+                      width: double.infinity,
                       text: authController.isLoading.value
                           ? 'Signing up...'
                           : 'Signup',
@@ -123,7 +121,7 @@ class SignupPage extends StatelessWidget {
                         ),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
-                            Get.toNamed('/termsOfService');
+                            authController.goToTermsOfService();
                           },
                       ),
                       TextSpan(text: ' and '),
@@ -135,7 +133,7 @@ class SignupPage extends StatelessWidget {
                         ),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
-                            Get.toNamed('/privacyPolicy');
+                            authController.goToPrivacyPolicy();
                           },
                       ),
                     ],
