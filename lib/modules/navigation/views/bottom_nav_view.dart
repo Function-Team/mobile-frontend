@@ -3,6 +3,7 @@ import 'package:function_mobile/modules/booking/views/booking_page.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/home/views/home_page.dart';
 import 'package:function_mobile/modules/profile/views/profile_page.dart';
+import 'package:function_mobile/modules/chat/views/chat_page.dart';
 import 'package:function_mobile/modules/navigation/controllers/bottom_nav_controller.dart';
 
 class BottomNavView extends StatelessWidget {
@@ -14,7 +15,7 @@ class BottomNavView extends StatelessWidget {
     HomePage(),
     BookingsPage(),
     // FavoritesPage(),
-    // ChatPage(),
+    ChatPage(),
     ProfilePage(),
   ];
 
@@ -33,7 +34,7 @@ class BottomNavView extends StatelessWidget {
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
             BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Bookings'),
             // BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'Favorites'),
-            // BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
+            BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
           ],
         ),
