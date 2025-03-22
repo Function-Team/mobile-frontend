@@ -108,7 +108,7 @@ class VenueDetailController extends GetxController {
   
   void bookVenue() {
     if (venue.value?.id != null) {
-      Get.toNamed(MyRoutes.bookinglist, arguments: {'venueId': venue.value!.id});
+      Get.toNamed(MyRoutes.bookingList, arguments: {'venueId': venue.value!.id});
     } else {
       Get.snackbar(
         'Error',

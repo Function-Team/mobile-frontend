@@ -37,14 +37,14 @@ class VenueRecommendCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ClipRRect(
-                  borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(8),
-                      topRight: Radius.circular(8)),
-                  child: NetworkImageWithLoader(
-                    imageUrl: imageUrl,
-                    width: double.infinity,
-                    height: 90,
-                  )),
+                borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(8), topRight: Radius.circular(8)),
+                child: NetworkImageWithLoader(
+                  imageUrl: imageUrl,
+                  width: double.infinity,
+                  height: 90,
+                ),
+              ),
               Padding(
                 padding: const EdgeInsets.all(8),
                 child: Column(
@@ -54,8 +54,9 @@ class VenueRecommendCard extends StatelessWidget {
                       venueName,
                       style: Theme.of(context).textTheme.bodyLarge,
                       overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Row(
                       children: [
                         Icon(
@@ -63,26 +64,27 @@ class VenueRecommendCard extends StatelessWidget {
                           size: 14,
                           color: Theme.of(context).primaryColor,
                         ),
-                        SizedBox(width: 4),
+                        const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             location,
                             style: Theme.of(context).textTheme.bodySmall,
                             overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
                         ),
                       ],
                     ),
                     Row(
                       children: [
-                        Icon(Icons.star, size: 14, color: Colors.amber),
+                        const Icon(Icons.star, size: 14, color: Colors.amber),
                         Text(
                           rating,
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                       ],
                     ),
-                    SizedBox(height: 7),
+                    const SizedBox(height: 7),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -98,6 +100,7 @@ class VenueRecommendCard extends StatelessWidget {
                                     color: Theme.of(context).primaryColor,
                                   ),
                           overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                       ],
                     ),

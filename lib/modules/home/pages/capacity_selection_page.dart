@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/common/widgets/buttons/secondary_button.dart';
 import 'package:get/get.dart';
 
 class CapacitySelectionPage extends StatelessWidget {
@@ -14,23 +15,14 @@ class CapacitySelectionPage extends StatelessWidget {
           onPressed: () => Get.back(),
         ),
       ),
-      body: SingleChildScrollView(child: Column(
-        children: [
-          _buildCapacityOption('1-10 People'),
-          _buildCapacityOption('10-100 People'),
-          _buildCapacityOption('100-200 People'),
-          _buildCapacityOption('200+ People'),
-        ],
-      ),),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ElevatedButton(
-          onPressed: () => Get.back(),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.amber,
-            minimumSize: Size(double.infinity, 48),
-          ),
-          child: Text('Continue'),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            _buildCapacityOption('1-10 People'),
+            _buildCapacityOption('10-100 People'),
+            _buildCapacityOption('100-200 People'),
+            _buildCapacityOption('200+ People'),
+          ],
         ),
       ),
     );

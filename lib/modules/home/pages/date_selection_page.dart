@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/common/widgets/buttons/secondary_button.dart';
 import 'package:get/get.dart';
 
 class DateSelectionPage extends StatefulWidget {
@@ -81,19 +82,15 @@ class _DateSelectionPageState extends State<DateSelectionPage> {
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: ElevatedButton(
-          onPressed: () {
-            Get.back(result: {
+        child: SecondaryButton(
+          text: 'Continue',
+          onPressed: () => Get.back(
+            result: {
               'date': selectedDate,
               'startTime': startTime,
               'endTime': endTime,
-            });
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.amber,
-            minimumSize: Size(double.infinity, 48),
+            },
           ),
-          child: Text('Continue'),
         ),
       ),
     );

@@ -42,7 +42,7 @@ class VenueDetailPage extends StatelessWidget {
                     Stack(
                       children: [
                         SizedBox(
-                          height: 280,
+                          height: 250,
                           width: double.infinity,
                           child: NetworkImageWithLoader(
                             imageUrl:
@@ -72,23 +72,21 @@ class VenueDetailPage extends StatelessWidget {
                             ),
                           ),
                         ),
-                      ],
-                    ),
-                    Transform.translate(
-                      offset: const Offset(0, -60),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Column(
-                          children: [
-                            _buildVenueInfoCard(context, controller),
-                            _buildLocationSection(context, controller),
-                            _buildFacilitiesSection(context, controller),
-                            _buildReviewsSection(context, controller),
-                            _buildScheduleSection(context, controller),
-                            const SizedBox(height: 80),
-                          ],
+                        Container(
+                          margin: EdgeInsets.only(top: 150),
+                          padding: EdgeInsets.fromLTRB(16, 16, 16, 16),
+                          child: Column(
+                            children: [
+                              _buildVenueInfoCard(context, controller),
+                              _buildLocationSection(context, controller),
+                              _buildFacilitiesSection(context, controller),
+                              _buildReviewsSection(context, controller),
+                              _buildScheduleSection(context, controller),
+                              const SizedBox(height: 80),
+                            ],
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ],
                 ),

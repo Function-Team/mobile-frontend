@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:function_mobile/modules/auth/bindings/auth_binding.dart';
+import 'package:function_mobile/common/bindings/app_binding.dart'; // New AppBinding
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/theme/app_theme.dart';
-import 'package:get/get_navigation/src/root/get_material_app.dart';
+import 'package:get/get.dart';
 
 void main() {
+  // Disable debug paint
   debugPaintSizeEnabled = false;
+  // Ensure Flutter is initialized
   WidgetsFlutterBinding.ensureInitialized();
+  // Run the app
   runApp(const MainApp());
 }
 
@@ -20,7 +23,7 @@ class MainApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.themeData,
       initialRoute: MyRoutes.login,
-      initialBinding: AuthBinding(),
+      initialBinding: AppBinding(),
       getPages: MyRoutes.pages,
     );
   }
