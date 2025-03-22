@@ -24,6 +24,7 @@ class EditProfilePage extends StatelessWidget {
             const SizedBox(height: 30),
             SecondaryButton(
               text: 'Save Changes',
+              width: double.infinity,
               onPressed: () {},
             ),
           ],
