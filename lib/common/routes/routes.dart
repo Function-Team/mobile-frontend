@@ -1,4 +1,9 @@
 import 'package:function_mobile/modules/auth/views/signup_page.dart';
+import 'package:function_mobile/modules/home/pages/capacity_selection_page.dart';
+import 'package:function_mobile/modules/home/pages/date_selection_page.dart';
+import 'package:function_mobile/modules/home/pages/search_activity_page.dart';
+import 'package:function_mobile/modules/home/pages/search_location_page.dart';
+
 import 'package:function_mobile/modules/home/views/home_page.dart';
 import 'package:function_mobile/modules/legal/privacy_policy_page.dart';
 import 'package:function_mobile/modules/auth/views/login_page.dart';
@@ -9,6 +14,7 @@ import 'package:function_mobile/modules/venue/views/venue_detail_page.dart';
 import 'package:function_mobile/modules/navigation/views/bottom_nav_view.dart';
 import 'package:function_mobile/modules/venue/views/venue_list_page.dart';
 import 'package:function_mobile/modules/profile/views/profile_page.dart';
+import 'package:function_mobile/modules/settings/views/settings_page.dart';
 import 'package:get/get.dart';
 
 // Feature-specific bindings are only required if they have
@@ -32,6 +38,14 @@ class MyRoutes {
   static const String termsOfService = '/termsOfService';
   static const String editProfile = '/editProfile';
 
+  static const String settings = '/settings';
+
+  static const String searchActivity = '/searchActivity';
+  static const String searchCapacity = '/searchCapacity';
+  static const String searchDate = '/searchDate';
+  static const String searchLocation = '/searchLocation';
+
+
   static final List<GetPage> pages = [
     // Components
     GetPage(name: componentView, page: () => ComponentsView()),
@@ -42,6 +56,12 @@ class MyRoutes {
 
     // Home (no HomeBinding needed - controllers are in AppBinding)
     GetPage(name: home, page: () => HomePage()),
+
+    // SearchFilter
+    GetPage(name: searchActivity, page: () => SearchActivityPage()),
+    GetPage(name: searchCapacity, page: () => CapacitySelectionPage()),
+    GetPage(name: searchDate, page: () => DateSelectionPage()),
+    GetPage(name: searchLocation, page: () => SearchLocationPage()),
 
     // Venue
     GetPage(
@@ -66,5 +86,8 @@ class MyRoutes {
     // Legal
     GetPage(name: privacyPolicy, page: () => PrivacyPolicyPage()),
     GetPage(name: termsOfService, page: () => TermsOfServicePage()),
+
+    // Settings
+    GetPage(name: settings, page: () => SettingsPage()),
   ];
 }

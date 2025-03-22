@@ -47,6 +47,14 @@ class VenueRecommendCard extends StatelessWidget {
                     width: double.infinity,
                     height: 90,
                   ),
+
+              ClipRRect(
+                borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(8), topRight: Radius.circular(8)),
+                child: NetworkImageWithLoader(
+                  imageUrl: imageUrl,
+                  width: double.infinity,
+                  height: 90,
                 ),
               ),
               Padding(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 
 class NetworkImageWithLoader extends StatelessWidget {
   final String imageUrl;
@@ -27,30 +28,31 @@ class NetworkImageWithLoader extends StatelessWidget {
         fit: fit,
         frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
           if (wasSynchronouslyLoaded) return child;
-          return AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            child: frame != null ? child : _buildLoadingContainer(),
-          );
+          return frame != null ? child : _buildShimmerPlaceholder();
         },
-        errorBuilder: (context, error, stackTrace) {
-          return _buildErrorContainer();
-        },
+        errorBuilder: (context, error, stackTrace) => _buildErrorPlaceholder(),
       ),
     );
   }
 
-  Widget _buildLoadingContainer() {
-    return Container(
-      height: height,
-      width: width,
-      color: Colors.grey[200],
-      child: const Center(
-        child: CircularProgressIndicator(),
+  /// Shimmer Loading Placeholder
+  Widget _buildShimmerPlaceholder() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: Container(
+        height: height,
+        width: width,
+        decoration: BoxDecoration(
+          color: Colors.grey[300],
+          borderRadius: borderRadius ?? BorderRadius.zero,
+        ),
       ),
     );
   }
 
-  Widget _buildErrorContainer() {
+  /// Error Placeholder
+  Widget _buildErrorPlaceholder() {
     return Container(
       height: height,
       width: width,
@@ -58,11 +60,7 @@ class NetworkImageWithLoader extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.image_not_supported,
-            size: 20,
-            color: Colors.grey[600],
-          ),
+          Icon(Icons.broken_image, size: 24, color: Colors.grey[600]),
           const SizedBox(height: 4),
           Text(
             'Image not available',

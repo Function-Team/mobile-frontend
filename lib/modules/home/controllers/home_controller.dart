@@ -34,16 +34,17 @@ class HomeController extends GetxController {
       final venues = await _venueRepository.getVenues();
 
       // Filter out venues with missing critical data
-      final filteredVenues = venues
-          .where((venue) =>
-              venue.id != null && venue.name != null && venue.price != null)
-          .toList();
+      final filteredVenues = venues.where((venue) => 
+        venue.id != null && 
+        venue.name != null && 
+        venue.price != null
+      ).toList();
+
 
       if (filteredVenues.isEmpty) {
         // If we have no venues after filtering, show a user-friendly message
         hasError.value = true;
-        errorMessage.value =
-            'No venues are available right now. Please try again later.';
+        errorMessage.value = 'No venues are available right now. Please try again later.';
         recommendedVenues.clear();
         return;
       }
@@ -52,8 +53,7 @@ class HomeController extends GetxController {
       recommendedVenues.assignAll(filteredVenues.take(6).toList());
     } catch (e) {
       hasError.value = true;
-      errorMessage.value =
-          'Failed to load venues. Please check your connection and try again.';
+      errorMessage.value = 'Failed to load venues. Please check your connection and try again.';
       recommendedVenues.clear();
       print('Error fetching recommended venues: $e');
     } finally {
@@ -65,7 +65,6 @@ class HomeController extends GetxController {
   Future<void> refreshVenues() async {
     // Clear existing state
     recommendedVenues.clear();
-
     // Start fresh fetch
     return fetchRecommendedVenues();
   }
