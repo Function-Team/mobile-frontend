@@ -64,6 +64,7 @@ class NetworkImageWithLoader extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             'Image not available',
+            overflow: TextOverflow.values[0],
             style: TextStyle(
               color: Colors.grey[600],
               fontSize: 12,

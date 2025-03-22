@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class VenueRecommendCard extends StatelessWidget {
   final String imageUrl;
@@ -36,6 +37,17 @@ class VenueRecommendCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Skeleton.ignore(
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(8),
+                      topRight: Radius.circular(8)),
+                  child: NetworkImageWithLoader(
+                    imageUrl: imageUrl,
+                    width: double.infinity,
+                    height: 90,
+                  ),
+
               ClipRRect(
                 borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(8), topRight: Radius.circular(8)),
@@ -78,6 +90,7 @@ class VenueRecommendCard extends StatelessWidget {
                     Row(
                       children: [
                         const Icon(Icons.star, size: 14, color: Colors.amber),
+                        const SizedBox(width: 4),
                         Text(
                           rating,
                           style: Theme.of(context).textTheme.bodyMedium,

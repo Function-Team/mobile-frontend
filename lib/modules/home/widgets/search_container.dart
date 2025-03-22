@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/buttons/secondary_button.dart';
-import 'package:function_mobile/modules/home/pages/capacity_selection_page.dart';
-import 'package:function_mobile/modules/home/pages/date_selection_page.dart';
-import 'package:function_mobile/modules/home/pages/search_activity_page.dart';
-import 'package:function_mobile/modules/home/pages/search_location_page.dart';
+import 'package:function_mobile/modules/home/controllers/search_filter_controller.dart';
 import 'package:get/get.dart';
 
 class SearchContainer extends StatelessWidget {
@@ -22,6 +19,8 @@ class SearchContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    SearchFilterController searchFilterController = Get.find();
+
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -34,7 +33,7 @@ class SearchContainer extends StatelessWidget {
         // Activity/Venue Search Field
         InkWell(
           onTap: () {
-            Get.to(() => SearchActivityPage());
+            searchFilterController.goToSearchActivity();
           },
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -60,7 +59,7 @@ class SearchContainer extends StatelessWidget {
         // Location Search Field
         InkWell(
           onTap: () {
-            Get.to(() => SearchLocationPage());
+            searchFilterController.goToSearchLocation();
           },
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -86,7 +85,7 @@ class SearchContainer extends StatelessWidget {
         // Capacity Selection
         InkWell(
           onTap: () {
-            Get.to(() => CapacitySelectionPage());
+            searchFilterController.goToCapacitySelection();
           },
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -112,7 +111,7 @@ class SearchContainer extends StatelessWidget {
         // Date Selection
         InkWell(
           onTap: () {
-            Get.to(() => DateSelectionPage());
+            searchFilterController.goToDateSelection();
           },
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -136,7 +135,9 @@ class SearchContainer extends StatelessWidget {
         ),
         SecondaryButton(
           text: 'Search',
-          onPressed: () {},
+          onPressed: () {
+            // Perform search
+          },
           width: double.infinity,
         ),
       ]

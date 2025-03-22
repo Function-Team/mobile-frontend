@@ -3,6 +3,7 @@ import 'package:function_mobile/modules/home/pages/capacity_selection_page.dart'
 import 'package:function_mobile/modules/home/pages/date_selection_page.dart';
 import 'package:function_mobile/modules/home/pages/search_activity_page.dart';
 import 'package:function_mobile/modules/home/pages/search_location_page.dart';
+
 import 'package:function_mobile/modules/home/views/home_page.dart';
 import 'package:function_mobile/modules/legal/privacy_policy_page.dart';
 import 'package:function_mobile/modules/auth/views/login_page.dart';
@@ -36,12 +37,14 @@ class MyRoutes {
   static const String privacyPolicy = '/privacyPolicy';
   static const String termsOfService = '/termsOfService';
   static const String editProfile = '/editProfile';
+
   static const String settings = '/settings';
 
   static const String searchActivity = '/searchActivity';
   static const String searchCapacity = '/searchCapacity';
   static const String searchDate = '/searchDate';
   static const String searchLocation = '/searchLocation';
+
 
   static final List<GetPage> pages = [
     // Components

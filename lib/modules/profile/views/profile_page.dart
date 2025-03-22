@@ -4,10 +4,13 @@ import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
 import 'package:function_mobile/modules/profile/widgets/build_profile_card.dart';
 import 'package:function_mobile/modules/profile/widgets/build_profile_options.dart';
+
 import 'package:get/get.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
+
+  
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +37,9 @@ class ProfilePage extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(16, 30, 16, 16),
                   child: Column(
                     children: [
+
                       buildProfileCard(
+
                         context: context,
                         profilePicture: "https://picsum.photos/200",
                         name: "John Doe",
