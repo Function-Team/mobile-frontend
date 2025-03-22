@@ -51,6 +51,22 @@ class AuthController extends GetxController {
     Get.toNamed(MyRoutes.signup);
   }
 
+  void goToForgotPassword() {
+    //TODO: Implement forgot password
+    errorMessage.value = '';
+    // Get.toNamed(MyRoutes.forgotPassword);
+  }
+
+  void goToPrivacyPolicy() {
+    errorMessage.value = '';
+    Get.toNamed(MyRoutes.privacyPolicy);
+  }
+
+  void goToTermsOfService() {
+    errorMessage.value = '';
+    Get.toNamed(MyRoutes.termsOfService);
+  }
+
   Future<void> checkLoginStatus() async {
     try {
       final isLoggedIn = await _authService.isLoggedIn();
@@ -91,7 +107,7 @@ class AuthController extends GetxController {
         passwordLoginController.text,
       );
 
-      if (userData != null && userData['access_token'] != null) {
+      if (userData['access_token'] != null) {
         if (userData['user'] != null) {
           user.value = User.fromJson(userData['user']);
         } else {
@@ -151,7 +167,7 @@ class AuthController extends GetxController {
         passwordSignUpController.text,
       );
 
-      if (userData != null && userData['access_token'] != null) {
+      if (userData['access_token'] != null) {
         if (userData['user'] != null) {
           user.value = User.fromJson(userData['user']);
         } else {
