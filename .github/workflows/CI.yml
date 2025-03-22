@@ -1,0 +1,32 @@
+name: "CI"
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:  
+  build:      
+    name: Build & Release 
+    runs-on: ubuntu-latest 
+
+    steps:
+        #1 Checkout Repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+        #2 Setup Flutter
+      - name: Set Up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.29.2
+          channel: 'stable'
+
+        #3 Install Dependencies
+      - name: Install Dependencies
+        run: flutter pub get
