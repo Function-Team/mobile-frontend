@@ -8,6 +8,7 @@ class SearchContainer extends StatelessWidget {
   final TextEditingController controllerLocation;
   final TextEditingController controllerCapacity;
   final TextEditingController controllerDate;
+  final VoidCallback onTapSearch;
 
   const SearchContainer({
     super.key,
@@ -15,6 +16,7 @@ class SearchContainer extends StatelessWidget {
     required this.controllerLocation,
     required this.controllerCapacity,
     required this.controllerDate,
+    required this.onTapSearch,
   });
 
   @override
@@ -46,7 +48,9 @@ class SearchContainer extends StatelessWidget {
                 Icon(Icons.search, color: Colors.grey[600]),
                 SizedBox(width: 8),
                 Text(
-                  'Search Activity/Venue',
+                  controllerActivity.text.isEmpty
+                      ? 'Search Activity/Venue'
+                      : controllerActivity.text,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: Colors.grey[600],
                       ),
@@ -72,7 +76,9 @@ class SearchContainer extends StatelessWidget {
                 Icon(Icons.location_on_outlined, color: Colors.grey[600]),
                 SizedBox(width: 8),
                 Text(
-                  'Search Location',
+                  controllerLocation.text.isEmpty
+                      ? 'Search Location'
+                      : controllerLocation.text,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: Colors.grey[600],
                       ),
@@ -98,7 +104,9 @@ class SearchContainer extends StatelessWidget {
                 Icon(Icons.people_outline, color: Colors.grey[600]),
                 SizedBox(width: 8),
                 Text(
-                  'Choose Venue\'s Capacity',
+                  controllerCapacity.text.isEmpty
+                      ? 'Choose Capacity'
+                      : controllerCapacity.text,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: Colors.grey[600],
                       ),
@@ -124,7 +132,9 @@ class SearchContainer extends StatelessWidget {
                 Icon(Icons.calendar_today_outlined, color: Colors.grey[600]),
                 SizedBox(width: 8),
                 Text(
-                  'Choose Date & Time',
+                  controllerDate.text.isEmpty
+                      ? 'Choose Date'
+                      : controllerDate.text,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: Colors.grey[600],
                       ),
@@ -135,9 +145,7 @@ class SearchContainer extends StatelessWidget {
         ),
         SecondaryButton(
           text: 'Search',
-          onPressed: () {
-            // Perform search
-          },
+          onPressed: onTapSearch,
           width: double.infinity,
         ),
       ]
