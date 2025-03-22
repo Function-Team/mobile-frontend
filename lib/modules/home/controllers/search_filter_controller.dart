@@ -31,6 +31,11 @@ class SearchFilterController extends GetxController {
   void goToDateSelection() {
     Get.toNamed(MyRoutes.searchDate);
   }
+
+//this is temporay function to navigate to venue list
+  void goToSearchResults() {
+    Get.toNamed(MyRoutes.venueList);
+  }
   
 
   void onClose() {

@@ -74,6 +74,9 @@ class HomePage extends StatelessWidget {
                           controllerCapacity:
                               searchController.capacityController,
                           controllerDate: searchController.dateController,
+                          onTapSearch: () {
+                            searchController.goToSearchResults();
+                          },
                         ),
                       ],
                     ),

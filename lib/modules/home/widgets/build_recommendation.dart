@@ -23,7 +23,7 @@ Widget buildRecommendation(BuildContext context, HomeController controller) {
               itemCount: 3, // Show 3 skeleton items as a placeholder
               itemBuilder: (context, index) {
                 return Padding(
-                  padding: const EdgeInsets.only(right: 12.0),
+                  padding: const EdgeInsets.only(right: 6.0),
                   child: Skeletonizer(
                     child: VenueRecommendCard(
                       imageUrl: '',
@@ -81,7 +81,7 @@ Widget buildRecommendation(BuildContext context, HomeController controller) {
             itemBuilder: (context, index) {
               final venue = controller.recommendedVenues[index];
               return Padding(
-                padding: const EdgeInsets.only(right: 12.0),
+                padding: const EdgeInsets.only(right: 0),
                 child: VenueRecommendCard(
                   imageUrl: venue.firstPictureUrl ??
                       'https://via.placeholder.com/150',

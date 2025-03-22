@@ -1,6 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
+import 'package:function_mobile/common/widgets/buttons/favorite_button.dart';
 import 'package:function_mobile/modules/venue/widgets/category_chip.dart';
 import 'package:intl/intl.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
@@ -57,55 +58,9 @@ class VenueCard extends StatelessWidget {
                   ),
                 ),
                 Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .surface
-                          .withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .primary
-                            .withOpacity(0.2),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.star,
-                          color: Colors.amber,
-                          size: 16,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '$rating',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          ratingCount > 999
-                              ? '(${(ratingCount / 1000).toStringAsFixed(1)}k)'
-                              : '($ratingCount)',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                    top: 8,
+                    right: 8,
+                    child: FavoriteButton(isFavorite: false, onTap: onTap)),
               ],
             ),
             Container(
@@ -113,13 +68,53 @@ class VenueCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    venueName,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
+                  // Venue name
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        venueName,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+
+                      // Rating row
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.star,
+                            color: Colors.amber,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '$rating',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            ratingCount > 999
+                                ? '(${(ratingCount / 1000).toStringAsFixed(1)}k)'
+                                : '($ratingCount)',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
+
                   const SizedBox(height: 8),
+
+                  // Location row
                   Row(
                     children: [
                       Icon(
@@ -139,7 +134,10 @@ class VenueCard extends StatelessWidget {
                       ),
                     ],
                   ),
+
                   const SizedBox(height: 12),
+
+                  //Category
                   Row(
                     children: [
                       CategoryChip(
@@ -163,9 +161,11 @@ class VenueCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 12),
+                  //Price
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      //Start From
                       Text(
                         'Start from',
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -173,6 +173,7 @@ class VenueCard extends StatelessWidget {
                             ),
                       ),
                       const SizedBox(height: 2),
+                      //Format Price
                       RichText(
                         text: TextSpan(
                           children: [

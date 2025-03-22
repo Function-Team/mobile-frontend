@@ -7,6 +7,7 @@ import 'package:function_mobile/modules/venue/widgets/category_chip.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:function_mobile/modules/venue/controllers/venue_detail_controller.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class VenueDetailPage extends StatelessWidget {
   const VenueDetailPage({super.key});
@@ -18,7 +19,10 @@ class VenueDetailPage extends StatelessWidget {
     return Scaffold(
       body: Obx(() {
         if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
+          return Skeletonizer(
+            enabled: true,
+            child: _buildVenueDetailContent(context, controller),
+          );
         } else if (controller.hasError.value) {
           return Center(
             child: Column(
@@ -26,81 +30,84 @@ class VenueDetailPage extends StatelessWidget {
               children: [
                 Text(controller.errorMessage.value),
                 const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: controller.retryLoading,
-                  child: const Text('Retry'),
-                ),
+                PrimaryButton(
+                    text: "Retry", onPressed: controller.retryLoading),
               ],
             ),
           );
         } else {
-          return Stack(
-            children: [
-              SingleChildScrollView(
-                child: Column(
-                  children: [
-                    Stack(
-                      children: [
-                        SizedBox(
-                          height: 250,
-                          width: double.infinity,
-                          child: NetworkImageWithLoader(
-                            imageUrl:
-                                controller.venue.value?.firstPictureUrl ?? '',
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        Positioned(
-                          top: 40,
-                          left: 16,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: IconButton(
-                              icon: const Icon(Icons.arrow_back,
-                                  color: Colors.black),
-                              onPressed: () => Get.back(result: true),
-                            ),
-                          ),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(top: 150),
-                          padding: EdgeInsets.fromLTRB(16, 16, 16, 16),
-                          child: Column(
-                            children: [
-                              _buildVenueInfoCard(context, controller),
-                              _buildLocationSection(context, controller),
-                              _buildFacilitiesSection(context, controller),
-                              _buildReviewsSection(context, controller),
-                              _buildScheduleSection(context, controller),
-                              const SizedBox(height: 80),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: _buildPriceAndBooking(context, controller),
-              ),
-            ],
-          );
+          return _buildVenueDetailContent(context, controller);
         }
       }),
+    );
+  }
+
+  Widget _buildVenueDetailContent(
+      BuildContext context, VenueDetailController controller) {
+    return Stack(
+      children: [
+        SingleChildScrollView(
+          child: Column(
+            children: [
+              Stack(
+                children: [
+                  Skeleton.ignore(
+                    child: SizedBox(
+                      height: 250,
+                      width: double.infinity,
+                      child: NetworkImageWithLoader(
+                        imageUrl: controller.venue.value?.firstPictureUrl ?? '',
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 40,
+                    left: 16,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.black),
+                        onPressed: () => Get.back(result: true),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(top: 150),
+                    padding: EdgeInsets.fromLTRB(16, 16, 16, 16),
+                    child: Column(
+                      children: [
+                        _buildVenueInfoCard(context, controller),
+                        _buildLocationSection(context, controller),
+                        _buildFacilitiesSection(context, controller),
+                        _buildReviewsSection(context, controller),
+                        _buildScheduleSection(context, controller),
+                        const SizedBox(height: 80),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: _buildPriceAndBooking(context, controller),
+        ),
+      ],
     );
   }
 
@@ -243,7 +250,7 @@ class VenueDetailPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Pemilik Venue',
+                  'Venue Owner',
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: 16,
@@ -283,7 +290,7 @@ class VenueDetailPage extends StatelessWidget {
                       ],
                     ),
                     PrimaryButton(
-                      text: 'Hubungi',
+                      text: 'Contact',
                       onPressed: () {},
                       width: 120,
                       height: 42,
@@ -323,7 +330,7 @@ class VenueDetailPage extends StatelessWidget {
                   children: [
                     Text(
                       controller.venue.value?.address ??
-                          'Pakuwon Square AK 2 No. 3, Jl. Yono Suwoyo No. 100, Surabaya',
+                          'No Location Data Available',
                       style: const TextStyle(fontSize: 14, color: Colors.black),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -355,7 +362,7 @@ class VenueDetailPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Fasilitas',
+            'Facilities',
             style: TextStyle(
               color: Colors.black,
               fontSize: 16,

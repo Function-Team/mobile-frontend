@@ -1,3 +1,5 @@
 import 'package:get/get.dart';
 
-class VenueListController extends GetxController{}
+class VenueListController extends GetxController{
+  
+}
