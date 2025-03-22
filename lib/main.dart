@@ -22,7 +22,7 @@ class MainApp extends StatelessWidget {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       theme: AppTheme.themeData,
-      initialRoute: MyRoutes.login,
+      initialRoute: MyRoutes.bottomNav,
       initialBinding: AppBinding(),
       getPages: MyRoutes.pages,
     );
