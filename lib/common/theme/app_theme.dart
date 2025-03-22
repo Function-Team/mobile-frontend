@@ -59,5 +59,9 @@ class AppTheme {
         ),
       ),
     ),
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        selectedItemColor: AppColors.primaryColor,
+        unselectedItemColor: Colors.grey,
+        type: BottomNavigationBarType.fixed),
   );
 }
