@@ -1,4 +1,7 @@
 import 'package:function_mobile/modules/auth/views/signup_page.dart';
+import 'package:function_mobile/modules/chat/bindings/chat_binding.dart';
+import 'package:function_mobile/modules/chat/views/chat_page.dart';
+import 'package:function_mobile/modules/chat/views/chatting_page.dart';
 import 'package:function_mobile/modules/home/pages/capacity_selection_page.dart';
 import 'package:function_mobile/modules/home/pages/date_selection_page.dart';
 import 'package:function_mobile/modules/home/pages/search_activity_page.dart';
@@ -45,6 +48,8 @@ class MyRoutes {
   static const String searchDate = '/searchDate';
   static const String searchLocation = '/searchLocation';
 
+  static const String chat = '/chat';
+  static const String chatting = '/chatting';
 
   static final List<GetPage> pages = [
     // Components
@@ -89,5 +94,9 @@ class MyRoutes {
 
     // Settings
     GetPage(name: settings, page: () => SettingsPage()),
+
+    // Chat
+    GetPage(name: chat, page: () => ChatPage(), binding: ChatBinding()),
+    GetPage(name: chatting, page: () => ChattingPage()),
   ];
 }
