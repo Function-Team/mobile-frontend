@@ -22,7 +22,7 @@ class HomeController extends GetxController {
   }
 
   void goToProfile() {
-    Get.find<BottomNavController>().changePage(2);
+    Get.find<BottomNavController>().changePage(3);
   }
 
   Future<void> fetchRecommendedVenues() async {
