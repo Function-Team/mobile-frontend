@@ -32,10 +32,13 @@ class HomePage extends StatelessWidget {
             children: [
               Stack(
                 children: [
-                  // Gradient background container
                   Container(
                     height: 250,
                     decoration: BoxDecoration(
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(16),
+                        bottomRight: Radius.circular(16),
+                      ),
                       gradient: LinearGradient(
                         colors: [
                           Theme.of(context).colorScheme.primary,
@@ -59,7 +62,7 @@ class HomePage extends StatelessWidget {
                       children: [
                         buildHeader(
                           context,
-                          profilePicture: null,
+                          profilePicture: 'https://picsum.photos/200',
                           name: authController.username,
                           onTapProfile: () {
                             homeController.goToProfile();
