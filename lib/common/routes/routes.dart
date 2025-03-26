@@ -1,4 +1,6 @@
 import 'package:function_mobile/modules/auth/views/signup_page.dart';
+import 'package:function_mobile/modules/booking/views/booking_detail.dart';
+import 'package:function_mobile/modules/booking/views/bookings_list_page.dart';
 import 'package:function_mobile/modules/chat/bindings/chat_binding.dart';
 import 'package:function_mobile/modules/chat/views/chat_page.dart';
 import 'package:function_mobile/modules/chat/views/chatting_page.dart';
@@ -33,7 +35,10 @@ class MyRoutes {
   static const String home = '/homePage';
   static const String bottomNav = '/bottomNav';
   static const String profile = '/profile';
+
   static const String bookingList = '/bookingList';
+  static const String bookingDetail = '/bookingDetail';
+
   static const String favorites = '/favorites';
   static const String venueList = '/venueList';
   static const String venueDetail = '/venueDetail';
@@ -61,6 +66,10 @@ class MyRoutes {
 
     // Home (no HomeBinding needed - controllers are in AppBinding)
     GetPage(name: home, page: () => HomePage()),
+
+    // Booking
+    GetPage(name: bookingList, page: () => BookingsListPage()),
+    GetPage(name: bookingDetail, page: () => BookingDetail()),
 
     // SearchFilter
     GetPage(name: searchActivity, page: () => SearchActivityPage()),

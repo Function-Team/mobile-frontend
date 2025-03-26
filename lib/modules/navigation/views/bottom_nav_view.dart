@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:function_mobile/modules/booking/views/booking_page.dart';
+import 'package:function_mobile/modules/booking/views/bookings_list_page.dart';
 import 'package:function_mobile/modules/chat/views/chat_page.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/home/views/home_page.dart';
@@ -14,7 +14,7 @@ class BottomNavView extends StatelessWidget {
   final List<Widget> pages = [
     // Add your pages here
     HomePage(),
-    BookingsPage(),
+    BookingsListPage(),
     // FavoritesPage(),
     ChatPage(),
     ProfilePage(),

@@ -1,53 +1,54 @@
 import 'dart:async';
 import 'package:get/get.dart';
-import '../widgets/booking_card.dart'; // Import untuk mengakses enum BookingStatus
+import '../widgets/booking_card.dart'; // Import enum BookingStatus
+import 'package:function_mobile/common/routes/routes.dart';
 
 class BookingCardController extends GetxController {
-  // Timer properties
-  Rx<Duration?> remainingTime = Rx<Duration?>(null);
+  Rxn<Duration> remainingTime =
+      Rxn<Duration>(); // Menggunakan Rxn untuk nullable value
   Timer? _timer;
-  final String bookingId;
   final Rx<BookingStatus> status = Rx<BookingStatus>(BookingStatus.pending);
 
-  BookingCardController(
-      {required this.bookingId,
-      BookingStatus initialStatus = BookingStatus.pending}) {
+  BookingCardController({BookingStatus initialStatus = BookingStatus.pending}) {
     status.value = initialStatus;
-  }
 
-  void startTimer(Duration initialDuration) {
-    remainingTime.value = initialDuration;
-
-    // Gunakan interval tepat 1 detik
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (remainingTime.value != null && remainingTime.value!.inSeconds > 0) {
-        // Kurangi tepat 1 detik
-        remainingTime.value =
-            Duration(seconds: remainingTime.value!.inSeconds - 1);
-      } else {
+    // Pantau perubahan waktu
+    ever(remainingTime, (time) {
+      if (time == Duration.zero) {
         _timer?.cancel();
-        remainingTime.value = Duration.zero;
-
-        // Ubah status menjadi expired ketika timer habis
         status.value = BookingStatus.expired;
-
-        // Opsional: Tambahkan notifikasi atau callback
-        //TODO: add Notification when booking expired
-        // Get.snackbar(
-        //   'Booking Expired',
-        //   'Your booking with ID $bookingId has expired',
-        //   snackPosition: SnackPosition.BOTTOM,
-        //   duration: const Duration(seconds: 3),
-        // );
+        // TODO: add Notification when booking expired
       }
     });
   }
 
+  void goToDetail(String bookingId) {
+    Get.toNamed(MyRoutes.bookingDetail, arguments: bookingId);
+  }
+
+  void startTimer(Duration initialDuration) {
+    _timer?.cancel(); // Hentikan timer jika sudah ada yang berjalan
+
+    remainingTime.value = initialDuration;
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      decreaseTime();
+    });
+  }
+
+  void decreaseTime() {
+    if (remainingTime.value != null && remainingTime.value!.inSeconds > 0) {
+      remainingTime.value = remainingTime.value! - const Duration(seconds: 1);
+    } else {
+      remainingTime.value = Duration.zero;
+    }
+  }
+
   String formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
-    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
-    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
-    return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
+    return "${twoDigits(duration.inHours)}:"
+        "${twoDigits(duration.inMinutes.remainder(60))}:"
+        "${twoDigits(duration.inSeconds.remainder(60))}";
   }
 
   @override
