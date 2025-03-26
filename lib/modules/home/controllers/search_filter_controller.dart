@@ -11,10 +11,6 @@ class SearchFilterController extends GetxController {
   final dateController = TextEditingController();
 
 
-  @override
-  void onInit() {
-    super.onInit();
-  }
 
   void goToCapacitySelection() {
     Get.toNamed(MyRoutes.searchCapacity);
@@ -38,6 +34,7 @@ class SearchFilterController extends GetxController {
   }
   
 
+  @override
   void onClose() {
     activityController.dispose();
     locationController.dispose();
