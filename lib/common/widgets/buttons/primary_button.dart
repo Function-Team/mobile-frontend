@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 class PrimaryButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
-  final IconData? icon;
+  final IconData? rightIcon;
+  final IconData? leftIcon;
   final double? width;
   final double? height;
   final double? paddingHorizontal;
@@ -12,7 +13,8 @@ class PrimaryButton extends StatelessWidget {
   const PrimaryButton({
     required this.text,
     required this.onPressed,
-    this.icon,
+    this.rightIcon,
+    this.leftIcon,
     this.width,
     this.height = 50,
     this.paddingHorizontal,
@@ -43,10 +45,16 @@ class PrimaryButton extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(text),
-              if (icon != null) ...[
+              if (leftIcon != null) ...[
+                Icon(leftIcon,
+                    size: 16, color: Theme.of(context).colorScheme.onPrimary),
                 const SizedBox(width: 8),
-                Icon(icon, size: 16),
+              ],
+              Text(text),
+              if (rightIcon != null) ...[
+                const SizedBox(width: 8),
+                Icon(rightIcon,
+                    size: 16, color: Theme.of(context).colorScheme.onPrimary),
               ],
             ],
           ),

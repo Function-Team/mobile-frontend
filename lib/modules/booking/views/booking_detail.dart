@@ -29,7 +29,7 @@ class BookingDetail extends StatelessWidget {
               // Booking Status Card
               Text(
                 'Status',
-                style: theme.textTheme.displaySmall,
+                style: theme.textTheme.headlineSmall,
               ),
               BookingCard(
                   venueName: 'Real Space',
@@ -43,19 +43,19 @@ class BookingDetail extends StatelessWidget {
               // Booking Information
               //TODO: add Venue Details
               //TODO: add Venue Terms and Conditions
-
               Text(
                 'Your Details',
-                style: theme.textTheme.displaySmall,
+                style: theme.textTheme.headlineSmall,
               ),
               const SizedBox(height: 10),
-              _buildYourInfoCard(theme.colorScheme.tertiary,
-                  theme.colorScheme.primary, theme.textTheme.labelMedium!),
+              _buildYourInfoCard(
+                  color: theme.colorScheme.tertiary,
+                  textStyle: theme.textTheme.bodyMedium!),
               const SizedBox(height: 20),
               // Payment Information
               Text(
                 'Price Details',
-                style: theme.textTheme.displaySmall,
+                style: theme.textTheme.headlineSmall,
               ),
               const SizedBox(height: 10),
               _buildPriceDetails(theme.colorScheme.tertiary),
@@ -69,7 +69,8 @@ class BookingDetail extends StatelessWidget {
     );
   }
 
-  Widget _buildYourInfoCard(Color color, Color iconColor, TextStyle textStyle) {
+  Widget _buildYourInfoCard(
+      {required Color color, required TextStyle textStyle}) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
@@ -78,40 +79,27 @@ class BookingDetail extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildYourInfoRow(
-                Icons.person, 'Customer', 'John Doe', iconColor, textStyle),
-            _buildYourInfoRow(
-                Icons.phone, 'Phone', '+1 234 567 8900', iconColor, textStyle),
-            _buildYourInfoRow(Icons.email, 'Email', 'john.doe@example.com',
-                iconColor, textStyle),
-            _buildYourInfoRow(Icons.location_on, 'Location',
-                '123 Main St, City', iconColor, textStyle),
+            _buildYourInfoRow('Name:', 'John Doe', textStyle),
+            _buildYourInfoRow('Phone:', '+1 234 567 8900', textStyle),
+            _buildYourInfoRow('Email:', 'john.doe@example.com', textStyle),
+            _buildYourInfoRow('Location:', '123 Main St, City', textStyle),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildYourInfoRow(IconData icon, String label, String value,
-      Color iconColor, TextStyle textStyle) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
+  Widget _buildYourInfoRow(String label, String value, TextStyle labelStyle) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 4),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: iconColor, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            flex: 2,
-            child: Text(label, style: textStyle),
-          ),
-          Expanded(
-            flex: 3,
-            child: Text(
-              value,
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            ),
-          ),
+          Text(label, style: labelStyle),
+          Text(value, style: labelStyle.copyWith(fontWeight: FontWeight.w500)),
         ],
       ),
     );
@@ -130,7 +118,7 @@ class BookingDetail extends StatelessWidget {
             _buildPaymentRow('Service Fee', '\$120.00'),
             _buildPaymentRow('Tax', '\$10.00'),
             _buildPaymentRow('Discount', '-\$15.00'),
-            const Divider(thickness: 1),
+            const Divider(thickness: 0.5),
             _buildPaymentRow('Total', '\$115.00', isTotal: true),
             const SizedBox(height: 10),
             // Container(
@@ -156,9 +144,9 @@ class BookingDetail extends StatelessWidget {
     );
   }
 
+  //TODO: Add Summary Payment Method
   Widget _buildPaymentRow(String label, String amount, {bool isTotal = false}) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -182,22 +170,34 @@ class BookingDetail extends StatelessWidget {
   }
 
   Widget _buildActionButtons(BuildContext context) {
-    return Row(
+    return Column(
       children: [
-        //TODO: Add Reschedule Functionality
-        Expanded(
-          child: OutlineButton(
-            text: 'Reschedule',
-            onPressed: () {},
-          ),
+        PrimaryButton(
+          text: 'Contact Venue Owner',
+          onPressed: () {},
+          leftIcon: Icons.chat,
+          width: double.infinity,
         ),
-        const SizedBox(width: 16),
-        //TODO: Add Cancel Booking Functionality
-        Expanded(
-          child: PrimaryButton(
-            text: 'Cancel Booking',
-            onPressed: () {/* Handle cancel booking */},
-          ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            //TODO: Add Cancel Booking Functionality
+            Expanded(
+              child: OutlineButton(
+                  text: 'Cancel Booking',
+                  onPressed: () {},
+                  textColor: Colors.red,
+                  outlineColor: Colors.red),
+            ),
+            const SizedBox(width: 16),
+            //TODO: Add Reschedule Functionality
+            Expanded(
+              child: OutlineButton(
+                text: 'Reschedule',
+                onPressed: () {},
+              ),
+            ),
+          ],
         ),
       ],
     );
