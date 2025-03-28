@@ -7,6 +7,8 @@ class OutlineButton extends StatelessWidget {
   final bool isLoading;
   final IconData? icon;
   final bool useFaIcon; // Tambahkan flag untuk FaIcon
+  final Color? textColor;
+  final Color? outlineColor;
 
   const OutlineButton({
     super.key,
@@ -15,6 +17,8 @@ class OutlineButton extends StatelessWidget {
     this.isLoading = false,
     this.icon,
     this.useFaIcon = false, // Default pakai Icon biasa
+    this.textColor,
+    this.outlineColor,
   });
 
   @override
@@ -24,7 +28,14 @@ class OutlineButton extends StatelessWidget {
       height: 50,
       child: OutlinedButton(
         onPressed: isLoading ? null : onPressed,
-        style: Theme.of(context).outlinedButtonTheme.style,
+        style: ButtonStyle(
+          side: MaterialStateProperty.all(
+            BorderSide(
+              color: outlineColor ?? Theme.of(context).colorScheme.primary,
+              width: 0.5,
+            ),
+          ),
+        ),
         child: isLoading
             ? const SizedBox(
                 width: 20,
@@ -38,7 +49,12 @@ class OutlineButton extends StatelessWidget {
                     useFaIcon ? FaIcon(icon, size: 20) : Icon(icon, size: 20),
                     const SizedBox(width: 8),
                   ],
-                  Text(text),
+                  Text(
+                    text,
+                    style: TextStyle(
+                      color: textColor ?? Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
                 ],
               ),
       ),
