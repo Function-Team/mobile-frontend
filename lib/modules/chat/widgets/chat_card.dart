@@ -23,14 +23,13 @@ class ChatCard extends StatelessWidget {
     return ListTile(
       onTap: onTap,
       minLeadingWidth: 60,
-      minTileHeight: 90,
+      minTileHeight: 70,
       leading: CircleAvatar(
-        radius: 30,
+        radius: 25,
         child: imageUrl != null
             ? ClipOval(
                 child: NetworkImageWithLoader(
                   imageUrl: imageUrl!,
-                  width: 60,
                 ),
               )
             : Icon(Icons.person),
