@@ -5,8 +5,8 @@ Internal team documentation for the Function mobile application that handles ven
 ## 🛠️ Development Setup
 
 ### Prerequisites
-- Flutter SDK ^3.6.1
-- Dart SDK ^3.6.1
+- Flutter SDK ^3.29.0
+- Dart SDK ^3.7.0
 - Android Studio / VS Code
 - Git
 - FVM (its optional but u need it to manage flutter version)
@@ -18,36 +18,55 @@ dependencies:
   badges: ^3.1.2
   flutter_rating_bar: ^4.0.1
   get: ^4.7.2
+  cached_network_image: ^3.3.0
   shared_preferences: ^2.5.2
-  font_awesome_flutter: ^10.8.0
+  http: ^1.3.0
+  intl: ^0.20.2
+  shimmer: ^3.0.0
+  skeletonizer: ^1.4.3
 ```
 
 ## 🏗️ Project Structure
 
 ```
 lib/
-├── components/          # Reusable UI components
-│   ├── buttons/        # Button variants
-│   ├── cards/         # Card components
-│   ├── inputs/        # Form inputs
-│   └── views/         # Component previews
-├── modules/            # Feature modules
-│   ├── auth/          # Authentication
-│   ├── home/          # Home screen
-│   └── legal/         # Legal pages
-├── routes/            # Navigation
-└── theme/             # App theming
+├── common/
+│   ├── bindings/
+│   ├── routes/           # Routes
+│   ├── theme/            # App theming
+│   └── widgets/          # Reusable UI widgets
+│       ├── buttons/      # Button variants
+│       ├── images/       # Images custom widgets
+│       ├── inputs/       # Form inputs
+│       └── views/        # Widgets preview
+├── modules/              # Feature modules
+│   ├── auth/             # Authentication
+│   ├── booking/          # Booking feature
+│   ├── chat/             # Chat feature
+│   ├── home/             # Home screen
+│   ├── legal/            # Legal pages
+│   ├── navigation/       # Navigation
+│   ├── profile/          # Profile pages
+│   ├── settings/         # Setting pages
+│   └── venue/            # Venue pages
+└── services/
 ```
 
-## 🎨 UI Components
+## 🎨 Global UI Components
 
 ### Buttons
 - `PrimaryButton`: Main CTA button
 - `SecondaryButton`: Alternative action button
 - `OutlineButton`: Bordered button with optional icon support
+- `FavoriteButton`: Favorite button 
+- `CustomTextButton`: Custom text button 
+
+### Input Fields
+- `NetworkImageWithLoader`: Image with async functionality
 
 ### Input Fields
 - `AuthTextField`: Authentication inputs with password toggle
+- `PrimaryTextField`: Main TextField
 - `SearchTextField`: Search input with icon
 
 ## 📱 Features
@@ -115,6 +134,8 @@ flutter test
 
 ## 🔗 Additional Resources
 
-- [API Documentation](link-to-api-docs)
-- [Design System](link-to-design-system)
-- [Project Board](link-to-project-board)
+- [API Documentation](https://github.com/Function-Team/documentations.git)
+- [Project Board](https://github.com/orgs/Function-Team/projects/3)
+- [ERD](https://lucid.app/lucidchart/eff2f4c7-f952-4583-93c9-6217d1776af8/edit?invitationId=inv_9756da76-4d36-4ea7-91c5-6a37497b87bb&page=0_0#)
+- [Figma](https://www.figma.com/files/team/1388007983776109612/project/314675642/Function?fuid=1388007979167327514)
+

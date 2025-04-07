@@ -13,7 +13,7 @@ import 'package:function_mobile/modules/home/views/home_page.dart';
 import 'package:function_mobile/modules/legal/privacy_policy_page.dart';
 import 'package:function_mobile/modules/auth/views/login_page.dart';
 import 'package:function_mobile/modules/legal/terms_of_service_page.dart';
-import 'package:function_mobile/common/widgets/views/components_view.dart';
+import 'package:function_mobile/common/widgets/views/widgets_view.dart';
 import 'package:function_mobile/modules/profile/views/edit_profile_page.dart';
 import 'package:function_mobile/modules/venue/views/venue_detail_page.dart';
 import 'package:function_mobile/modules/navigation/views/bottom_nav_view.dart';
