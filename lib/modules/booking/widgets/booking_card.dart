@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/booking_card_controller.dart';
+import 'package:function_mobile/common/routes/routes.dart';
 
 enum BookingStatus {
   confirmed,
@@ -42,20 +43,15 @@ extension BookingStatusExtension on BookingStatus {
   }
 
   // Metode untuk mengkonversi string ke enum
-  static BookingStatus fromString(String status) {
-    switch (status.toLowerCase()) {
-      case 'confirmed':
-        return BookingStatus.confirmed;
-      case 'pending':
-        return BookingStatus.pending;
-      case 'cancelled':
-        return BookingStatus.cancelled;
-      case 'expired':
-        return BookingStatus.expired;
-      default:
-        return BookingStatus.other;
-    }
-  }
+  static final Map<String, BookingStatus> _statusMap = {
+    'confirmed': BookingStatus.confirmed,
+    'pending': BookingStatus.pending,
+    'cancelled': BookingStatus.cancelled,
+    'expired': BookingStatus.expired,
+  };
+
+  static BookingStatus fromString(String status) =>
+      _statusMap[status.toLowerCase()] ?? BookingStatus.other;
 }
 
 class BookingCard extends StatelessWidget {
@@ -67,6 +63,7 @@ class BookingCard extends StatelessWidget {
   final int price;
   final String priceType;
   final Duration? timeRemaining;
+  final BookingCardController? _controller;
 
   BookingCard({
     super.key,
@@ -78,26 +75,23 @@ class BookingCard extends StatelessWidget {
     required this.price,
     required this.priceType,
     this.timeRemaining,
-  }) {
-    // Inisialisasi controller jika ada timeRemaining
-    if (timeRemaining != null && bookingStatus == BookingStatus.pending) {
-      final controller = Get.put(
-          BookingCardController(bookingId: bookingID.toString()),
-          tag: 'booking_$bookingID');
-      controller.startTimer(timeRemaining!);
-    }
-  }
+  }) : _controller =
+            (timeRemaining != null && bookingStatus == BookingStatus.pending)
+                ? Get.put(BookingCardController(initialStatus: bookingStatus),
+                    tag: 'booking_$bookingID')
+                : null;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {},
+      onTap: () {
+        Get.toNamed(MyRoutes.bookingDetail, arguments: bookingID.toString());
+      },
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         padding: const EdgeInsets.all(16),
         width: double.infinity,
+        margin: EdgeInsets.symmetric(vertical: 6),
         decoration: BoxDecoration(
-          color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
               color: Theme.of(context).colorScheme.tertiary, width: 0.25),
@@ -196,11 +190,8 @@ class BookingCard extends StatelessWidget {
   }
 
   Widget _buildStatusBadge(BuildContext context) {
-    // Dapatkan controller jika status pending dan ada timeRemaining
-    final BookingCardController? timerController =
-        (timeRemaining != null && bookingStatus == BookingStatus.pending)
-            ? Get.find<BookingCardController>(tag: 'booking_$bookingID')
-            : null;
+    // Use the stored controller reference instead of finding it again
+    final BookingCardController? timerController = _controller;
 
     // Buat widget Row yang akan berisi timer dan status badge
     return Row(
@@ -243,49 +234,46 @@ class BookingCard extends StatelessWidget {
             );
           }),
 
-        // Status badge - gunakan Obx terpisah
-        timerController != null
-            ? Obx(() {
-                final status = timerController.status.value;
-                final Color statusColor = status.color;
-                final String statusText = status.displayName;
-
-                return Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: statusColor, width: 1),
-                  ),
-                  child: Text(
-                    statusText,
-                    style: TextStyle(
-                      color: statusColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                );
-              })
-            : Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: bookingStatus.color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: bookingStatus.color, width: 1),
-                ),
-                child: Text(
-                  bookingStatus.displayName,
-                  style: TextStyle(
-                    color: bookingStatus.color,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
+        // Extract status badge to a separate method for better readability
+        _buildStatusIndicator(timerController),
       ],
+    );
+  }
+
+  // New method to extract status badge logic
+  Widget _buildStatusIndicator(BookingCardController? timerController) {
+    if (timerController != null) {
+      return Obx(() {
+        final status = timerController.status.value;
+        final Color statusColor = status.color;
+        final String statusText = status.displayName;
+
+        return _buildStatusContainer(statusColor, statusText);
+      });
+    } else {
+      return _buildStatusContainer(
+          bookingStatus.color, bookingStatus.displayName);
+    }
+  }
+
+  // Extract common container building logic
+  Widget _buildStatusContainer(Color color, String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      margin: const EdgeInsets.only(left: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color, width: 1),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
+      ),
     );
   }
 }
