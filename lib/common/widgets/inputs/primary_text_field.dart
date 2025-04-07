@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class PrimaryTextField extends StatelessWidget {
-  final String label;
+  final String? label;
   final String hintText;
   final TextEditingController? controller;
   final TextInputType keyboardType;
@@ -19,7 +19,7 @@ class PrimaryTextField extends StatelessWidget {
 
   const PrimaryTextField({
     super.key,
-    required this.label,
+    this.label,
     required this.hintText,
     this.controller,
     this.keyboardType = TextInputType.text,
@@ -42,7 +42,7 @@ class PrimaryTextField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          label,
+          label!,
           style: Theme.of(context)
               .textTheme
               .bodyLarge

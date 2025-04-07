@@ -28,7 +28,7 @@ class ChattingPage extends StatelessWidget {
           ),
           Expanded(
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(8),
               child: Row(
                 children: [
                   Expanded(
@@ -36,7 +36,7 @@ class ChattingPage extends StatelessWidget {
                       decoration: InputDecoration(
                         hintText: 'Type a message',
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: BorderRadius.circular(50),
                         ),
                       ),
                     ),

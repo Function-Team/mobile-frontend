@@ -18,6 +18,7 @@ class MessageCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
+      minTileHeight: 10,
       textColor: Theme.of(context).colorScheme.onSurface,
       title: Text(sender),
       subtitle: Text(message),
@@ -28,10 +29,8 @@ class MessageCard extends StatelessWidget {
           Text(timestamp),
         ],
       ),
-      minLeadingWidth: 60,
-      minTileHeight: 90,
       leading: CircleAvatar(
-        radius: 30,
+        radius: 10,
         child: profileImageUrl != null
             ? ClipOval(
                 child: Image.network(
