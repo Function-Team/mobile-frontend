@@ -8,7 +8,7 @@ import 'package:function_mobile/modules/home/pages/capacity_selection_page.dart'
 import 'package:function_mobile/modules/home/pages/date_selection_page.dart';
 import 'package:function_mobile/modules/home/pages/search_activity_page.dart';
 import 'package:function_mobile/modules/home/pages/search_location_page.dart';
-
+import 'package:function_mobile/modules/favorite/views/favorites_page.dart';
 import 'package:function_mobile/modules/home/views/home_page.dart';
 import 'package:function_mobile/modules/legal/privacy_policy_page.dart';
 import 'package:function_mobile/modules/auth/views/login_page.dart';
@@ -30,31 +30,50 @@ import 'package:function_mobile/modules/profile/bindings/edit_profile_binding.da
 
 class MyRoutes {
   static const String componentView = '/componentView';
+
+  // Auth
   static const String login = '/login';
   static const String signup = '/signup';
-  static const String home = '/homePage';
-  static const String bottomNav = '/bottomNav';
-  static const String profile = '/profile';
 
+  // Home
+  static const String home = '/homePage';
+
+  // Navigation
+  static const String bottomNav = '/bottomNav';
+
+  // Profile
+  static const String profile = '/profile';
+  static const String editProfile = '/editProfile';
+
+  // Booking
   static const String bookingList = '/bookingList';
   static const String bookingDetail = '/bookingDetail';
 
+  // Favorites
   static const String favorites = '/favorites';
+
+  // Venue
   static const String venueList = '/venueList';
   static const String venueDetail = '/venueDetail';
+
+  // Legal
   static const String privacyPolicy = '/privacyPolicy';
   static const String termsOfService = '/termsOfService';
-  static const String editProfile = '/editProfile';
 
+  // Settings
   static const String settings = '/settings';
 
+  // SearchFilter
   static const String searchActivity = '/searchActivity';
   static const String searchCapacity = '/searchCapacity';
   static const String searchDate = '/searchDate';
   static const String searchLocation = '/searchLocation';
 
+  // Chat
   static const String chat = '/chat';
   static const String chatting = '/chatting';
+
+  // Define the routes for the app
 
   static final List<GetPage> pages = [
     // Components
@@ -76,6 +95,8 @@ class MyRoutes {
     GetPage(name: searchCapacity, page: () => CapacitySelectionPage()),
     GetPage(name: searchDate, page: () => DateSelectionPage()),
     GetPage(name: searchLocation, page: () => SearchLocationPage()),
+
+    GetPage(name: favorites, page: () => FavoritesPage()),
 
     // Venue
     GetPage(
