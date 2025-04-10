@@ -165,6 +165,7 @@ class AuthController extends GetxController {
       final userData = await _authService.signup(
         usernameSignUpController.text.trim(),
         passwordSignUpController.text,
+        emailSignUpController.text.trim(),
       );
 
       if (userData['access_token'] != null) {
