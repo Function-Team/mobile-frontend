@@ -41,15 +41,128 @@ class VenueDetailPage extends StatelessWidget {
                   children: [
                     Stack(
                       children: [
+                        // Image Carousel
                         SizedBox(
                           height: 250,
                           width: double.infinity,
-                          child: NetworkImageWithLoader(
-                            imageUrl:
-                                controller.venue.value?.firstPictureUrl ?? '',
-                            fit: BoxFit.cover,
-                          ),
+                          child: Obx(() {
+                            if (controller.isLoadingImages.value) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
+                            }
+
+                            // Tambahkan dummy images jika tidak ada gambar (UNTUK TESTING)
+                            if (controller.venueImages.isEmpty) {
+                              // Gunakan firstPictureUrl dari venue jika tersedia
+                              if (controller.venue.value?.firstPictureUrl !=
+                                      null &&
+                                  controller.venue.value!.firstPictureUrl!
+                                      .isNotEmpty) {
+                                return Image.network(
+                                  controller.venue.value!.firstPictureUrl!,
+                                  fit: BoxFit.cover,
+                                  loadingBuilder:
+                                      (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return Center(
+                                      child: CircularProgressIndicator(
+                                        value: loadingProgress
+                                                    .expectedTotalBytes !=
+                                                null
+                                            ? loadingProgress
+                                                    .cumulativeBytesLoaded /
+                                                loadingProgress
+                                                    .expectedTotalBytes!
+                                            : null,
+                                      ),
+                                    );
+                                  },
+                                  errorBuilder: (context, error, stackTrace) {
+                                    print(
+                                        "Error loading venue image: ${controller.venue.value?.firstPictureUrl}, error: $error");
+                                    return _buildImagePlaceholder();
+                                  },
+                                );
+                              } else {
+                                // Fallback ke placeholder jika tidak ada gambar sama sekali
+                                return _buildImagePlaceholder();
+                              }
+                            }
+
+                            // Gunakan PageView untuk membuat slider gambar
+                            return PageView.builder(
+                              itemCount: controller.venueImages.length,
+                              onPageChanged: (index) =>
+                                  controller.currentImageIndex.value = index,
+                              itemBuilder: (context, index) {
+                                final image = controller.venueImages[index];
+                                print(
+                                    "Building image at index $index: ${image.imageUrl}");
+
+                                return Image.network(
+                                  image.imageUrl ?? '',
+                                  fit: BoxFit.cover,
+                                  loadingBuilder:
+                                      (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return Center(
+                                      child: CircularProgressIndicator(
+                                        value: loadingProgress
+                                                    .expectedTotalBytes !=
+                                                null
+                                            ? loadingProgress
+                                                    .cumulativeBytesLoaded /
+                                                loadingProgress
+                                                    .expectedTotalBytes!
+                                            : null,
+                                      ),
+                                    );
+                                  },
+                                  errorBuilder: (context, error, stackTrace) {
+                                    print(
+                                        "Error loading image: ${image.imageUrl}, error: $error");
+                                    return _buildImagePlaceholder();
+                                  },
+                                );
+                              },
+                            );
+                          }),
                         ),
+
+                        // Indikator posisi gambar (dots)
+                        Positioned(
+                          bottom: 10,
+                          left: 0,
+                          right: 0,
+                          child: Obx(() {
+                            if (controller.venueImages.isEmpty ||
+                                controller.venueImages.length <= 1) {
+                              return const SizedBox();
+                            }
+
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: List.generate(
+                                controller.venueImages.length,
+                                (index) => Container(
+                                  width: 8,
+                                  height: 8,
+                                  margin:
+                                      const EdgeInsets.symmetric(horizontal: 4),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: controller.currentImageIndex.value ==
+                                            index
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Colors.white.withOpacity(0.5),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
+                        ),
+
+                        // Tombol back
                         Positioned(
                           top: 40,
                           left: 16,
@@ -72,6 +185,8 @@ class VenueDetailPage extends StatelessWidget {
                             ),
                           ),
                         ),
+
+                        // Content container
                         Container(
                           margin: EdgeInsets.only(top: 150),
                           padding: EdgeInsets.fromLTRB(16, 16, 16, 16),
@@ -101,6 +216,27 @@ class VenueDetailPage extends StatelessWidget {
           );
         }
       }),
+    );
+  }
+
+// Helper method untuk membuat placeholder gambar
+  Widget _buildImagePlaceholder() {
+    return Container(
+      color: Colors.grey[200],
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.image_not_supported, size: 48, color: Colors.grey[500]),
+            const SizedBox(height: 8),
+            Text(
+              "Gambar tidak tersedia",
+              style: TextStyle(
+                  color: Colors.grey[600], fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
