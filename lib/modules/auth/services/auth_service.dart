@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
+  // Fix the base URL to point to the actual backend
   static const String baseUrl = 'http://backend.thefunction.id';
 
   Future<void> saveToken(String token) async {
@@ -25,14 +26,15 @@ class AuthService {
       print('Attempting login with username: $username');
       print('API URL: $baseUrl/api/login');
 
+      // Changed to use application/json instead of form-urlencoded
       final response = await http.post(
-      Uri.parse('$baseUrl/api/login'),
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: {
-        'username': username,
-        'password': password,
-      },
-    );
+        Uri.parse('$baseUrl/api/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'username': username,
+          'password': password,
+        }),
+      );
 
       print('Login response status: ${response.statusCode}');
       print('Login response body: ${response.body}');
@@ -73,13 +75,15 @@ class AuthService {
     }
   }
 
-  Future<Map<String, dynamic>> signup(String username, String password) async {
+  Future<Map<String, dynamic>> signup(
+      String username, String password, String email) async {
     try {
       final response = await http
           .post(
         Uri.parse('$baseUrl/api/signup'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'username': username, 'password': password}),
+        body: jsonEncode(
+            {'username': username, 'password': password, 'email': email}),
       )
           .timeout(Duration(seconds: 10), onTimeout: () {
         throw Exception('Network timeout. Please check your connection.');
@@ -127,6 +131,7 @@ class AuthService {
     }
   }
 
+  // Rest of the methods remain the same
   Future<Map<String, String>> getAuthHeaders() async {
     final token = await getToken();
     return {
