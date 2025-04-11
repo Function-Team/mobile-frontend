@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 
@@ -7,6 +8,8 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AuthController controller = Get.find();
+
     return Scaffold(
         appBar: AppBar(
           leading: IconButton(
@@ -92,6 +95,7 @@ class SettingsPage extends StatelessWidget {
                 title: 'Logout',
                 onTap: () {
                   //TODO: Implement Logout
+                  controller.logout();
                 },
                 textColor: Theme.of(context).colorScheme.error,
               ),
