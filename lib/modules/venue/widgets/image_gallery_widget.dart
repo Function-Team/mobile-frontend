@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// A reusable widget for displaying a horizontal gallery of images
 class ImageGalleryWidget extends StatelessWidget {
   final List<dynamic> images;
   final Function(int) onImageTap;
@@ -24,7 +23,7 @@ class ImageGalleryWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (images.isEmpty) {
-      return SizedBox(); // Don't show gallery if no images
+      return SizedBox();
     }
 
     return Container(
@@ -55,7 +54,9 @@ class ImageGalleryWidget extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                if (showViewAll && images.length > maxImages && onViewAllTap != null)
+                if (showViewAll &&
+                    images.length > maxImages &&
+                    onViewAllTap != null)
                   GestureDetector(
                     onTap: onViewAllTap,
                     child: Row(
@@ -86,7 +87,7 @@ class ImageGalleryWidget extends StatelessWidget {
               itemCount: images.length > maxImages ? maxImages : images.length,
               itemBuilder: (context, index) {
                 final imageUrl = images[index].imageUrl ?? '';
-                
+
                 return GestureDetector(
                   onTap: () => onImageTap(index),
                   child: Container(
@@ -199,7 +200,7 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery> {
             },
             itemBuilder: (context, index) {
               final imageUrl = widget.images[index].imageUrl;
-              
+
               return GestureDetector(
                 onTap: _toggleControls,
                 child: Center(
@@ -214,7 +215,8 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery> {
                               if (loadingProgress == null) return child;
                               return Center(
                                 child: CircularProgressIndicator(
-                                  value: loadingProgress.expectedTotalBytes != null
+                                  value: loadingProgress.expectedTotalBytes !=
+                                          null
                                       ? loadingProgress.cumulativeBytesLoaded /
                                           loadingProgress.expectedTotalBytes!
                                       : null,
@@ -227,10 +229,8 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery> {
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(Icons.image_not_supported, 
-                                      size: 48, 
-                                      color: Colors.white60
-                                    ),
+                                    Icon(Icons.image_not_supported,
+                                        size: 48, color: Colors.white60),
                                     SizedBox(height: 8),
                                     Text(
                                       "Failed to load image",
@@ -252,7 +252,7 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery> {
               );
             },
           ),
-          
+
           // Thumbnail gallery at the bottom (only visible when controls are showing)
           if (_showControls && widget.images.length > 1)
             Positioned(

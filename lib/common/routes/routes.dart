@@ -20,6 +20,7 @@ import 'package:function_mobile/modules/navigation/views/bottom_nav_view.dart';
 import 'package:function_mobile/modules/venue/views/venue_list_page.dart';
 import 'package:function_mobile/modules/profile/views/profile_page.dart';
 import 'package:function_mobile/modules/settings/settings_page/views/settings_page.dart';
+import 'package:function_mobile/modules/venue/widgets/fullscreen_image_gallery.dart';
 import 'package:get/get.dart';
 
 // Feature-specific bindings are only required if they have
@@ -72,6 +73,10 @@ class MyRoutes {
   // Chat
   static const String chat = '/chat';
   static const String chatting = '/chatting';
+
+  //ImageGallery
+  static const String imageGallery = '/image-gallery';
+
 
   // Define the routes for the app
 
@@ -128,5 +133,7 @@ class MyRoutes {
     // Chat
     GetPage(name: chat, page: () => ChatPage(), binding: ChatBinding()),
     GetPage(name: chatting, page: () => ChattingPage()),
+
+    GetPage(name: imageGallery, page: () => FullscreenImageGallery(images: Get.arguments['images'] ?? [], initialIndex: Get.arguments ['initialIndex'] ?? 0), )
   ];
 }

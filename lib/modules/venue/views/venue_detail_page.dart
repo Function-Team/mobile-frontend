@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/widgets/buttons/custom_text_button.dart';
 import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 import 'package:function_mobile/common/widgets/buttons/secondary_button.dart';
@@ -19,10 +20,7 @@ class VenueDetailPage extends StatelessWidget {
     return Scaffold(
       body: Obx(() {
         if (controller.isLoading.value) {
-          return Skeletonizer(
-            enabled: true,
-            child: _buildVenueDetailContent(context, controller),
-          );
+          return const Center(child: CircularProgressIndicator());
         } else if (controller.hasError.value) {
           return Center(
             child: Column(
@@ -30,84 +28,270 @@ class VenueDetailPage extends StatelessWidget {
               children: [
                 Text(controller.errorMessage.value),
                 const SizedBox(height: 16),
-                PrimaryButton(
-                    text: "Retry", onPressed: controller.retryLoading),
+                ElevatedButton(
+                  onPressed: controller.retryLoading,
+                  child: const Text('Retry'),
+                ),
               ],
             ),
           );
         } else {
-          return _buildVenueDetailContent(context, controller);
+          return Stack(
+            children: [
+              SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Stack(
+                      children: [
+                        // Single Main Image
+                        SizedBox(
+                          height: 250,
+                          width: double.infinity,
+                          child: Obx(() {
+                            if (controller.isLoadingImages.value) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
+                            }
+
+                            // Use the first image or fallback
+                            final String? imageUrl =
+                                controller.venueImages.isNotEmpty &&
+                                        controller.venueImages.first.imageUrl !=
+                                            null
+                                    ? controller.venueImages.first.imageUrl
+                                    : controller.venue.value?.firstPictureUrl;
+
+                            if (imageUrl != null && imageUrl.isNotEmpty) {
+                              return GestureDetector(
+                                onTap: () {
+                                  // Open the image in fullscreen
+                                  _openFullscreenImage(
+                                      context, imageUrl, 0, controller);
+                                },
+                                child: Image.network(
+                                  imageUrl,
+                                  fit: BoxFit.cover,
+                                  loadingBuilder:
+                                      (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return Center(
+                                      child: CircularProgressIndicator(
+                                        value: loadingProgress
+                                                    .expectedTotalBytes !=
+                                                null
+                                            ? loadingProgress
+                                                    .cumulativeBytesLoaded /
+                                                loadingProgress
+                                                    .expectedTotalBytes!
+                                            : null,
+                                      ),
+                                    );
+                                  },
+                                  errorBuilder: (context, error, stackTrace) {
+                                    print(
+                                        "Error loading venue image: $imageUrl, error: $error");
+                                    return _buildImagePlaceholder();
+                                  },
+                                ),
+                              );
+                            } else {
+                              return _buildImagePlaceholder();
+                            }
+                          }),
+                        ),
+
+                        // Back button
+                        Positioned(
+                          top: 40,
+                          left: 16,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.arrow_back,
+                                  color: Colors.black),
+                              onPressed: () => Get.back(result: true),
+                            ),
+                          ),
+                        ),
+
+                        // Content container
+                        Container(
+                          margin: EdgeInsets.only(top: 210),
+                          padding: EdgeInsets.fromLTRB(16, 16, 16, 16),
+                          child: Column(
+                            children: [
+                              // Image Gallery section
+                              _buildImageGallery(context, controller),
+                              _buildVenueInfoCard(context, controller),
+                              _buildLocationSection(context, controller),
+                              _buildFacilitiesSection(context, controller),
+                              _buildReviewsSection(context, controller),
+                              _buildScheduleSection(context, controller),
+                              const SizedBox(height: 80),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: _buildPriceAndBooking(context, controller),
+              ),
+            ],
+          );
         }
       }),
     );
   }
 
-  Widget _buildVenueDetailContent(
+  Widget _buildImageGallery(
       BuildContext context, VenueDetailController controller) {
-    return Stack(
-      children: [
-        SingleChildScrollView(
-          child: Column(
-            children: [
-              Stack(
+    return Obx(() {
+      if (controller.isLoadingImages.value) {
+        return const SizedBox(
+          height: 100,
+          child: Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      }
+
+      if (controller.venueImages.isEmpty) {
+        return const SizedBox();
+      }
+      return Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Skeleton.ignore(
-                    child: SizedBox(
-                      height: 250,
-                      width: double.infinity,
-                      child: NetworkImageWithLoader(
-                        imageUrl: controller.venue.value?.firstPictureUrl ?? '',
-                        fit: BoxFit.cover,
-                      ),
-                    ),
+                  Text(
+                    'Gallery',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  Positioned(
-                    top: 40,
-                    left: 16,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.black),
-                        onPressed: () => Get.back(result: true),
-                      ),
-                    ),
-                  ),
-                  Container(
-                    margin: EdgeInsets.only(top: 150),
-                    padding: EdgeInsets.fromLTRB(16, 16, 16, 16),
-                    child: Column(
-                      children: [
-                        _buildVenueInfoCard(context, controller),
-                        _buildLocationSection(context, controller),
-                        _buildFacilitiesSection(context, controller),
-                        _buildReviewsSection(context, controller),
-                        _buildScheduleSection(context, controller),
-                        const SizedBox(height: 80),
-                      ],
-                    ),
-                  ),
+                  controller.venueImages.length > 5
+                      ? CustomTextButton(
+                          text: 'View All',
+                          onTap: () {
+                            _openFullscreenGallery(context, controller);
+                          },
+                          icon: Icons.arrow_forward,
+                          isrightIcon: true,
+                        )
+                      : SizedBox(),
                 ],
               ),
-            ],
-          ),
+            ),
+            SizedBox(
+              height: 100,
+              child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding:
+                      const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+                  itemCount: controller.venueImages.length > 5
+                      ? 5
+                      : controller.venueImages.length,
+                  itemBuilder: (context, index) {
+                    final image = controller.venueImages[index];
+                    return GestureDetector(
+                      onTap: () {
+                        _openFullscreenImage(
+                            context, image.imageUrl ?? '', index, controller);
+                      },
+                      child: Container(
+                        width: 100,
+                        height: 100,
+                        margin: const EdgeInsets.only(right: 8),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: image.imageUrl != null
+                                ? Image.network(
+                                    image.imageUrl!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return _buildImagePlaceholder();
+                                    },
+                                  )
+                                : _buildImagePlaceholder()),
+                      ),
+                    );
+                  }),
+            )
+          ],
         ),
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: _buildPriceAndBooking(context, controller),
+      );
+    });
+  }
+
+  void _openFullscreenImage(BuildContext context, String imageUrl,
+      int initialIndex, VenueDetailController controller) {
+    if (controller.venueImages.isEmpty) return;
+
+    Get.toNamed(MyRoutes.imageGallery, arguments: {
+      'images': controller.venueImages,
+      'initialIndex': initialIndex
+    });
+  }
+
+  void _openFullscreenGallery(
+      BuildContext context, VenueDetailController controller) {
+    if (controller.venueImages.isEmpty) return;
+
+    Get.toNamed(MyRoutes.imageGallery,
+        arguments: {'images': controller.venueImages, 'initialIndex': 0});
+  }
+
+  Widget _buildImagePlaceholder() {
+    return Container(
+      color: Colors.grey[200],
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.image_not_supported, size: 48, color: Colors.grey[500]),
+            const SizedBox(height: 8),
+            Text(
+              "Gambar tidak tersedia",
+              style: TextStyle(
+                  color: Colors.grey[600], fontWeight: FontWeight.w500),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
