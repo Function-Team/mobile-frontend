@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 
+/// A reusable widget for displaying a fullscreen image gallery
 class FullscreenImageGallery extends StatefulWidget {
   final List<dynamic> images;
   final int initialIndex;
 
   const FullscreenImageGallery({
-    super.key,
+    Key? key,
     required this.images,
     required this.initialIndex,
-  });
+  }) : super(key: key);
 
   @override
   _FullscreenImageGalleryState createState() => _FullscreenImageGalleryState();
@@ -49,6 +52,10 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery> {
               title: Text(
                 'Image ${_currentIndex + 1} of ${widget.images.length}',
                 style: TextStyle(color: Colors.white),
+              ),
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => Get.back(),
               ),
             )
           : null,
