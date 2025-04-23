@@ -226,7 +226,7 @@ class VenueListPage extends GetView<VenueListController> {
                     controller.setCategory(category);
                     Get.back();
                   },
-                )).toList(),
+                )),
               ],
             )),
             const SizedBox(height: 16),

@@ -16,15 +16,7 @@ class VenueListController extends GetxController {
   final RxString selectedCategory = ''.obs;
   final RxList<String> categories = <String>[].obs;
 
-  @override
-  void onInit() {
-    super.onInit();
-  }
 
-  @override
-  void onClose() {
-    super.onClose();
-  }
 
   void navigateToVenueDetail(VenueModel venue) {
     if (venue.id != null) {
