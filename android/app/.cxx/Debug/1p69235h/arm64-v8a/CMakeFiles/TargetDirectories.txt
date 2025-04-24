@@ -1,2 +1,0 @@
-D:/Mapel/Android Dev/mobile-frontend/android/app/.cxx/Debug/1p69235h/arm64-v8a/CMakeFiles/edit_cache.dir
-D:/Mapel/Android Dev/mobile-frontend/android/app/.cxx/Debug/1p69235h/arm64-v8a/CMakeFiles/rebuild_cache.dir

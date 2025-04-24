@@ -76,7 +76,7 @@ app.*.map.json
 # FVM Version Cache
 .fvm/android/app/.cxx/
 
-
+android/app/.cxx/
 android/app/.cxx/Debug/3d3t1347/arm64-v8a/configure_fingerprint.bin
 android/app/.cxx/Debug/3d3t1347/armeabi-v7a/configure_fingerprint.bin
 android/app/.cxx/Debug/3d3t1347/x86/configure_fingerprint.bin
