@@ -18,9 +18,7 @@ class VenueRepository {
             'Failed to load venues. Status: ${response.statusCode}');
       }
     } catch (e) {
-      // Log error
       print('Error fetching venues: $e');
-      // Return empty list rather than throwing
       return [];
     }
   }
@@ -66,6 +64,61 @@ class VenueRepository {
       return [];
     }
   }
+
+  Future<List<VenueModel>> searchVenues(
+    {String? searchQuery,
+    int? categoryId,
+    int? cityId,
+    int? minPrice,
+    int? maxPrice,
+    int? minCapacity,
+    bool? sortByPrice,
+    bool? reverseSort}) async {
+      
+  try {
+    final queryParams = <String, String>{};
+
+    if (searchQuery != null && searchQuery.isNotEmpty) {
+      queryParams['search'] = searchQuery;
+    }
+    if (categoryId != null) {
+      queryParams['category_id'] = categoryId.toString();
+    }
+    if (cityId != null) {
+      queryParams['city_id'] = cityId.toString();
+    }
+    if (minPrice != null) {
+      queryParams['min_price'] = minPrice.toString();
+    }
+    if (maxPrice != null) {
+      queryParams['max_price'] = maxPrice.toString();
+    }
+    if (sortByPrice != null) {
+      queryParams['sort_price'] = sortByPrice.toString();
+    }
+    if (minCapacity != null) {
+      queryParams['min_capacity'] = minCapacity.toString();
+    }
+    if (reverseSort != null) {
+      queryParams['reverse'] = reverseSort.toString();
+    }
+    final uri =
+        Uri.parse('$baseUrl/api/place').replace(queryParameters: queryParams);
+    print('Searching venues with URL: $uri');
+
+    final response = await http.get(uri);
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      return data.map((json) => VenueModel.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to search venues. Status ${response.statusCode}');
+    }
+  } catch (e) {
+    print('error searching venues :$e');
+    return [];
+  }
+}
 
   // Get venue reviews
   Future<List<ReviewModel>> getVenueReviews(int venueId) async {

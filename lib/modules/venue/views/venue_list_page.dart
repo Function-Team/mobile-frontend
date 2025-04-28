@@ -11,8 +11,7 @@ class VenueListPage extends GetView<VenueListController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: _buildSearchBar(),
-        automaticallyImplyLeading: true,
+        title: _buildSearchBar(context),
       ),
       body: SafeArea(
         child: Column(
@@ -27,7 +26,7 @@ class VenueListPage extends GetView<VenueListController> {
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       height: 44,
@@ -35,7 +34,29 @@ class VenueListPage extends GetView<VenueListController> {
         controller: controller.searchController,
         decoration: InputDecoration(
           hintText: 'Search venue',
-          prefixIcon: const Icon(Icons.search),
+          prefixIcon: Obx(() =>
+              controller.isLoading.value && controller.searchQuery.isNotEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: SizedBox(
+                        width: 15,
+                        height: 15,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              Theme.of(context).primaryColor),
+                        ),
+                      ),
+                    )
+                  : const Icon(Icons.search)),
+          suffixIcon: Obx(() => controller.searchQuery.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: () {
+                    controller.searchController.clear();
+                  },
+                )
+              : SizedBox()),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
             borderSide: BorderSide.none,
@@ -59,15 +80,16 @@ class VenueListPage extends GetView<VenueListController> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Obx(() => controller.selectedCategory.isEmpty
-                ? Text(
-                    'All Venues',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  )
-                : Text(
-                    '${controller.selectedCategory.value} Venues',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+              Obx(
+                () => controller.selectedCategory.isEmpty
+                    ? Text(
+                        'All Venues',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      )
+                    : Text(
+                        '${controller.selectedCategory.value} Venues',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
               ),
               IconButton(
                 icon: const Icon(Icons.filter_list),
@@ -75,13 +97,14 @@ class VenueListPage extends GetView<VenueListController> {
               ),
             ],
           ),
-          Obx(() => controller.selectedCategory.isEmpty
-            ? const SizedBox.shrink()
-            : Chip(
-                label: Text(controller.selectedCategory.value),
-                deleteIcon: const Icon(Icons.clear, size: 18),
-                onDeleted: () => controller.clearCategory(),
-              ),
+          Obx(
+            () => controller.selectedCategory.isEmpty
+                ? const SizedBox.shrink()
+                : Chip(
+                    label: Text(controller.selectedCategory.value),
+                    deleteIcon: const Icon(Icons.clear, size: 18),
+                    onDeleted: () => controller.clearCategory(),
+                  ),
           ),
         ],
       ),
@@ -90,18 +113,18 @@ class VenueListPage extends GetView<VenueListController> {
 
   Widget _buildVenueList() {
     return Obx(() {
-      if (controller.isLoading.value) {
-        return _buildSkeletonList();
-      }
-      
+      // if (controller.isLoading.value) {
+      //   return _buildShimmer();
+      // }
+
       if (controller.hasError.value) {
         return _buildErrorState();
       }
-      
+
       if (controller.venues.isEmpty) {
         return _buildEmptyState();
       }
-      
+
       return RefreshIndicator(
         onRefresh: controller.refreshVenues,
         child: ListView.builder(
@@ -111,13 +134,15 @@ class VenueListPage extends GetView<VenueListController> {
             final venue = controller.venues[index];
             return VenueCard(
               venueName: venue.name ?? 'Unknown Venue',
-              location: venue.city?.name ?? venue.address?.split(',').last.trim() ?? 'Unknown Location',
+              location: venue.city?.name ??
+                  venue.address?.split(',').last.trim() ??
+                  'Unknown Locating',
               rating: venue.rating ?? 0,
               ratingCount: venue.reviewCount ?? 0,
               price: venue.price ?? 0,
               imageUrl: venue.firstPictureUrl ?? '',
               priceType: 'Rp',
-              onTap: () => controller.navigateToVenueDetail(venue),
+              onTap: () {},
               roomType: venue.category?.name ?? 'Venue',
               capacityType: '${venue.maxCapacity ?? 100}',
             );
