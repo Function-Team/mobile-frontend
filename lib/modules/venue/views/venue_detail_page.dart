@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/widgets/buttons/custom_text_button.dart';
 import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 import 'package:function_mobile/common/widgets/buttons/secondary_button.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
 import 'package:function_mobile/modules/venue/widgets/category_chip.dart';
+import 'package:function_mobile/modules/venue/widgets/venue_detail/about_detail.dart';
+import 'package:function_mobile/modules/venue/widgets/venue_detail/facilities_section.dart';
+import 'package:function_mobile/modules/venue/widgets/venue_detail/image_gallery.dart';
+import 'package:function_mobile/modules/venue/widgets/venue_detail/reviews_page.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:function_mobile/modules/venue/controllers/venue_detail_controller.dart';
@@ -20,7 +23,10 @@ class VenueDetailPage extends StatelessWidget {
     return Scaffold(
       body: Obx(() {
         if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
+          return Skeletonizer(
+            enabled: true,
+            child: _buildVenueDetailContent(context, controller),
+          );
         } else if (controller.hasError.value) {
           return Center(
             child: Column(
@@ -28,274 +34,118 @@ class VenueDetailPage extends StatelessWidget {
               children: [
                 Text(controller.errorMessage.value),
                 const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: controller.retryLoading,
-                  child: const Text('Retry'),
-                ),
+                PrimaryButton(
+                    text: "Retry", onPressed: controller.retryLoading),
               ],
             ),
           );
         } else {
-          return Stack(
-            children: [
-              SingleChildScrollView(
-                child: Column(
-                  children: [
-                    Stack(
-                      children: [
-                        // Single Main Image
-                        SizedBox(
-                          height: 250,
-                          width: double.infinity,
-                          child: Obx(() {
-                            if (controller.isLoadingImages.value) {
-                              return const Center(
-                                  child: CircularProgressIndicator());
-                            }
-
-                            // Use the first image or fallback
-                            final String? imageUrl =
-                                controller.venueImages.isNotEmpty &&
-                                        controller.venueImages.first.imageUrl !=
-                                            null
-                                    ? controller.venueImages.first.imageUrl
-                                    : controller.venue.value?.firstPictureUrl;
-
-                            if (imageUrl != null && imageUrl.isNotEmpty) {
-                              return GestureDetector(
-                                onTap: () {
-                                  // Open the image in fullscreen
-                                  _openFullscreenImage(
-                                      context, imageUrl, 0, controller);
-                                },
-                                child: Image.network(
-                                  imageUrl,
-                                  fit: BoxFit.cover,
-                                  loadingBuilder:
-                                      (context, child, loadingProgress) {
-                                    if (loadingProgress == null) return child;
-                                    return Center(
-                                      child: CircularProgressIndicator(
-                                        value: loadingProgress
-                                                    .expectedTotalBytes !=
-                                                null
-                                            ? loadingProgress
-                                                    .cumulativeBytesLoaded /
-                                                loadingProgress
-                                                    .expectedTotalBytes!
-                                            : null,
-                                      ),
-                                    );
-                                  },
-                                  errorBuilder: (context, error, stackTrace) {
-                                    print(
-                                        "Error loading venue image: $imageUrl, error: $error");
-                                    return _buildImagePlaceholder();
-                                  },
-                                ),
-                              );
-                            } else {
-                              return _buildImagePlaceholder();
-                            }
-                          }),
-                        ),
-
-                        // Back button
-                        Positioned(
-                          top: 40,
-                          left: 16,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: IconButton(
-                              icon: const Icon(Icons.arrow_back,
-                                  color: Colors.black),
-                              onPressed: () => Get.back(result: true),
-                            ),
-                          ),
-                        ),
-
-                        // Content container
-                        Container(
-                          margin: EdgeInsets.only(top: 210),
-                          padding: EdgeInsets.fromLTRB(16, 16, 16, 16),
-                          child: Column(
-                            children: [
-                              // Image Gallery section
-                              _buildImageGallery(context, controller),
-                              _buildVenueInfoCard(context, controller),
-                              _buildLocationSection(context, controller),
-                              _buildFacilitiesSection(context, controller),
-                              _buildReviewsSection(context, controller),
-                              _buildScheduleSection(context, controller),
-                              const SizedBox(height: 80),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: _buildPriceAndBooking(context, controller),
-              ),
-            ],
-          );
+          return _buildVenueDetailContent(context, controller);
         }
       }),
     );
   }
 
-  Widget _buildImageGallery(
+  Widget _buildVenueDetailContent(
       BuildContext context, VenueDetailController controller) {
-    return Obx(() {
-      if (controller.isLoadingImages.value) {
-        return const SizedBox(
-          height: 100,
-          child: Center(
-            child: CircularProgressIndicator(),
-          ),
-        );
-      }
-
-      if (controller.venueImages.isEmpty) {
-        return const SizedBox();
-      }
-      return Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Stack(
+      children: [
+        SingleChildScrollView(
+          child: Column(
+            children: [
+              Stack(
                 children: [
-                  Text(
-                    'Gallery',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  controller.venueImages.length > 5
-                      ? CustomTextButton(
-                          text: 'View All',
+                  // Single Main Image
+                  Skeleton.ignore(
+                    child: SizedBox(
+                      height: 250,
+                      width: double.infinity,
+                      child: Obx(() {
+                        // Use the first image or fallback
+                        final String? imageUrl = controller
+                                    .venueImages.isNotEmpty &&
+                                controller.venueImages.first.imageUrl != null
+                            ? controller.venueImages.first.imageUrl
+                            : controller.venue.value?.firstPictureUrl;
+
+                        return GestureDetector(
                           onTap: () {
-                            _openFullscreenGallery(context, controller);
+                            if (imageUrl != null && imageUrl.isNotEmpty) {
+                              // Open the image in fullscreen
+                              controller.openFullscreenImage(
+                                  context, imageUrl, 0, controller);
+                            }
                           },
-                          icon: Icons.arrow_forward,
-                          isrightIcon: true,
-                        )
-                      : SizedBox(),
+                          child: NetworkImageWithLoader(
+                            imageUrl: imageUrl ?? '',
+                            fit: BoxFit.cover,
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+
+                  // Back button
+                  Positioned(
+                    top: 40,
+                    left: 16,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.black),
+                        onPressed: () => Get.back(result: true),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(top: 150),
+                    padding: EdgeInsets.fromLTRB(16, 16, 16, 16),
+                    child: Column(
+                      children: [
+                        ImageGallery(
+                          images: controller.venueImages,
+                          onImageTap: (index) {
+                            controller.openFullscreenGallery(
+                                context, controller);
+                          },
+                        ),
+                        _buildVenueInfoSection(context, controller),
+                        _buildLocationSection(context, controller),
+                        FacilitiesSection(),
+                        // ! In Development
+                        // _buildReviewsSection(context, controller),
+                        _buildScheduleSection(context, controller),
+                        const SizedBox(height: 80),
+                      ],
+                    ),
+                  ),
                 ],
               ),
-            ),
-            SizedBox(
-              height: 100,
-              child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-                  itemCount: controller.venueImages.length > 5
-                      ? 5
-                      : controller.venueImages.length,
-                  itemBuilder: (context, index) {
-                    final image = controller.venueImages[index];
-                    return GestureDetector(
-                      onTap: () {
-                        _openFullscreenImage(
-                            context, image.imageUrl ?? '', index, controller);
-                      },
-                      child: Container(
-                        width: 100,
-                        height: 100,
-                        margin: const EdgeInsets.only(right: 8),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey.shade200),
-                        ),
-                        child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: image.imageUrl != null
-                                ? Image.network(
-                                    image.imageUrl!,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return _buildImagePlaceholder();
-                                    },
-                                  )
-                                : _buildImagePlaceholder()),
-                      ),
-                    );
-                  }),
-            )
-          ],
+            ],
+          ),
         ),
-      );
-    });
-  }
-
-  void _openFullscreenImage(BuildContext context, String imageUrl,
-      int initialIndex, VenueDetailController controller) {
-    if (controller.venueImages.isEmpty) return;
-
-    Get.toNamed(MyRoutes.imageGallery, arguments: {
-      'images': controller.venueImages,
-      'initialIndex': initialIndex
-    });
-  }
-
-  void _openFullscreenGallery(
-      BuildContext context, VenueDetailController controller) {
-    if (controller.venueImages.isEmpty) return;
-
-    Get.toNamed(MyRoutes.imageGallery,
-        arguments: {'images': controller.venueImages, 'initialIndex': 0});
-  }
-
-  Widget _buildImagePlaceholder() {
-    return Container(
-      color: Colors.grey[200],
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.image_not_supported, size: 48, color: Colors.grey[500]),
-            const SizedBox(height: 8),
-            Text(
-              "Gambar tidak tersedia",
-              style: TextStyle(
-                  color: Colors.grey[600], fontWeight: FontWeight.w500),
-            ),
-          ],
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: _buildPriceAndBooking(context, controller),
         ),
-      ),
+      ],
     );
   }
 
-  Widget _buildVenueInfoCard(
+  // Section 1
+  Widget _buildVenueInfoSection(
       BuildContext context, VenueDetailController controller) {
     return Container(
       decoration: BoxDecoration(
@@ -312,6 +162,7 @@ class VenueDetailPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Name
           Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -367,17 +218,20 @@ class VenueDetailPage extends StatelessWidget {
               ],
             ),
           ),
+          // Categories
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Wrap(
               spacing: 8,
               children: [
                 CategoryChip(
-                  label: controller.venue.value?.category?.name ?? 'Mansion',
+                  label:
+                      controller.venue.value?.category?.name ?? 'Uncategorized',
                   color: Colors.blue,
                 ),
                 CategoryChip(
-                  label: '1-${controller.venue.value?.maxCapacity ?? 31}',
+                  label:
+                      '1-${controller.venue.value?.maxCapacity ?? "Uncategorized"}',
                   color: Colors.blue,
                   icon: Icons.groups_2,
                 ),
@@ -390,6 +244,7 @@ class VenueDetailPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
+          // About
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
@@ -409,7 +264,10 @@ class VenueDetailPage extends StatelessWidget {
                     CustomTextButton(
                       text: 'Selengkapnya',
                       onTap: () {
-                        print('See More Clicked');
+                        Get.to(() => AboutDetail(
+                            venueName: controller.venue.value?.name ?? 'Venue',
+                            venueDescription:
+                                controller.venue.value?.description ?? ''));
                       },
                       icon: Icons.arrow_forward,
                       isrightIcon: true,
@@ -428,6 +286,7 @@ class VenueDetailPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
+          // Venue Owner
           Padding(
             padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
             child: Column(
@@ -489,6 +348,7 @@ class VenueDetailPage extends StatelessWidget {
     );
   }
 
+  // Section 2
   Widget _buildLocationSection(
       BuildContext context, VenueDetailController controller) {
     return Container(
@@ -523,8 +383,16 @@ class VenueDetailPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              Icon(Icons.location_on,
-                  color: Theme.of(context).colorScheme.primary),
+              IconButton(
+                  onPressed: () {
+                    // ! Still Error
+                    // controller.launchUrlWithSnackbar(
+                    //     controller.venue.value!.mapsUrl ?? "", context);
+                  },
+                  icon: Icon(
+                    Icons.location_on,
+                    color: Theme.of(context).colorScheme.primary,
+                  ))
             ],
           ),
         ),
@@ -532,135 +400,83 @@ class VenueDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildFacilitiesSection(
-      BuildContext context, VenueDetailController controller) {
-    return Container(
-      margin: const EdgeInsets.only(top: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Facilities',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildFacilityItem(Icons.table_bar, 'Table', true),
-                    _buildFacilityItem(Icons.speaker, 'Speaker', true),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildFacilityItem(Icons.local_parking, 'Parking', true),
-                    _buildFacilityItem(Icons.ac_unit, 'AC', true),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFacilityItem(IconData icon, String text, bool isAvailable) {
-    return SizedBox(
-      height: 30,
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.grey[700], size: 20),
-          const SizedBox(width: 8),
-          Text(
-            text,
-            style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-          ),
-          const SizedBox(width: 4),
-          Icon(
-            isAvailable ? Icons.check_circle : Icons.cancel,
-            color: isAvailable ? Colors.green : Colors.red,
-            size: 16,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildReviewsSection(
-      BuildContext context, VenueDetailController controller) {
-    return Container(
-      margin: const EdgeInsets.only(top: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Reviews',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              CustomTextButton(
-                text: 'See more',
-                onTap: () {
-                  print('See More Clicked');
-                },
-                icon: Icons.arrow_forward,
-                isrightIcon: true,
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: _buildReviewCard(
-                    'John',
-                    5.0,
-                    'I\'ve been consistently impressed with the quality...',
-                    ''),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildReviewCard(
-                    'Richard',
-                    4.8,
-                    'I\'ve been consistently impressed with the quality...',
-                    ''),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+  // ! In Development
+  // Section 3
+  //   Widget _buildReviewsSection(
+  //     BuildContext context, VenueDetailController controller) {
+  //   // Example reviews list (replace with actual data from the controller)
+  //   final List<Map<String, dynamic>> reviews = controller.venue.;
+  //   return Container(
+  //     margin: const EdgeInsets.only(top: 16),
+  //     padding: const EdgeInsets.all(16),
+  //     decoration: BoxDecoration(
+  //       color: Colors.white,
+  //       borderRadius: BorderRadius.circular(8),
+  //       border: Border.all(color: Colors.grey[300]!),
+  //     ),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         Row(
+  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //           children: [
+  //             const Text(
+  //               'Reviews',
+  //               style: TextStyle(
+  //                 color: Colors.black,
+  //                 fontSize: 16,
+  //                 fontWeight: FontWeight.bold,
+  //               ),
+  //             ),
+  //             CustomTextButton(
+  //               text: 'See more',
+  //               onTap: () {
+  //                 Get.to(() => const ReviewsPage());
+  //               },
+  //               icon: Icons.arrow_forward,
+  //               isrightIcon: true,
+  //             ),
+  //           ],
+  //         ),
+  //         const SizedBox(height: 10),
+  //         reviews.isEmpty
+  //             ? const Center(
+  //                 child: Text(
+  //                   'No reviews yet',
+  //                   style: TextStyle(
+  //                     color: Colors.grey,
+  //                     fontSize: 14,
+  //                     fontStyle: FontStyle.italic,
+  //                   ),
+  //                 ),
+  //               )
+  //             : Row(
+  //                 children: [
+  //                   Expanded(
+  //                     child: _buildReviewCard(
+  //                       reviews[0]['name'],
+  //                       reviews[0]['rating'],
+  //                       reviews[0]['comment'],
+  //                       reviews[0]['imageUrl'],
+  //                     ),
+  //                   ),
+  //                   if (reviews.length > 1) ...[
+  //                     const SizedBox(width: 12),
+  //                     Expanded(
+  //                       child: _buildReviewCard(
+  //                         reviews[1]['name'],
+  //                         reviews[1]['rating'],
+  //                         reviews[1]['comment'],
+  //                         reviews[1]['imageUrl'],
+  //                       ),
+  //                     ),
+  //                   ],
+  //                 ],
+  //               ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _buildReviewCard(
     String name,
@@ -731,6 +547,7 @@ class VenueDetailPage extends StatelessWidget {
     );
   }
 
+  //Section 4
   Widget _buildScheduleSection(
       BuildContext context, VenueDetailController controller) {
     return Container(
@@ -805,6 +622,7 @@ class VenueDetailPage extends StatelessWidget {
     );
   }
 
+  // Float Section
   Widget _buildPriceAndBooking(
     BuildContext context,
     VenueDetailController controller,

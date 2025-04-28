@@ -20,7 +20,7 @@ import 'package:function_mobile/modules/navigation/views/bottom_nav_view.dart';
 import 'package:function_mobile/modules/venue/views/venue_list_page.dart';
 import 'package:function_mobile/modules/profile/views/profile_page.dart';
 import 'package:function_mobile/modules/settings/settings_page/views/settings_page.dart';
-import 'package:function_mobile/modules/venue/widgets/fullscreen_image_gallery.dart';
+import 'package:function_mobile/modules/venue/widgets/venue_detail/fullscreen_image_gallery.dart';
 import 'package:get/get.dart';
 
 // Feature-specific bindings are only required if they have

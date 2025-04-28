@@ -42,6 +42,7 @@ class BookingDetail extends StatelessWidget {
               const SizedBox(height: 20),
               // Booking Information
               //TODO: add Venue Details
+              
               //TODO: add Venue Terms and Conditions
               Text(
                 'Your Details',
