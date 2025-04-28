@@ -241,37 +241,28 @@ class VenueListPage extends GetView<VenueListController> {
             ),
             const SizedBox(height: 16),
             Obx(() => Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    ActionChip(
-                      label: const Text('All'),
-                      backgroundColor: controller.selectedCategory.isEmpty
-                          ? Theme.of(context)
-                              .colorScheme
-                              .primary
-                              .withOpacity(0.1)
-                          : null,
-                      onPressed: () => controller.clearCategory(),
-                    ),
-                    ...controller.categories
-                        .map((category) => ActionChip(
-                              label: Text(category),
-                              backgroundColor:
-                                  controller.selectedCategory.value == category
-                                      ? Theme.of(context)
-                                          .colorScheme
-                                          .primary
-                                          .withOpacity(0.1)
-                                      : null,
-                              onPressed: () {
-                                controller.setCategory(category);
-                                Get.back();
-                              },
-                            ))
-                        .toList(),
-                  ],
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                ActionChip(
+                  label: const Text('All'),
+                  backgroundColor: controller.selectedCategory.isEmpty
+                    ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                    : null,
+                  onPressed: () => controller.clearCategory(),
+                ),
+                ...controller.categories.map((category) => ActionChip(
+                  label: Text(category),
+                  backgroundColor: controller.selectedCategory.value == category
+                    ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                    : null,
+                  onPressed: () {
+                    controller.setCategory(category);
+                    Get.back();
+                  },
                 )),
+              ],
+            )),
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,

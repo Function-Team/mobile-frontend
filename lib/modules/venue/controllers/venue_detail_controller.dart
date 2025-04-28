@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
+// import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:function_mobile/modules/venue/data/repositories/venue_repository.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class VenueDetailController extends GetxController {
   final VenueRepository _venueRepository = VenueRepository();
@@ -99,7 +101,7 @@ class VenueDetailController extends GetxController {
 
       venueImages.assignAll(imagesData);
     } catch (e) {
-      print('Error loading venue images: ${e}');
+      print('Error loading venue images: $e');
     } finally {
       isLoadingImages.value = false;
     }
@@ -167,4 +169,40 @@ class VenueDetailController extends GetxController {
       loadVenueDetails(venueId);
     }
   }
+
+  void openFullscreenImage(BuildContext context, String imageUrl,
+      int initialIndex, VenueDetailController controller) {
+    if (controller.venueImages.isEmpty) return;
+
+    Get.toNamed(MyRoutes.imageGallery, arguments: {
+      'images': controller.venueImages,
+      'initialIndex': initialIndex
+    });
+  }
+
+  void openFullscreenGallery(
+      BuildContext context, VenueDetailController controller) {
+    if (controller.venueImages.isEmpty) return;
+
+    Get.toNamed(MyRoutes.imageGallery,
+        arguments: {'images': controller.venueImages, 'initialIndex': 0});
+  }
+
+  // ! Still Error idk why
+  Future<void> launchUrlWithSnackbar(
+      String urlString, BuildContext context) async {
+    final Uri url = Uri.parse(urlString);
+
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Could not launch the URL."),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+  
 }
