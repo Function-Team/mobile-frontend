@@ -27,11 +27,11 @@ class VenueModel {
   final int? maxCapacity;
 
   String? get firstPictureUrl => firstPicture != null
-      ? 'http://backend.thefunction.id/img/$firstPicture'
+      ? 'http://backend.thefunction.id/api/img/$firstPicture'
       : (pictures != null &&
               pictures!.isNotEmpty &&
               pictures!.first.filename != null)
-          ? 'http://backend.thefunction.id/img/${pictures!.first.filename}'
+          ? 'http://backend.thefunction.id/api/img/${pictures!.first.filename}'
           : null;
 
   VenueModel({
@@ -165,8 +165,9 @@ class PictureModel {
   final String? filename;
   final int? placeId;
 
-  String? get imageUrl =>
-      filename != null ? 'http://backend.thefunction.id/img/$filename' : null;
+  String? get imageUrl => filename != null
+      ? 'http://backend.thefunction.id/api/img/${filename}'
+      : null;
 
   PictureModel({
     this.id,

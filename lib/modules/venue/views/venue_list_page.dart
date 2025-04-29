@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/modules/venue/controllers/venue_list_controller.dart';
 import 'package:function_mobile/modules/venue/widgets/venue_card.dart';
 import 'package:get/get.dart';
@@ -142,7 +143,15 @@ class VenueListPage extends GetView<VenueListController> {
               price: venue.price ?? 0,
               imageUrl: venue.firstPictureUrl ?? '',
               priceType: 'Rp',
-              onTap: () {},
+              onTap: () {
+                if (venue.id != null) {
+                  Get.toNamed(MyRoutes.venueDetail,
+                      arguments: {'venueId': venue.id});
+                } else {
+                  Get.snackbar('Error', 'Cannot view this venue details',
+                      snackPosition: SnackPosition.TOP);
+                }
+              },
               roomType: venue.category?.name ?? 'Venue',
               capacityType: '${venue.maxCapacity ?? 100}',
             );
