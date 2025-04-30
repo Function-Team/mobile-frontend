@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class PrimaryButton extends StatelessWidget {
   final String text;
+  final String? textSize;
   final VoidCallback? onPressed;
   final IconData? rightIcon;
   final IconData? leftIcon;
@@ -12,6 +13,7 @@ class PrimaryButton extends StatelessWidget {
 
   const PrimaryButton({
     required this.text,
+    this.textSize,
     required this.onPressed,
     this.rightIcon,
     this.leftIcon,
@@ -50,7 +52,12 @@ class PrimaryButton extends StatelessWidget {
                     size: 16, color: Theme.of(context).colorScheme.onPrimary),
                 const SizedBox(width: 8),
               ],
-              Text(text),
+              Text(
+                text,
+                style: TextStyle(
+                    fontSize: textSize != null ? double.parse(textSize!) : 16,
+                    color: Theme.of(context).colorScheme.onPrimary),
+              ),
               if (rightIcon != null) ...[
                 const SizedBox(width: 8),
                 Icon(rightIcon,
