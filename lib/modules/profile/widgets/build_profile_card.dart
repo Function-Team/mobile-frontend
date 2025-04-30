@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
+import 'package:function_mobile/modules/profile/models/profile_model.dart';
 
 Widget buildProfileCard(
     {required BuildContext context,
-    String? profilePicture,
-    required String name,
-    required String email,
+    required ProfileModel profile,
     required VoidCallback onEdit,
     required VoidCallback onTapViewProfile}) {
   return Container(
@@ -26,10 +25,11 @@ Widget buildProfileCard(
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            profilePicture != null && profilePicture.isNotEmpty
+            profile.profilePicture != null &&
+                    profile.profilePicture?.isNotEmpty == true
                 ? NetworkImageWithLoader(
                     borderRadius: BorderRadius.circular(35),
-                    imageUrl: profilePicture,
+                    imageUrl: profile.profilePicture!,
                     height: 70,
                     width: 70,
                   )
@@ -37,7 +37,9 @@ Widget buildProfileCard(
                     radius: 35,
                     backgroundColor: Colors.grey[400],
                     child: Text(
-                      name.isNotEmpty ? name[0].toUpperCase() : '?',
+                      profile.name?.isNotEmpty == true
+                          ? profile.name![0].toUpperCase()
+                          : '?',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -50,7 +52,7 @@ Widget buildProfileCard(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    name,
+                    profile.name ?? "Guest",
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -58,7 +60,7 @@ Widget buildProfileCard(
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    email,
+                    profile.email ?? "No Email",
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
