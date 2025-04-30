@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/modules/venue/controllers/venue_list_controller.dart';
+import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:function_mobile/modules/venue/widgets/venue_card.dart';
 import 'package:get/get.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -10,20 +11,23 @@ class VenueListPage extends GetView<VenueListController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: _buildSearchBar(context),
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildFilterSection(context),
-            Expanded(
-              child: _buildVenueList(),
-            ),
-          ],
+        appBar: AppBar(
+          title: _buildSearchBar(context),
         ),
-      ),
-    );
+        body: Obx(() {
+          if (controller.isLoading.value) {
+            return _buildSkeletonList();
+          } else if (controller.hasError.value) {
+            return _buildErrorState();
+          } else {
+            return Column(
+              children: [
+                _buildFilterSection(context),
+                _buildVenueList(),
+              ],
+            );
+          }
+        }));
   }
 
   Widget _buildSearchBar(BuildContext context) {
@@ -41,11 +45,6 @@ class VenueListPage extends GetView<VenueListController> {
                       child: SizedBox(
                         width: 15,
                         height: 15,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                              Theme.of(context).primaryColor),
-                        ),
                       ),
                     )
                   : const Icon(Icons.search)),
@@ -113,40 +112,33 @@ class VenueListPage extends GetView<VenueListController> {
 
   Widget _buildVenueList() {
     return Obx(() {
-      // if (controller.isLoading.value) {
-      //   return _buildShimmer();
-      // }
-
       if (controller.hasError.value) {
         return _buildErrorState();
       }
 
       if (controller.venues.isEmpty) {
-        return _buildEmptyState();
+        return Expanded(
+          child: _buildEmptyState(),
+        );
       }
 
-      return RefreshIndicator(
-        onRefresh: controller.refreshVenues,
-        child: ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          itemCount: controller.venues.length,
-          itemBuilder: (context, index) {
-            final venue = controller.venues[index];
-            return VenueCard(
-              venueName: venue.name ?? 'Unknown Venue',
-              location: venue.city?.name ??
-                  venue.address?.split(',').last.trim() ??
-                  'Unknown Locating',
-              rating: venue.rating ?? 0,
-              ratingCount: venue.reviewCount ?? 0,
-              price: venue.price ?? 0,
-              imageUrl: venue.firstPictureUrl ?? '',
-              priceType: 'Rp',
-              onTap: () {},
-              roomType: venue.category?.name ?? 'Venue',
-              capacityType: '${venue.maxCapacity ?? 100}',
-            );
-          },
+      return Expanded(
+        child: RefreshIndicator(
+          onRefresh: controller.refreshVenues,
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            itemCount: controller.venues.length,
+            itemBuilder: (context, index) {
+              final venue = controller.venues[index];
+              if (venue == null) return const SizedBox.shrink();
+              return VenueCard(
+                venue: venue,
+                onTap: () {
+                  controller.goToVenueDetails(venue);
+                },
+              );
+            },
+          ),
         ),
       );
     });
@@ -160,16 +152,8 @@ class VenueListPage extends GetView<VenueListController> {
         itemCount: 5,
         itemBuilder: (context, index) {
           return VenueCard(
-            venueName: 'Venue Name',
-            location: 'Location',
-            rating: 4.5,
-            ratingCount: 100,
-            price: 100000,
-            imageUrl: '',
-            priceType: 'Rp',
+            venue: VenueModel(),
             onTap: () {},
-            roomType: 'Room Type',
-            capacityType: '100',
           );
         },
       ),

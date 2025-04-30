@@ -185,7 +185,7 @@ class VenueDetailPage extends StatelessWidget {
                         children: [
                           const Icon(Icons.star, color: Colors.amber, size: 18),
                           Text(
-                            ' ${controller.venue.value?.rating?.toStringAsFixed(1) ?? '5.0'} (${controller.venue.value?.reviewCount ?? '100'} Reviews)',
+                            ' ${controller.venue.value?.rating?.toStringAsFixed(1) ?? '0'} (${controller.venue.value?.ratingCount ?? 'No'} Reviews)',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[700],
