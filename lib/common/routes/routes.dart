@@ -1,5 +1,7 @@
 import 'package:function_mobile/modules/auth/views/signup_page.dart';
+import 'package:function_mobile/modules/booking/bindings/booking_binding.dart';
 import 'package:function_mobile/modules/booking/views/booking_detail.dart';
+import 'package:function_mobile/modules/booking/views/booking_page.dart';
 import 'package:function_mobile/modules/booking/views/bookings_list_page.dart';
 import 'package:function_mobile/modules/chat/bindings/chat_binding.dart';
 import 'package:function_mobile/modules/chat/views/chat_page.dart';
@@ -47,6 +49,7 @@ class MyRoutes {
   static const String editProfile = '/editProfile';
 
   // Booking
+  static const String bookingPage = '/bookingPage';
   static const String bookingList = '/bookingList';
   static const String bookingDetail = '/bookingDetail';
 
@@ -77,7 +80,6 @@ class MyRoutes {
   //ImageGallery
   static const String imageGallery = '/image-gallery';
 
-
   // Define the routes for the app
 
   static final List<GetPage> pages = [
@@ -92,6 +94,10 @@ class MyRoutes {
     GetPage(name: home, page: () => HomePage()),
 
     // Booking
+    GetPage(
+        name: bookingPage,
+        page: () => BookingPage(),
+        binding: BookingBinding()),
     GetPage(name: bookingList, page: () => BookingsListPage()),
     GetPage(name: bookingDetail, page: () => BookingDetail()),
 
@@ -134,6 +140,11 @@ class MyRoutes {
     GetPage(name: chat, page: () => ChatPage(), binding: ChatBinding()),
     GetPage(name: chatting, page: () => ChattingPage()),
 
-    GetPage(name: imageGallery, page: () => FullscreenImageGallery(images: Get.arguments['images'] ?? [], initialIndex: Get.arguments ['initialIndex'] ?? 0), )
+    GetPage(
+      name: imageGallery,
+      page: () => FullscreenImageGallery(
+          images: Get.arguments['images'] ?? [],
+          initialIndex: Get.arguments['initialIndex'] ?? 0),
+    )
   ];
 }

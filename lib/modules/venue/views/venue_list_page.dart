@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/modules/venue/controllers/venue_list_controller.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:function_mobile/modules/venue/widgets/venue_card.dart';
@@ -121,7 +122,7 @@ class VenueListPage extends GetView<VenueListController> {
           child: _buildEmptyState(),
         );
       }
-
+      
       return Expanded(
         child: RefreshIndicator(
           onRefresh: controller.refreshVenues,
@@ -139,6 +140,37 @@ class VenueListPage extends GetView<VenueListController> {
               );
             },
           ),
+
+      return RefreshIndicator(
+        onRefresh: controller.refreshVenues,
+        child: ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          itemCount: controller.venues.length,
+          itemBuilder: (context, index) {
+            final venue = controller.venues[index];
+            return VenueCard(
+              venueName: venue.name ?? 'Unknown Venue',
+              location: venue.city?.name ??
+                  venue.address?.split(',').last.trim() ??
+                  'Unknown Locating',
+              rating: venue.rating ?? 0,
+              ratingCount: venue.reviewCount ?? 0,
+              price: venue.price ?? 0,
+              imageUrl: venue.firstPictureUrl ?? '',
+              priceType: 'Rp',
+              onTap: () {
+                if (venue.id != null) {
+                  Get.toNamed(MyRoutes.venueDetail,
+                      arguments: {'venueId': venue.id});
+                } else {
+                  Get.snackbar('Error', 'Cannot view this venue details',
+                      snackPosition: SnackPosition.TOP);
+                }
+              },
+              roomType: venue.category?.name ?? 'Venue',
+              capacityType: '${venue.maxCapacity ?? 100}',
+            );
+          },
         ),
       );
     });
@@ -216,28 +248,35 @@ class VenueListPage extends GetView<VenueListController> {
             ),
             const SizedBox(height: 16),
             Obx(() => Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                ActionChip(
-                  label: const Text('All'),
-                  backgroundColor: controller.selectedCategory.isEmpty
-                    ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
-                    : null,
-                  onPressed: () => controller.clearCategory(),
-                ),
-                ...controller.categories.map((category) => ActionChip(
-                  label: Text(category),
-                  backgroundColor: controller.selectedCategory.value == category
-                    ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
-                    : null,
-                  onPressed: () {
-                    controller.setCategory(category);
-                    Get.back();
-                  },
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    ActionChip(
+                      label: const Text('All'),
+                      backgroundColor: controller.selectedCategory.isEmpty
+                          ? Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withOpacity(0.1)
+                          : null,
+                      onPressed: () => controller.clearCategory(),
+                    ),
+                    ...controller.categories.map((category) => ActionChip(
+                          label: Text(category),
+                          backgroundColor:
+                              controller.selectedCategory.value == category
+                                  ? Theme.of(context)
+                                      .colorScheme
+                                      .primary
+                                      .withOpacity(0.1)
+                                  : null,
+                          onPressed: () {
+                            controller.setCategory(category);
+                            Get.back();
+                          },
+                        )),
+                  ],
                 )),
-              ],
-            )),
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
