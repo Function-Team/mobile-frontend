@@ -5,6 +5,7 @@ import 'package:function_mobile/common/widgets/buttons/outline_button.dart';
 import 'package:function_mobile/common/widgets/inputs/auth_text_field.dart';
 import 'package:function_mobile/common/widgets/inputs/search_text_field.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:function_mobile/modules/venue/widgets/venue_card.dart';
 
 class ComponentsView extends StatelessWidget {
@@ -45,16 +46,7 @@ class ComponentsView extends StatelessWidget {
               SizedBox(height: 18),
               VenueCard(
                 onTap: () => {print('Card Clicked')},
-                capacityType: '1-100',
-                roomType: 'Working Space',
-                venueName: 'Venue Name',
-                location: 'Surabaya',
-                rating: 4.5,
-                ratingCount: 4000,
-                price: 100000,
-                imageUrl:
-                    'https://i.pinimg.com/736x/c8/93/72/c89372f59e7e81590dec89117249b4ea.jpg',
-                priceType: 'Rp',
+                venue: VenueModel(),
               )
             ],
           ),

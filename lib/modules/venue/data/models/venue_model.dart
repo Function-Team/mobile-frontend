@@ -19,7 +19,7 @@ class VenueModel {
   final CategoryModel? category;
   final CityModel? city;
   final double? rating;
-  final int? reviewCount;
+  final int? ratingCount;
   final List<FacilityModel>? facilities;
   final List<ReviewModel>? reviews;
   final List<ScheduleModel>? schedules;
@@ -53,7 +53,7 @@ class VenueModel {
     this.category,
     this.city,
     this.rating,
-    this.reviewCount,
+    this.ratingCount,
     this.facilities,
     this.reviews,
     this.schedules,
@@ -88,7 +88,7 @@ class VenueModel {
       city: json['city'] != null ? CityModel.fromJson(json['city']) : null,
       rating:
           json['rating'] != null ? (json['rating'] as num).toDouble() : null,
-      reviewCount: json['review_count'],
+      ratingCount: json['rating_count'],
       facilities: (json['facilities'] as List<dynamic>?)
           ?.map((facility) => FacilityModel.fromJson(facility))
           .toList(),
@@ -166,7 +166,10 @@ class PictureModel {
   final int? placeId;
 
   String? get imageUrl => filename != null
+      ? 'http://backend.thefunction.id/api/img/$filename'
+
       ? 'http://backend.thefunction.id/api/img/${filename}'
+
       : null;
 
   PictureModel({

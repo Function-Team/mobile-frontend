@@ -1,11 +1,9 @@
 import 'package:flutter/widgets.dart';
+import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:function_mobile/modules/venue/data/repositories/venue_repository.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_rx/src/rx_workers/utils/debouncer.dart';
-import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 
 class VenueListController extends GetxController {
   final VenueRepository _venueRepository = VenueRepository();
@@ -119,16 +117,28 @@ class VenueListController extends GetxController {
       final loadedVenues = await _venueRepository.getVenues();
       Map<String, int> categoryMapping = {};
 
+      // Tambahkan pengecekan null dan empty
+      if (loadedVenues.isEmpty) {
+        print('No venues loaded for categories');
+        return;
+      }
+
       loadedVenues.forEach((venue) {
         if (venue.category?.name != null && venue.category?.id != null) {
           categoryMapping[venue.category!.name!] = venue.category!.id!;
         }
       });
 
-      categoryMap.assignAll(categoryMapping);
-      categories.assignAll(categoryMapping.keys.toList());
+      // Tambahkan pengecekan sebelum assign
+      if (categoryMapping.isNotEmpty) {
+        categoryMap.assignAll(categoryMapping);
+        categories.assignAll(categoryMapping.keys.toList());
+      }
     } catch (e) {
       print('Error loading categories: $e');
+      // Tambahkan penanganan error
+      hasError.value = true;
+      errorMessage.value = 'Failed to load categories. Please try again.';
     }
   }
 
@@ -142,10 +152,20 @@ class VenueListController extends GetxController {
     _performSearch();
   }
 
+  // Hapus method fetchVenues() karena sudah digabung dengan loadVenues()
+
   Future<void> refreshVenues() async {
-    searchController.clear();
-    searchQuery.value = '';
-    selectedCategory.value = '';
-    return loadVenues();
+    hasError.value = false;
+    errorMessage.value = '';
+    await loadVenues();
+  }
+
+  void goToVenueDetails(VenueModel venue) {
+    if (venue.id != null) {
+      Get.toNamed(MyRoutes.venueDetail, arguments: {'venueId': venue.id});
+    } else {
+      Get.snackbar('Error', 'Cannot open venue details',
+          snackPosition: SnackPosition.BOTTOM);
+    }
   }
 }
