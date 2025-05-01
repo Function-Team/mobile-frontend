@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/widgets/buttons/custom_text_button.dart';
 import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 import 'package:function_mobile/common/widgets/buttons/secondary_button.dart';
@@ -67,7 +68,6 @@ class VenueDetailPage extends StatelessWidget {
                                 controller.venueImages.first.imageUrl != null
                             ? controller.venueImages.first.imageUrl
                             : controller.venue.value?.firstPictureUrl;
-
                         return GestureDetector(
                           onTap: () {
                             if (imageUrl != null && imageUrl.isNotEmpty) {
@@ -691,7 +691,14 @@ class VenueDetailPage extends StatelessWidget {
               Expanded(
                 child: SecondaryButton(
                   text: 'Book this',
-                  onPressed: () {},
+                  onPressed: () {
+                    Get.toNamed(MyRoutes.bookingPage, arguments: {
+                      'venueId': controller.venue.value?.id,
+                      'venueName': controller.venue.value?.name,
+                      'venuePrice': controller.venue.value?.price,
+                      'venueImage': controller.venueImages.first.imageUrl,
+                    });
+                  },
                 ),
               ),
             ],

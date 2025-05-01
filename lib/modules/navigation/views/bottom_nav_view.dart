@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-// import 'package:function_mobile/modules/booking/views/bookings_list_page.dart';
+import 'package:function_mobile/modules/booking/views/bookings_list_page.dart';
 import 'package:function_mobile/modules/chat/views/chat_page.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/home/views/home_page.dart';
@@ -14,7 +14,7 @@ class BottomNavView extends StatelessWidget {
   final List<Widget> pages = [
     // Add your pages here
     HomePage(),
-    // BookingsListPage(),
+    BookingsListPage(),
     FavoritesPage(),
     ChatPage(),
     ProfilePage(),
@@ -33,7 +33,7 @@ class BottomNavView extends StatelessWidget {
           onTap: controller.changePage,
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            // BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Bookings'),
+            BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Bookings'),
             BottomNavigationBarItem(
                 icon: Icon(Icons.favorite), label: 'Favorites'),
             BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
