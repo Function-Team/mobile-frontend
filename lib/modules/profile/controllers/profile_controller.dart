@@ -23,7 +23,7 @@ class ProfileController extends GetxController {
   final Rx<User> _user = User(
     name: 'John Doe',
     email: 'john.doe@example.com',
-    imageUrl: 'https://via.placeholder.com/150',
+    imageUrl: '',
     posts: 28,
     followers: 458,
     following: 269,
