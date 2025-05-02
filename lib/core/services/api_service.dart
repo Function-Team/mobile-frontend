@@ -1,3 +1,4 @@
+import 'package:function_mobile/modules/auth/services/auth_service.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart';
 import 'package:function_mobile/core/constants/app_constants.dart';
@@ -17,17 +18,24 @@ class ApiService extends GetxService {
 
     // Konfigurasi interceptor untuk handling error
     _dio.interceptors.add(InterceptorsWrapper(
-      onRequest: (options, handler) {
-        // Tambahkan token jika ada
-        // final token = await SecureStorageService().getToken();
-        // if (token != null) {
-        //   options.headers['Authorization'] = 'Bearer $token';
-        // }
+      onRequest: (options, handler) async {
+        // Ambil token dari AuthService
+        final authService = AuthService();
+        final token = await authService.getToken();
+        if (token != null && token.isNotEmpty) {
+          options.headers["Authorization"] = "Bearer $token";
+        }
+        // Lanjutkan permintaan
         return handler.next(options);
       },
       onError: (DioException e, handler) {
         // Handle error secara global
-        return handler.next(e);
+        if (e.response != null) {
+          throw Exception(
+              "Error ${e.response?.statusCode}: ${e.response?.data}");
+        } else {
+          throw Exception("Error: ${e.message}");
+        }
       },
     ));
   }
@@ -43,7 +51,8 @@ class ApiService extends GetxService {
     }
   }
 
-  Future<dynamic> postRequest(String endpoint, Map<String, dynamic> data) async {
+  Future<dynamic> postRequest(
+      String endpoint, Map<String, dynamic> data) async {
     try {
       final response = await _dio.post(endpoint, data: data);
       return response.data;

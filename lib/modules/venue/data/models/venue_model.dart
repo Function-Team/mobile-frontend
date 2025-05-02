@@ -166,10 +166,7 @@ class PictureModel {
   final int? placeId;
 
   String? get imageUrl => filename != null
-      ? 'http://backend.thefunction.id/api/img/$filename'
-
       ? 'http://backend.thefunction.id/api/img/${filename}'
-
       : null;
 
   PictureModel({
