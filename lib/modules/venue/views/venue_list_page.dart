@@ -112,68 +112,39 @@ class VenueListPage extends GetView<VenueListController> {
   }
 
   Widget _buildVenueList() {
-    return Obx(() {
-      if (controller.hasError.value) {
-        return _buildErrorState();
-      }
+    return Obx(
+      () {
+        if (controller.hasError.value) {
+          return _buildErrorState();
+        }
 
-      if (controller.venues.isEmpty) {
+        if (controller.venues.isEmpty) {
+          return Expanded(
+            child: _buildEmptyState(),
+          );
+        }
+
         return Expanded(
-          child: _buildEmptyState(),
-        );
-      }
-      
-      return Expanded(
-        child: RefreshIndicator(
-          onRefresh: controller.refreshVenues,
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            itemCount: controller.venues.length,
-            itemBuilder: (context, index) {
-              final venue = controller.venues[index];
-              if (venue == null) return const SizedBox.shrink();
-              return VenueCard(
-                venue: venue,
-                onTap: () {
-                  controller.goToVenueDetails(venue);
-                },
-              );
-            },
-          ),
-
-      return RefreshIndicator(
-        onRefresh: controller.refreshVenues,
-        child: ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          itemCount: controller.venues.length,
-          itemBuilder: (context, index) {
-            final venue = controller.venues[index];
-            return VenueCard(
-              venueName: venue.name ?? 'Unknown Venue',
-              location: venue.city?.name ??
-                  venue.address?.split(',').last.trim() ??
-                  'Unknown Locating',
-              rating: venue.rating ?? 0,
-              ratingCount: venue.reviewCount ?? 0,
-              price: venue.price ?? 0,
-              imageUrl: venue.firstPictureUrl ?? '',
-              priceType: 'Rp',
-              onTap: () {
-                if (venue.id != null) {
-                  Get.toNamed(MyRoutes.venueDetail,
-                      arguments: {'venueId': venue.id});
-                } else {
-                  Get.snackbar('Error', 'Cannot view this venue details',
-                      snackPosition: SnackPosition.TOP);
-                }
+          child: RefreshIndicator(
+            onRefresh: controller.refreshVenues,
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              itemCount: controller.venues.length,
+              itemBuilder: (context, index) {
+                final venue = controller.venues[index];
+                if (venue == null) return const SizedBox.shrink();
+                return VenueCard(
+                  venue: venue,
+                  onTap: () {
+                    controller.goToVenueDetails(venue);
+                  },
+                );
               },
-              roomType: venue.category?.name ?? 'Venue',
-              capacityType: '${venue.maxCapacity ?? 100}',
-            );
-          },
-        ),
-      );
-    });
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildSkeletonList() {
