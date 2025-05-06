@@ -1,24 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
+// import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:function_mobile/modules/venue/data/repositories/venue_repository.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class VenueDetailController extends GetxController {
   final VenueRepository _venueRepository = VenueRepository();
-  
+
   // Observable variables
   final Rx<VenueModel?> venue = Rx<VenueModel?>(null);
   final RxBool isLoading = true.obs;
   final RxBool hasError = false.obs;
   final RxString errorMessage = ''.obs;
-  
+
+  final RxList<PictureModel> venueImages = <PictureModel>[].obs;
+  final RxBool isLoadingImages = true.obs;
+  final RxInt currentImageIndex = 0.obs;
+
   final RxList<ReviewModel> reviews = <ReviewModel>[].obs;
   final RxBool isLoadingReviews = true.obs;
-  
+
   final RxList<FacilityModel> facilities = <FacilityModel>[].obs;
   final RxBool isLoadingFacilities = true.obs;
-  
+
   final Map<String, IconData> facilityIcons = {
     'Chair': Icons.chair,
     'Table': Icons.table_bar,
@@ -32,29 +38,32 @@ class VenueDetailController extends GetxController {
     'Food': Icons.restaurant,
     'Power Outlets': Icons.power,
   };
-  
+
   @override
   void onInit() {
     super.onInit();
     // Get the venue ID from route parameters
-    final venueId = Get.arguments?['venueId'] ?? 1; // Default to 1 if not provided
+    final venueId =
+        Get.arguments?['venueId'] ?? 1; // Default to 1 if not provided
+// Default to 1 if not provided
     loadVenueDetails(venueId);
   }
-  
+
   Future<void> loadVenueDetails(int venueId) async {
     try {
       isLoading.value = true;
       hasError.value = false;
       errorMessage.value = '';
-      
+
       final venueData = await _venueRepository.getVenueById(venueId);
-      
+
       if (venueData != null) {
         venue.value = venueData;
-        
+
         await Future.wait([
           loadVenueReviews(venueId),
           loadVenueFacilities(venueId),
+          loadVenueImages(venueId),
         ]);
       } else {
         hasError.value = true;
@@ -67,7 +76,7 @@ class VenueDetailController extends GetxController {
       isLoading.value = false;
     }
   }
-  
+
   Future<void> loadVenueReviews(int venueId) async {
     try {
       isLoadingReviews.value = true;
@@ -79,12 +88,30 @@ class VenueDetailController extends GetxController {
       isLoadingReviews.value = false;
     }
   }
-  
+
+  Future<void> loadVenueImages(int venueId) async {
+    try {
+      isLoadingImages.value = true;
+      final imagesData = await _venueRepository.getVenueImages(venueId);
+      print("Images data received: $imagesData");
+
+      if (imagesData.isNotEmpty && imagesData[0].imageUrl != null) {
+        print("First image URL: ${imagesData[0].imageUrl}");
+      }
+
+      venueImages.assignAll(imagesData);
+    } catch (e) {
+      print('Error loading venue images: $e');
+    } finally {
+      isLoadingImages.value = false;
+    }
+  }
+
   Future<void> loadVenueFacilities(int venueId) async {
     try {
       isLoadingFacilities.value = true;
       final facilitiesData = await _venueRepository.getVenueFacilities(venueId);
-      
+
       // Assign icons to facilities based on their names
       final facilitiesWithIcons = facilitiesData.map((facility) {
         if (facility.name != null && facilityIcons.containsKey(facility.name)) {
@@ -97,7 +124,7 @@ class VenueDetailController extends GetxController {
         }
         return facility;
       }).toList();
-      
+
       facilities.assignAll(facilitiesWithIcons);
     } catch (e) {
       print('Error loading facilities: $e');
@@ -105,10 +132,13 @@ class VenueDetailController extends GetxController {
       isLoadingFacilities.value = false;
     }
   }
-  
+
   void bookVenue() {
     if (venue.value?.id != null) {
-      Get.toNamed(MyRoutes.bookingList, arguments: {'venueId': venue.value!.id});
+      Get.toNamed(MyRoutes.bookingList,
+          arguments: {'venueId': venue.value!.id});
+      Get.toNamed(MyRoutes.bookingList,
+          arguments: {'venueId': venue.value!.id});
     } else {
       Get.snackbar(
         'Error',
@@ -117,7 +147,7 @@ class VenueDetailController extends GetxController {
       );
     }
   }
-  
+
   void contactHost() {
     if (venue.value?.host?.id != null) {
       Get.toNamed('/chat', arguments: {'hostId': venue.value!.host!.id});
@@ -129,7 +159,7 @@ class VenueDetailController extends GetxController {
       );
     }
   }
-  
+
   // Retry loading data
   void retryLoading() {
     if (venue.value?.id != null) {
@@ -139,4 +169,40 @@ class VenueDetailController extends GetxController {
       loadVenueDetails(venueId);
     }
   }
+
+  void openFullscreenImage(BuildContext context, String imageUrl,
+      int initialIndex, VenueDetailController controller) {
+    if (controller.venueImages.isEmpty) return;
+
+    Get.toNamed(MyRoutes.imageGallery, arguments: {
+      'images': controller.venueImages,
+      'initialIndex': initialIndex
+    });
+  }
+
+  void openFullscreenGallery(
+      BuildContext context, VenueDetailController controller) {
+    if (controller.venueImages.isEmpty) return;
+
+    Get.toNamed(MyRoutes.imageGallery,
+        arguments: {'images': controller.venueImages, 'initialIndex': 0});
+  }
+
+  // ! Still Error idk why
+  Future<void> launchUrlWithSnackbar(
+      String urlString, BuildContext context) async {
+    final Uri url = Uri.parse(urlString);
+
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Could not launch the URL."),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+  
 }

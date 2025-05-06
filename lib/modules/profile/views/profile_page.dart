@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
+import 'package:function_mobile/modules/profile/models/profile_model.dart';
 import 'package:function_mobile/modules/profile/widgets/build_profile_card.dart';
 import 'package:function_mobile/modules/profile/widgets/build_profile_options.dart';
 import 'package:get/get.dart';
@@ -42,10 +43,8 @@ class ProfilePage extends StatelessWidget {
                   child: Column(
                     children: [
                       buildProfileCard(
+                        profile: ProfileModel(),
                         context: context,
-                        profilePicture: "https://picsum.photos/200",
-                        name: "John Doe",
-                        email: "user@gmail.com",
                         onEdit: () {
                           Get.toNamed(MyRoutes.editProfile);
                         },

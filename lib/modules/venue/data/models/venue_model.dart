@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/core/constants/app_constants.dart';
 
 class VenueModel {
   final int? id;
@@ -19,25 +20,27 @@ class VenueModel {
   final CategoryModel? category;
   final CityModel? city;
   final double? rating;
-  final int? reviewCount;
+  final int? ratingCount;
   final List<FacilityModel>? facilities;
   final List<ReviewModel>? reviews;
   final List<ScheduleModel>? schedules;
   final int? price;
   final int? maxCapacity;
 
-  String? get firstPictureUrl => firstPicture != null 
-      ? 'http://backend.thefunction.id/api/img/$firstPicture' 
-      : (pictures != null && pictures!.isNotEmpty && pictures!.first.filename != null)
-        ? 'http://backend.thefunction.id/api/img/${pictures!.first.filename}'
-        : null;
+  String? get firstPictureUrl => firstPicture != null
+      ? '${AppConstants.baseUrl}/img/$firstPicture'
+      : (pictures != null &&
+              pictures!.isNotEmpty &&
+              pictures!.first.filename != null)
+          ? '${AppConstants.baseUrl}/img/${pictures!.first.filename}'
+          : null;
 
   VenueModel({
     this.id,
     this.name,
     this.address,
     this.description,
-    this.firstPicture, 
+    this.firstPicture,
     this.mapsUrl,
     this.categoryId,
     this.facilityId,
@@ -51,12 +54,12 @@ class VenueModel {
     this.category,
     this.city,
     this.rating,
-    this.reviewCount,
+    this.ratingCount,
     this.facilities,
     this.reviews,
     this.schedules,
-    this.price, 
-    this.maxCapacity, 
+    this.price,
+    this.maxCapacity,
   });
 
   factory VenueModel.fromJson(Map<String, dynamic> json) {
@@ -73,28 +76,29 @@ class VenueModel {
       hostId: json['host_id'],
       rules: json['rules'],
       rooms: (json['rooms'] as List<dynamic>?)
-              ?.map((room) => RoomModel.fromJson(room))
-              .toList(),
+          ?.map((room) => RoomModel.fromJson(room))
+          .toList(),
       firstPicture: json['first_picture'],
       pictures: (json['pictures'] as List<dynamic>?)
-              ?.map((picture) => PictureModel.fromJson(picture))
-              .toList(),
+          ?.map((picture) => PictureModel.fromJson(picture))
+          .toList(),
       host: json['host'] != null ? HostModel.fromJson(json['host']) : null,
       category: json['category'] != null
           ? CategoryModel.fromJson(json['category'])
           : null,
       city: json['city'] != null ? CityModel.fromJson(json['city']) : null,
-      rating: json['rating'] != null ? (json['rating'] as num).toDouble() : null,
-      reviewCount: json['review_count'],
+      rating:
+          json['rating'] != null ? (json['rating'] as num).toDouble() : null,
+      ratingCount: json['rating_count'],
       facilities: (json['facilities'] as List<dynamic>?)
-              ?.map((facility) => FacilityModel.fromJson(facility))
-              .toList(),
+          ?.map((facility) => FacilityModel.fromJson(facility))
+          .toList(),
       reviews: (json['reviews'] as List<dynamic>?)
-              ?.map((review) => ReviewModel.fromJson(review))
-              .toList(),
+          ?.map((review) => ReviewModel.fromJson(review))
+          .toList(),
       schedules: (json['schedules'] as List<dynamic>?)
-              ?.map((schedule) => ScheduleModel.fromJson(schedule))
-              .toList(),
+          ?.map((schedule) => ScheduleModel.fromJson(schedule))
+          .toList(),
       price: json['price'],
       maxCapacity: json['max_capacity'],
     );
@@ -161,9 +165,9 @@ class PictureModel {
   final int? id;
   final String? filename;
   final int? placeId;
-  
-  String? get imageUrl => filename != null 
-      ? 'http://backend.thefunction.id/api/img/$filename' 
+
+  String? get imageUrl => filename != null
+      ? 'http://backend.thefunction.id/api/img/${filename}'
       : null;
 
   PictureModel({

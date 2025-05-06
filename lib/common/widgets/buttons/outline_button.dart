@@ -3,8 +3,11 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class OutlineButton extends StatelessWidget {
   final String text;
+  final String? textSize;
   final VoidCallback onPressed;
   final bool isLoading;
+  final double? width;
+  final double? height;
   final IconData? icon;
   final bool useFaIcon; // Tambahkan flag untuk FaIcon
   final Color? textColor;
@@ -13,7 +16,10 @@ class OutlineButton extends StatelessWidget {
   const OutlineButton({
     super.key,
     required this.text,
+    this.textSize,
     required this.onPressed,
+    this.width,
+    this.height,
     this.isLoading = false,
     this.icon,
     this.useFaIcon = false, // Default pakai Icon biasa
@@ -24,8 +30,8 @@ class OutlineButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: double.infinity,
-      height: 50,
+      width: width,
+      height: height,
       child: OutlinedButton(
         onPressed: isLoading ? null : onPressed,
         style: ButtonStyle(
@@ -38,8 +44,6 @@ class OutlineButton extends StatelessWidget {
         ),
         child: isLoading
             ? const SizedBox(
-                width: 20,
-                height: 20,
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
             : Row(
@@ -52,6 +56,7 @@ class OutlineButton extends StatelessWidget {
                   Text(
                     text,
                     style: TextStyle(
+                      fontSize: textSize != null ? double.parse(textSize!) : 16,
                       color: textColor ?? Theme.of(context).colorScheme.primary,
                     ),
                   ),

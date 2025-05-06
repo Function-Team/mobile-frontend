@@ -18,7 +18,12 @@ class HomeController extends GetxController {
   }
 
   void goToVenueDetails(VenueModel venue) {
-    Get.toNamed(MyRoutes.venueDetail, arguments: {'venueId': venue.id});
+    if (venue.id != null) {
+      Get.toNamed(MyRoutes.venueDetail, arguments: {'venueId': venue.id});
+    } else {
+      Get.snackbar('Error', 'Cannot open venue details',
+          snackPosition: SnackPosition.BOTTOM);
+    }
   }
 
   void goToProfile() {

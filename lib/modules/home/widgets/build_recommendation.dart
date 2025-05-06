@@ -83,8 +83,7 @@ Widget buildRecommendation(BuildContext context, HomeController controller) {
               return Padding(
                 padding: const EdgeInsets.only(right: 0),
                 child: VenueRecommendCard(
-                  imageUrl: venue.firstPictureUrl ??
-                      'https://via.placeholder.com/150',
+                  imageUrl: venue.firstPictureUrl ?? '',
                   venueName: venue.name ?? 'Unknown Venue',
                   location: venue.city?.name ??
                       (venue.address != null

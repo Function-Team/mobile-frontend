@@ -1,119 +1,89 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:function_mobile/core/services/secure_storage_service.dart';
+import 'package:function_mobile/core/services/api_service.dart';
 
 class AuthService {
-  static const String baseUrl = 'http://backend.thefunction.id';
+  final ApiService _apiService = ApiService();
+  static final SecureStorageService _secureStorage = SecureStorageService();
 
   Future<void> saveToken(String token) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('access_token', token);
+    await _secureStorage.saveToken(token);
   }
 
   Future<String?> getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('access_token');
+    return await _secureStorage.getToken();
   }
 
   Future<void> removeToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('access_token');
+    await _secureStorage.deleteToken();
   }
 
   Future<Map<String, dynamic>> login(String username, String password) async {
     try {
       print('Attempting login with username: $username');
-      print('API URL: $baseUrl/api/login');
 
-      final response = await http.post(
-      Uri.parse('$baseUrl/api/login'),
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: {
-        'username': username,
-        'password': password,
-      },
-    );
+      final response = await _apiService.postRequest(
+        '/login',
+        {
+          'username': username,
+          'password': password,
+        },
+      );
 
-      print('Login response status: ${response.statusCode}');
-      print('Login response body: ${response.body}');
+      print('Login response body: $response');
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['access_token'] != null) {
-          await saveToken(data['access_token']);
-        }
-        return data;
+      // Pastikan response sudah berupa Map<String, dynamic>
+      if (response != null && response['access_token'] != null) {
+        await saveToken(response['access_token']);
+        return Map<String, dynamic>.from(response);
       } else {
-        String errorMessage =
-            'Login failed with status: ${response.statusCode}';
-
-        try {
-          final errorData = json.decode(response.body);
-          if (errorData['detail'] != null) {
-            if (errorData['detail'] is List) {
-              final details = errorData['detail'] as List;
-              if (details.isNotEmpty) {
-                errorMessage = details.map((e) => e['msg']).join(", ");
-              }
-            } else {
-              errorMessage = errorData['detail'];
+        String errorMessage = 'Login gagal. Data tidak valid dari server.';
+        if (response != null && response['detail'] != null) {
+          if (response['detail'] is List) {
+            final details = response['detail'] as List;
+            if (details.isNotEmpty) {
+              errorMessage = details.map((e) => e['msg']).join(", ");
             }
-          }
-        } catch (e) {
-          if (response.body.isNotEmpty) {
-            errorMessage = 'Server error: ${response.body}';
+          } else {
+            errorMessage = response['detail'];
           }
         }
-
         throw Exception(errorMessage);
       }
     } catch (e) {
       print('Error during login: $e');
-      throw Exception('Error during login: $e');
+      if (e.toString().contains('FormatException')) {
+        throw Exception(
+            'Server returned an invalid response. Please try again later.');
+      } else {
+        throw Exception('Error during login: $e');
+      }
     }
   }
 
-  Future<Map<String, dynamic>> signup(String username, String password) async {
+  Future<Map<String, dynamic>> signup(
+      String username, String password, String email) async {
     try {
-      final response = await http
-          .post(
-        Uri.parse('$baseUrl/api/signup'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'username': username, 'password': password}),
-      )
-          .timeout(Duration(seconds: 10), onTimeout: () {
-        throw Exception('Network timeout. Please check your connection.');
-      });
+      final response = await _apiService.postRequest(
+        '/signup',
+        {
+          'username': username,
+          'password': password,
+          'email': email,
+        },
+      );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        try {
-          final data = json.decode(response.body);
-          if (data['access_token'] != null) {
-            await saveToken(data['access_token']);
-          }
-          return data;
-        } catch (e) {
-          throw Exception('Invalid response format from server');
+      // Pastikan response sudah berupa Map<String, dynamic>
+      if (response != null &&
+          (response['access_token'] != null || response['user'] != null)) {
+        if (response['access_token'] != null) {
+          await saveToken(response['access_token']);
         }
+        return Map<String, dynamic>.from(response);
       } else {
-        String errorMessage =
-            'Signup failed with status: ${response.statusCode}';
-        try {
-          final errorData = json.decode(response.body);
-          errorMessage = errorData['detail'] ?? errorMessage;
-        } catch (e) {
-          if (response.body.isNotEmpty) {
-            errorMessage = 'Server error: ${response.body}';
-          }
+        String errorMessage = 'Signup gagal. Data tidak valid dari server.';
+        if (response != null && response['detail'] != null) {
+          errorMessage = response['detail'];
         }
-
-        // Handle the specific 500 error case
-        if (response.statusCode == 500 &&
-            response.body.contains('Internal Server Error')) {
-          errorMessage =
-              'The server is currently unavailable. Please try again later or contact support.';
-        }
-
         throw Exception(errorMessage);
       }
     } catch (e) {
@@ -127,6 +97,7 @@ class AuthService {
     }
   }
 
+  // Rest of the methods remain the same
   Future<Map<String, String>> getAuthHeaders() async {
     final token = await getToken();
     return {
@@ -136,23 +107,16 @@ class AuthService {
   }
 
   Future<dynamic> fetchProtectedData(String endPoint) async {
-    final headers = await getAuthHeaders();
-    final response = await http
-        .get(
-      Uri.parse('$baseUrl$endPoint'),
-      headers: headers,
-    )
-        .timeout(Duration(seconds: 10), onTimeout: () {
-      throw Exception('Network timeout. Please check your connection.');
-    });
-
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else if (response.statusCode == 401) {
-      await removeToken();
-      throw Exception('Unauthorized, please login again');
-    } else {
-      throw Exception('Failed to fetch data');
+    try {
+      final response = await _apiService.getRequest(endPoint);
+      return response;
+    } on Exception catch (e) {
+      // Jika unauthorized, hapus token
+      if (e.toString().contains('401')) {
+        await removeToken();
+        throw Exception('Unauthorized, please login again');
+      }
+      throw Exception('Failed to fetch data: $e');
     }
   }
 

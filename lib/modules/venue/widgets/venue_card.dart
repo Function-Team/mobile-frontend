@@ -5,31 +5,16 @@ import 'package:function_mobile/common/widgets/buttons/favorite_button.dart';
 import 'package:function_mobile/modules/venue/widgets/category_chip.dart';
 import 'package:intl/intl.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
+import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 
 class VenueCard extends StatelessWidget {
-  final String venueName;
-  final String location;
-  final double rating;
-  final int price;
-  final String imageUrl;
-  final String priceType;
-  final int ratingCount;
+  final VenueModel venue;
   final VoidCallback onTap;
-  final String roomType;
-  final String capacityType;
 
   const VenueCard({
     super.key,
-    required this.venueName,
-    required this.location,
-    required this.rating,
-    required this.ratingCount,
-    required this.price,
-    required this.imageUrl,
-    required this.priceType,
+    required this.venue,
     required this.onTap,
-    required this.roomType,
-    required this.capacityType,
   });
 
   @override
@@ -51,7 +36,7 @@ class VenueCard extends StatelessWidget {
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(12)),
                   child: NetworkImageWithLoader(
-                    imageUrl: imageUrl,
+                    imageUrl: venue.firstPictureUrl ?? '',
                     height: 160,
                     width: double.infinity,
                     fit: BoxFit.cover,
@@ -72,13 +57,20 @@ class VenueCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        venueName,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
+                      Expanded(
+                        child: Text(
+                          venue.name ?? "No Information",
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(width: 8),
 
                       // Rating row
                       Row(
@@ -91,7 +83,8 @@ class VenueCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            '$rating',
+                            (venue.rating ?? 0.0)
+                                .toString(), // Using venue.rating with proper type conversion
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 12,
@@ -99,9 +92,9 @@ class VenueCard extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            ratingCount > 999
-                                ? '(${(ratingCount / 1000).toStringAsFixed(1)}k)'
-                                : '($ratingCount)',
+                            (venue.ratingCount ?? 0) > 999
+                                ? '(${(venue.ratingCount! / 1000).toStringAsFixed(1)}k)'
+                                : '(${venue.ratingCount ?? 'No Review'})',
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 12,
@@ -125,7 +118,7 @@ class VenueCard extends StatelessWidget {
                       const SizedBox(width: 2),
                       Expanded(
                         child: Text(
-                          location,
+                          venue.address ?? "Unknown Location",
                           style: Theme.of(context)
                               .textTheme
                               .bodyMedium
@@ -141,7 +134,7 @@ class VenueCard extends StatelessWidget {
                   Row(
                     children: [
                       CategoryChip(
-                        label: roomType,
+                        label: venue.category?.name ?? "No Category",
                         color: Theme.of(context)
                             .colorScheme
                             .primary
@@ -150,7 +143,7 @@ class VenueCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       CategoryChip(
-                        label: capacityType,
+                        label: venue.maxCapacity.toString(),
                         icon: Icons.groups_2,
                         isBackground: true,
                         color: Theme.of(context)
@@ -178,7 +171,7 @@ class VenueCard extends StatelessWidget {
                         text: TextSpan(
                           children: [
                             TextSpan(
-                              text: priceType,
+                              text: "Rp.",
                               style: Theme.of(context)
                                   .textTheme
                                   .titleLarge
@@ -190,7 +183,7 @@ class VenueCard extends StatelessWidget {
                             ),
                             TextSpan(
                               text: NumberFormat("#,##0", "id_ID")
-                                  .format(price), // Format harga
+                                  .format(venue.price ?? 0), // Format harga
                               style: Theme.of(context)
                                   .textTheme
                                   .titleLarge
