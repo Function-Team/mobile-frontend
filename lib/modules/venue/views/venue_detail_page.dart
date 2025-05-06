@@ -62,12 +62,8 @@ class VenueDetailPage extends StatelessWidget {
                       height: 250,
                       width: double.infinity,
                       child: Obx(() {
-                        // Use the first image or fallback
-                        final String? imageUrl = controller
-                                    .venueImages.isNotEmpty &&
-                                controller.venueImages.first.imageUrl != null
-                            ? controller.venueImages.first.imageUrl
-                            : controller.venue.value?.firstPictureUrl;
+                        final String? imageUrl =
+                            controller.venue.value?.firstPictureUrl;
                         return GestureDetector(
                           onTap: () {
                             if (imageUrl != null && imageUrl.isNotEmpty) {
@@ -77,7 +73,7 @@ class VenueDetailPage extends StatelessWidget {
                             }
                           },
                           child: NetworkImageWithLoader(
-                            imageUrl: imageUrl ?? '',
+                            imageUrl: imageUrl ?? "",
                             fit: BoxFit.cover,
                           ),
                         );
@@ -692,12 +688,19 @@ class VenueDetailPage extends StatelessWidget {
                 child: SecondaryButton(
                   text: 'Book this',
                   onPressed: () {
-                    Get.toNamed(MyRoutes.bookingPage, arguments: {
-                      'venueId': controller.venue.value?.id,
-                      'venueName': controller.venue.value?.name,
-                      'venuePrice': controller.venue.value?.price,
-                      'venueImage': controller.venueImages.first.imageUrl,
-                    });
+                    final venue = controller.venue.value;
+                    if (venue != null) {
+                      Get.toNamed(
+                        MyRoutes.bookingPage,
+                        arguments: venue,
+                      );
+                    } else {
+                      Get.snackbar(
+                        'Error',
+                        'Venue information not available',
+                        snackPosition: SnackPosition.BOTTOM,
+                      );
+                    }
                   },
                 ),
               ),
