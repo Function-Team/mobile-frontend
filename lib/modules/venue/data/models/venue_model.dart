@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/core/constants/app_constants.dart';
 
 class VenueModel {
   final int? id;
@@ -27,11 +28,11 @@ class VenueModel {
   final int? maxCapacity;
 
   String? get firstPictureUrl => firstPicture != null
-      ? 'http://backend.thefunction.id/api/img/$firstPicture'
+      ? '${AppConstants.baseUrl}/img/$firstPicture'
       : (pictures != null &&
               pictures!.isNotEmpty &&
               pictures!.first.filename != null)
-          ? 'http://backend.thefunction.id/api/img/${pictures!.first.filename}'
+          ? '${AppConstants.baseUrl}/img/${pictures!.first.filename}'
           : null;
 
   VenueModel({

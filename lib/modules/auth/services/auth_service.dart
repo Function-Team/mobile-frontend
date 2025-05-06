@@ -1,4 +1,3 @@
-import 'package:function_mobile/core/constants/app_constants.dart';
 import 'package:function_mobile/core/services/secure_storage_service.dart';
 import 'package:function_mobile/core/services/api_service.dart';
 
@@ -23,7 +22,7 @@ class AuthService {
       print('Attempting login with username: $username');
 
       final response = await _apiService.postRequest(
-        'api/login',
+        '/login',
         {
           'username': username,
           'password': password,
@@ -65,7 +64,7 @@ class AuthService {
       String username, String password, String email) async {
     try {
       final response = await _apiService.postRequest(
-        'api/signup',
+        '/signup',
         {
           'username': username,
           'password': password,

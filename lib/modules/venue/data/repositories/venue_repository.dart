@@ -1,17 +1,13 @@
-import 'dart:convert';
-
-import 'package:function_mobile/core/constants/app_constants.dart';
 import 'package:function_mobile/core/services/api_service.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 
 class VenueRepository {
-  static final String _baseUrl = AppConstants.baseUrl;
   static final ApiService _apiService = ApiService();
 
   // Get all venues
   Future<List<VenueModel>> getVenues() async {
     try {
-      final response = await _apiService.getRequest('api/place');
+      final response = await _apiService.getRequest('/place');
       if (response is List) {
         return response.map((json) => VenueModel.fromJson(json)).toList();
       } else {
@@ -27,7 +23,7 @@ class VenueRepository {
   // Get venue by ID
   Future<VenueModel?> getVenueById(int id) async {
     try {
-      final response = await _apiService.getRequest('api/place/$id');
+      final response = await _apiService.getRequest('/place/$id');
 
       if (response is Map<String, dynamic>) {
         return VenueModel.fromJson(response);
@@ -45,8 +41,7 @@ class VenueRepository {
   //Get venue image
   Future<List<PictureModel>> getVenueImages(int venueId) async {
     try {
-      final response =
-          await _apiService.getRequest('api/img?place_id=$venueId');
+      final response = await _apiService.getRequest('/img?place_id=$venueId');
       print('Response status: ${response.statusCode}, body: ${response.body}');
       if (response is List) {
         return response.map((json) => PictureModel.fromJson(json)).toList();
@@ -100,10 +95,11 @@ class VenueRepository {
       // Bangun query string manual
       String queryString = '';
       if (queryParams.isNotEmpty) {
-        queryString = '?${queryParams.entries.map((e) => '${e.key}=${e.value}').join('&')}';
+        queryString =
+            '?${queryParams.entries.map((e) => '${e.key}=${e.value}').join('&')}';
       }
 
-      final endpoint = 'api/place$queryString';
+      final endpoint = '/place$queryString';
       print('Searching venues with endpoint: $endpoint');
 
       final response = await _apiService.getRequest(endpoint);
@@ -124,7 +120,7 @@ class VenueRepository {
   Future<List<ReviewModel>> getVenueReviews(int venueId) async {
     try {
       final response =
-          await _apiService.getRequest('api/review?venue_id=$venueId');
+          await _apiService.getRequest('/review?venue_id=$venueId');
 
       if (response is List) {
         return response.map((json) => ReviewModel.fromJson(json)).toList();
@@ -144,7 +140,7 @@ class VenueRepository {
   Future<List<FacilityModel>> getVenueFacilities(int venueId) async {
     try {
       final response =
-          await _apiService.getRequest('api/facility?venue_id=$venueId');
+          await _apiService.getRequest('/facility?venue_id=$venueId');
 
       if (response is List) {
         return response.map((json) => FacilityModel.fromJson(json)).toList();

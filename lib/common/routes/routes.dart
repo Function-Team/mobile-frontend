@@ -96,7 +96,7 @@ class MyRoutes {
     // Booking
     GetPage(
         name: bookingPage,
-        page: () => BookingPage(),
+        page: () => const BookingPage(),
         binding: BookingBinding()),
     GetPage(name: bookingList, page: () => BookingsListPage()),
     GetPage(name: bookingDetail, page: () => BookingDetail()),

@@ -12,9 +12,9 @@ class BookingPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    VenueDetailController venueController = Get.find();
-    BookingController bookingController = Get.find<BookingController>();
-    final venue = venueController.venue.value;
+    final bookingController = Get.put(BookingController());
+    final venue = Get.arguments;
+    
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
@@ -36,7 +36,9 @@ class BookingPage extends StatelessWidget {
           //image
           NetworkImageWithLoader(
               borderRadius: BorderRadius.circular(6.0),
-              imageUrl: venue?.firstPicture ?? '',
+              imageUrl: (venue?.firstPictureUrl?.isNotEmpty ?? false)
+                  ? venue!.firstPictureUrl!
+                  : 'https://via.placeholder.com/400x150?text=No+Image+Available',
               height: 150,
               width: double.infinity,
               fit: BoxFit.cover),
