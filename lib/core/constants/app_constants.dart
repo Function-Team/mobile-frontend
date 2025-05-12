@@ -1,10 +1,12 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class AppConstants {
   // API URLs
-  static const String baseUrlProd = 'http://backend.thefunction.id/api';
-  static const String baseUrlLocal = 'http://10.0.2.2:8000/api';
+  static String baseUrlProd = dotenv.env['API_URL']!;
+  static String baseUrlLocal = dotenv.env['API_URL_LOCAL']!;
 
   // Pilih baseUrl yang ingin digunakan
-  static const String baseUrl = baseUrlLocal;
+  static String baseUrl = baseUrlLocal;
   // Untuk development, bisa ganti ke:
   // static const String baseUrl = baseUrlLocal;
 
