@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
 /// A reusable widget for displaying a fullscreen image gallery
 class FullscreenImageGallery extends StatefulWidget {

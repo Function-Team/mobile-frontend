@@ -132,7 +132,6 @@ class VenueListPage extends GetView<VenueListController> {
               itemCount: controller.venues.length,
               itemBuilder: (context, index) {
                 final venue = controller.venues[index];
-                if (venue == null) return const SizedBox.shrink();
                 return VenueCard(
                   venue: venue,
                   onTap: () {

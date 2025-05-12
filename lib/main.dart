@@ -6,7 +6,7 @@ import 'package:function_mobile/common/theme/app_theme.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 
-void main() async {
+Future main() async {
   await dotenv.load(fileName: '.env');
   // Disable debug paint
   debugPaintSizeEnabled = false;
