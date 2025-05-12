@@ -123,11 +123,11 @@ class VenueListController extends GetxController {
         return;
       }
 
-      loadedVenues.forEach((venue) {
+      for (var venue in loadedVenues) {
         if (venue.category?.name != null && venue.category?.id != null) {
           categoryMapping[venue.category!.name!] = venue.category!.id!;
         }
-      });
+      }
 
       // Tambahkan pengecekan sebelum assign
       if (categoryMapping.isNotEmpty) {
