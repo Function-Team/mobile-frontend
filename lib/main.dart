@@ -3,9 +3,11 @@ import 'package:flutter/rendering.dart';
 import 'package:function_mobile/common/bindings/app_binding.dart'; // New AppBinding
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/theme/app_theme.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 
-void main() {
+Future main() async {
+  await dotenv.load(fileName: '.env');
   // Disable debug paint
   debugPaintSizeEnabled = false;
   // Ensure Flutter is initialized

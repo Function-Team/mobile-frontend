@@ -3,7 +3,6 @@ import 'package:function_mobile/common/widgets/buttons/outline_button.dart';
 import 'package:function_mobile/common/widgets/buttons/secondary_button.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_controller.dart';
-import 'package:function_mobile/modules/venue/controllers/venue_detail_controller.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 

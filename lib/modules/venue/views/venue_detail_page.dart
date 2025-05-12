@@ -8,7 +8,6 @@ import 'package:function_mobile/modules/venue/widgets/category_chip.dart';
 import 'package:function_mobile/modules/venue/widgets/venue_detail/about_detail.dart';
 import 'package:function_mobile/modules/venue/widgets/venue_detail/facilities_section.dart';
 import 'package:function_mobile/modules/venue/widgets/venue_detail/image_gallery.dart';
-import 'package:function_mobile/modules/venue/widgets/venue_detail/reviews_page.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:function_mobile/modules/venue/controllers/venue_detail_controller.dart';
@@ -67,7 +66,6 @@ class VenueDetailPage extends StatelessWidget {
                         return GestureDetector(
                           onTap: () {
                             if (imageUrl != null && imageUrl.isNotEmpty) {
-                              // Open the image in fullscreen
                               controller.openFullscreenImage(
                                   context, imageUrl, 0, controller);
                             }
@@ -75,6 +73,8 @@ class VenueDetailPage extends StatelessWidget {
                           child: NetworkImageWithLoader(
                             imageUrl: imageUrl ?? "",
                             fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: 250,
                           ),
                         );
                       }),

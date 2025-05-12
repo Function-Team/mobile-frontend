@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:get/get_connect/http/src/utils/utils.dart';
 
 class DetailBottomSheets extends StatelessWidget {
   const DetailBottomSheets({super.key});

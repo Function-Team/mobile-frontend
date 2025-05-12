@@ -69,7 +69,7 @@ class SearchFilterController extends GetxController {
       // Handle 200+ people format
       else if (capacityText.contains('+')) {
         final parts = capacityText.split('+');
-        if (parts.length > 0) {
+        if (parts.isNotEmpty) {
           final numericValue =
               parts[0].trim().replaceAll(RegExp(r'[^0-9]'), '');
           try {
