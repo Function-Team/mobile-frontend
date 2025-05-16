@@ -3,6 +3,7 @@ import 'package:function_mobile/common/widgets/buttons/outline_button.dart';
 import 'package:function_mobile/common/widgets/buttons/secondary_button.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_controller.dart';
+import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
@@ -12,8 +13,8 @@ class BookingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bookingController = Get.put(BookingController());
-    final venue = Get.arguments;
-    
+    final VenueModel venue = Get.arguments as VenueModel;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
@@ -35,9 +36,7 @@ class BookingPage extends StatelessWidget {
           //image
           NetworkImageWithLoader(
               borderRadius: BorderRadius.circular(6.0),
-              imageUrl: (venue?.firstPictureUrl?.isNotEmpty ?? false)
-                  ? venue!.firstPictureUrl!
-                  : 'https://via.placeholder.com/400x150?text=No+Image+Available',
+              imageUrl: venue.firstPictureUrl ?? '',
               height: 150,
               width: double.infinity,
               fit: BoxFit.cover),
@@ -51,7 +50,7 @@ class BookingPage extends StatelessWidget {
             children: [
               const Icon(Icons.star, color: Colors.amber, size: 18),
               Text(
-                ' ${venue?.rating?.toStringAsFixed(1) ?? '0'} (${venue?.ratingCount ?? 'No'} Reviews)',
+                ' ${venue.rating?.toStringAsFixed(1) ?? '0'} (${venue.ratingCount ?? 'No'} Reviews)',
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey[700],
@@ -105,7 +104,7 @@ class BookingPage extends StatelessWidget {
                   Text('Booking Price',
                       style: Theme.of(context).textTheme.headlineSmall),
                   Text(
-                      "IDR ${NumberFormat("#,##0", "id_ID").format(venue?.price ?? 200000)}",
+                      "IDR ${NumberFormat("#,##0", "id_ID").format(venue.price ?? 200000)}",
                       style: Theme.of(context).textTheme.bodyMedium),
                 ],
               ),

@@ -10,11 +10,13 @@ import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 class VenueCard extends StatelessWidget {
   final VenueModel venue;
   final VoidCallback onTap;
+  final bool showFavoriteButton;
 
   const VenueCard({
     super.key,
     required this.venue,
     required this.onTap,
+    this.showFavoriteButton = true,
   });
 
   @override

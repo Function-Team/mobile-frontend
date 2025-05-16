@@ -102,7 +102,23 @@ class VenueListController extends GetxController {
       errorMessage.value = '';
 
       final loadedVenues = await _venueRepository.searchVenues();
-      venues.assignAll(loadedVenues);
+      
+      // Filter venue yang valid seperti di HomeController
+      final filteredVenues = loadedVenues
+          .where((venue) => 
+              venue.id != null && 
+              venue.name != null && 
+              venue.price != null)
+          .toList();
+          
+      if (filteredVenues.isEmpty) {
+        hasError.value = true;
+        errorMessage.value = 'Tidak ada venue yang tersedia saat ini. Silakan coba lagi nanti.';
+        venues.clear();
+        return;
+      }
+      
+      venues.assignAll(filteredVenues);
     } catch (e) {
       hasError.value = true;
       errorMessage.value = 'Failed to load venues. Please try again.';
