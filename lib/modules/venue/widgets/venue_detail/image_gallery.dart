@@ -87,6 +87,7 @@ class ImageGallery extends StatelessWidget {
               itemCount: images.length > maxImages ? maxImages : images.length,
               itemBuilder: (context, index) {
                 final imageUrl = images[index].imageUrl ?? '';
+                print("Image URL at index $index: $imageUrl");
 
                 return GestureDetector(
                   onTap: () => onImageTap(index),
@@ -104,7 +105,19 @@ class ImageGallery extends StatelessWidget {
                           ? Image.network(
                               imageUrl,
                               fit: BoxFit.cover,
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Center(
+                                  child: CircularProgressIndicator(
+                                    value: loadingProgress.expectedTotalBytes != null
+                                        ? loadingProgress.cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                        : null,
+                                  ),
+                                );
+                              },
                               errorBuilder: (context, error, stackTrace) {
+                                print("Error loading image: $error");
                                 return _buildPlaceholder();
                               },
                             )

@@ -14,7 +14,7 @@ doc/api/
 
 # dotenv environment variables file
 .env*
-
+.flutter_export_environment
 # Avoid committing generated Javascript files:
 *.dart.js
 *.info.json      # Produced by the --dump-info flag.
@@ -206,3 +206,6 @@ android/app/.cxx/Debug/6x5d1z12/x86_64/CMakeFiles/3.22.1-g37088a8-dirty/Compiler
 android/app/.cxx/Debug/6x5d1z12/x86_64/CMakeFiles/3.22.1-g37088a8-dirty/CompilerIdC/CMakeCCompilerId.o
 android/app/.cxx/Debug/6x5d1z12/x86_64/CMakeFiles/3.22.1-g37088a8-dirty/CompilerIdCXX/CMakeCXXCompilerId.cpp
 android/app/.cxx/Debug/6x5d1z12/x86_64/CMakeFiles/3.22.1-g37088a8-dirty/CompilerIdCXX/CMakeCXXCompilerId.o
+macos/Flutter/ephemeral/flutter_export_environment.sh
+macos/Flutter/ephemeral/flutter_export_environment.sh
+macos/Flutter/ephemeral/flutter_export_environment.sh
