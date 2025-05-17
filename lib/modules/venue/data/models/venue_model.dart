@@ -166,15 +166,15 @@ class PictureModel {
   final String? filename;
   final int? placeId;
 
-  String? get imageUrl => filename != null
-      ? 'http://backend.thefunction.id/api/img/$filename'
-      : null;
-
   PictureModel({
     this.id,
     this.filename,
     this.placeId,
   });
+
+  String? get imageUrl => filename != null && filename!.isNotEmpty
+      ? '${AppConstants.baseUrl}/img/$filename'
+      : null;
 
   factory PictureModel.fromJson(Map<String, dynamic> json) {
     return PictureModel(
@@ -182,6 +182,14 @@ class PictureModel {
       filename: json['filename'],
       placeId: json['place_id'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'filename': filename,
+      'place_id': placeId,
+    };
   }
 }
 

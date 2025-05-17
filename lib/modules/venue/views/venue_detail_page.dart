@@ -18,7 +18,7 @@ class VenueDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<VenueDetailController>();
+    final VenueDetailController controller = Get.find<VenueDetailController>();
 
     return Scaffold(
       body: Obx(() {
@@ -61,8 +61,14 @@ class VenueDetailPage extends StatelessWidget {
                       height: 250,
                       width: double.infinity,
                       child: Obx(() {
-                        final String? imageUrl =
-                            controller.venue.value?.firstPictureUrl;
+                        // Cek gambar utama
+                        String? imageUrl = controller.venue.value?.firstPictureUrl;
+                        // Jika null/kosong, fallback ke venueImages
+                        if (imageUrl == null || imageUrl.isEmpty) {
+                          if (controller.venueImages.isNotEmpty) {
+                            imageUrl = controller.venueImages.first.imageUrl;
+                          }
+                        }
                         return GestureDetector(
                           onTap: () {
                             if (imageUrl != null && imageUrl.isNotEmpty) {
@@ -483,74 +489,74 @@ class VenueDetailPage extends StatelessWidget {
   //   );
   // }
 
-  Widget _buildReviewCard(
-    String name,
-    double rating,
-    String reviews,
-    String? profilePicture,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 14,
-                backgroundColor: Colors.grey[400],
-                child: profilePicture != null && profilePicture.isNotEmpty
-                    ? ClipOval(
-                        child: NetworkImageWithLoader(
-                          imageUrl: profilePicture,
-                          width: 28,
-                          height: 28,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                    : Text(
-                        name.isNotEmpty ? name[0].toUpperCase() : '?',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                name,
-                style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black),
-              ),
-              const Spacer(),
-              Text(
-                rating.toString(),
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.amber,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            reviews,
-            style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget _buildReviewCard(
+  //   String name,
+  //   double rating,
+  //   String reviews,
+  //   String? profilePicture,
+  // ) {
+  //   return Container(
+  //     padding: const EdgeInsets.all(12),
+  //     decoration: BoxDecoration(
+  //       borderRadius: BorderRadius.circular(8),
+  //       border: Border.all(color: Colors.grey[300]!),
+  //     ),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         Row(
+  //           children: [
+  //             CircleAvatar(
+  //               radius: 14,
+  //               backgroundColor: Colors.grey[400],
+  //               child: profilePicture != null && profilePicture.isNotEmpty
+  //                   ? ClipOval(
+  //                       child: NetworkImageWithLoader(
+  //                         imageUrl: profilePicture,
+  //                         width: 28,
+  //                         height: 28,
+  //                         fit: BoxFit.cover,
+  //                       ),
+  //                     )
+  //                   : Text(
+  //                       name.isNotEmpty ? name[0].toUpperCase() : '?',
+  //                       style: const TextStyle(
+  //                         color: Colors.white,
+  //                         fontSize: 12,
+  //                         fontWeight: FontWeight.w500,
+  //                       ),
+  //                     ),
+  //             ),
+  //             const SizedBox(width: 8),
+  //             Text(
+  //               name,
+  //               style: const TextStyle(
+  //                   fontSize: 14,
+  //                   fontWeight: FontWeight.w500,
+  //                   color: Colors.black),
+  //             ),
+  //             const Spacer(),
+  //             Text(
+  //               rating.toString(),
+  //               style: const TextStyle(
+  //                 fontSize: 14,
+  //                 fontWeight: FontWeight.bold,
+  //                 color: Colors.amber,
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //         const SizedBox(height: 8),
+  //         Text(
+  //           reviews,
+  //           style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+  //           maxLines: 2,
+  //           overflow: TextOverflow.ellipsis,
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   //Section 4
   Widget _buildScheduleSection(

@@ -38,15 +38,6 @@ Widget buildProfileOptions(BuildContext context) {
       ),
       _buildOptionTile(
         context: context,
-        icon: Icons.privacy_tip_outlined,
-        title: 'Privacy',
-        subtitle: 'View our privacy policy',
-        onTap: () {
-          // Handle privacy
-        },
-      ),
-      _buildOptionTile(
-        context: context,
         icon: Icons.help_outline,
         title: 'Help & Support',
         subtitle: 'Get help with your account',

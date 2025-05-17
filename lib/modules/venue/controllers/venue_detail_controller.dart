@@ -106,19 +106,57 @@ class VenueDetailController extends GetxController {
     }
   }
 
+  // Di dalam VenueDetailController
   Future<void> loadVenueImages(int venueId) async {
     try {
       isLoadingImages.value = true;
       final imagesData = await _venueRepository.getVenueImages(venueId);
       print("Images data received: $imagesData");
 
-      if (imagesData.isNotEmpty && imagesData[0].imageUrl != null) {
-        print("First image URL: ${imagesData[0].imageUrl}");
-      }
+      // Periksa apakah data gambar kosong
+      if (imagesData.isEmpty) {
+        print("Tidak ada gambar yang diterima dari API");
+        // Jika tidak ada gambar dari API, coba gunakan gambar dari venue
+        if (venue.value?.firstPictureUrl != null &&
+            venue.value!.firstPictureUrl!.isNotEmpty) {
+          // Buat PictureModel dari firstPictureUrl
+          final mainImage = PictureModel(
+              id: 0, filename: venue.value?.firstPicture, placeId: venueId);
+          venueImages.add(mainImage);
+          print(
+              "Menggunakan gambar utama dari venue: ${venue.value?.firstPictureUrl}");
+        }
+      } else {
+        // Pastikan semua gambar memiliki URL yang valid
+        final validImages = imagesData
+            .where((img) =>
+                img.imageUrl != null &&
+                img.imageUrl!.isNotEmpty &&
+                img.imageUrl != "file:///")
+            .toList();
 
-      venueImages.assignAll(imagesData);
+        if (validImages.isEmpty && venue.value?.firstPictureUrl != null) {
+          // Jika tidak ada gambar valid, gunakan gambar utama
+          final mainImage = PictureModel(
+              id: 0, filename: venue.value?.firstPicture, placeId: venueId);
+          venueImages.add(mainImage);
+          print(
+              "Menggunakan gambar utama dari venue: ${venue.value?.firstPictureUrl}");
+        } else {
+          venueImages.assignAll(validImages);
+        }
+      }
     } catch (e) {
       print('Error loading venue images: $e');
+      // Tangani kesalahan dengan menambahkan gambar dari venue jika tersedia
+      if (venue.value?.firstPictureUrl != null &&
+          venue.value!.firstPictureUrl!.isNotEmpty) {
+        final mainImage = PictureModel(
+            id: 0, filename: venue.value?.firstPicture, placeId: venueId);
+        venueImages.add(mainImage);
+        print(
+            "Menggunakan gambar utama dari venue setelah error: ${venue.value?.firstPictureUrl}");
+      }
     } finally {
       isLoadingImages.value = false;
     }
@@ -221,5 +259,4 @@ class VenueDetailController extends GetxController {
       );
     }
   }
-  
 }

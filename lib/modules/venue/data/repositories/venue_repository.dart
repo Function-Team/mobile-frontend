@@ -42,12 +42,21 @@ class VenueRepository {
   Future<List<PictureModel>> getVenueImages(int venueId) async {
     try {
       final response = await _apiService.getRequest('/img?place_id=$venueId');
-      print('Response status: ${response.statusCode}, body: ${response.body}');
+      print('Response for venue images: $response');
+
       if (response is List) {
-        return response.map((json) => PictureModel.fromJson(json)).toList();
+        final images =
+            response.map((json) => PictureModel.fromJson(json)).toList();
+
+        // Tambahkan log untuk debugging
+        for (var img in images) {
+          print('Image filename: ${img.filename}, URL: ${img.imageUrl}');
+        }
+
+        return images;
       } else {
-        throw Exception(
-            'failed to load images. Status: ${response.statusCode}');
+        print('Invalid response format for images: $response');
+        return [];
       }
     } catch (e) {
       print('Error fetching images for venue $venueId: $e');

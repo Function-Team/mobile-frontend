@@ -60,14 +60,18 @@ class NetworkImageWithLoader extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.broken_image, size: 24, color: Colors.grey[600]),
+          Expanded(
+            child: Icon(Icons.broken_image, size: 24, color: Colors.grey[600]),
+          ),
           const SizedBox(height: 4),
-          Text(
-            'Image not available',
-            overflow: TextOverflow.values[0],
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 12,
+          Expanded(
+            child: Text(
+              'Image not available',
+              overflow: TextOverflow.values[0],
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 12,
+              ),
             ),
           ),
         ],
