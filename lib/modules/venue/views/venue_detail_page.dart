@@ -203,12 +203,21 @@ class VenueDetailPage extends StatelessWidget {
                       constraints: const BoxConstraints(),
                     ),
                     const SizedBox(width: 16),
-                    IconButton(
-                      icon: const Icon(Icons.favorite_border, size: 22),
-                      onPressed: () {},
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
+                    Obx(() {
+                      return IconButton(
+                        icon: Icon(
+                          controller.isFavorite.value
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          size: 22,
+                          color:
+                              controller.isFavorite.value ? Colors.red : null,
+                        ),
+                        onPressed: () => controller.toggleFavorite(),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      );
+                    }),
                   ],
                 ),
               ],

@@ -107,7 +107,10 @@ class MyRoutes {
     GetPage(name: searchDate, page: () => DateSelectionPage()),
     GetPage(name: searchLocation, page: () => SearchLocationPage()),
 
-    GetPage(name: favorites, page: () => FavoritesPage()),
+    GetPage(
+      name: favorites,
+      page: () => FavoritesPage(),
+    ),
 
     // Venue
     GetPage(
