@@ -4,11 +4,16 @@ import 'package:function_mobile/common/routes/routes.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:function_mobile/modules/venue/data/repositories/venue_repository.dart';
+import 'package:function_mobile/modules/favorite/controllers/favorites_controller.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class VenueDetailController extends GetxController {
   final VenueRepository _venueRepository = VenueRepository();
-
+  final FavoritesController _favoritesController = Get.find<FavoritesController>();
+  
+  // Add this property
+  final RxBool isFavorite = false.obs;
+  
   // Observable variables
   final Rx<VenueModel?> venue = Rx<VenueModel?>(null);
   final RxBool isLoading = true.obs;
@@ -43,10 +48,22 @@ class VenueDetailController extends GetxController {
   void onInit() {
     super.onInit();
     // Get the venue ID from route parameters
-    final venueId =
-        Get.arguments?['venueId'] ?? 1; // Default to 1 if not provided
-// Default to 1 if not provided
+    final venueId = Get.arguments?['venueId'] ?? 1;
     loadVenueDetails(venueId);
+    checkFavoriteStatus(venueId);
+  }
+
+  // Add this method
+  Future<void> checkFavoriteStatus(int venueId) async {
+    isFavorite.value = await _favoritesController.isFavorite(venueId);
+  }
+
+  // Add this method
+  Future<void> toggleFavorite() async {
+    if (venue.value?.id != null) {
+      await _favoritesController.toggleFavorite(venue.value!.id!);
+      isFavorite.value = await _favoritesController.isFavorite(venue.value!.id!);
+    }
   }
 
   Future<void> loadVenueDetails(int venueId) async {
