@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/buttons/outline_button.dart';
 import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
-import 'package:function_mobile/modules/booking/widgets/booking_card.dart';
+import 'package:function_mobile/modules/booking/controllers/booking_detail_controller.dart';
+import 'package:get/get.dart';
 
-class BookingDetail extends StatelessWidget {
+class BookingDetail extends GetView<BookingDetailController> {
   const BookingDetail({super.key});
 
   @override
@@ -19,54 +20,73 @@ class BookingDetail extends StatelessWidget {
         ),
         title: const Text('Booking Detail'),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Booking Status Card
-              Text(
-                'Status',
-                style: theme.textTheme.headlineSmall,
-              ),
-              BookingCard(
-                  venueName: 'Real Space',
-                  bookingID: 9909,
-                  bookingDate: '12 Mar 2025',
-                  bookingTime: '11:00-12:00',
-                  bookingStatus: BookingStatus.confirmed,
-                  price: 150000,
-                  priceType: 'Rp'),
-              const SizedBox(height: 20),
-              // Booking Information
-              //TODO: add Venue Details
-              
-              //TODO: add Venue Terms and Conditions
-              Text(
-                'Your Details',
-                style: theme.textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 10),
-              _buildYourInfoCard(
-                  color: theme.colorScheme.tertiary,
-                  textStyle: theme.textTheme.bodyMedium!),
-              const SizedBox(height: 20),
-              // Payment Information
-              Text(
-                'Price Details',
-                style: theme.textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 10),
-              _buildPriceDetails(theme.colorScheme.tertiary),
-              const SizedBox(height: 30),
-              // Action Buttons
-              _buildActionButtons(context),
-            ],
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+        
+        if (controller.booking.value == null) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
+                const SizedBox(height: 16),
+                Text(
+                  'Booking tidak ditemukan',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+        
+        return SafeArea(
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Booking Status Card
+                Text(
+                  'Status',
+                  style: theme.textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 20),
+                // Booking Information
+                //TODO: add Venue Details
+  
+                //TODO: add Venue Terms and Conditions
+                Text(
+                  'Your Details',
+                  style: theme.textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 10),
+                _buildYourInfoCard(
+                    color: theme.colorScheme.tertiary,
+                    textStyle: theme.textTheme.bodyMedium!),
+                const SizedBox(height: 20),
+                // Payment Information
+                Text(
+                  'Price Details',
+                  style: theme.textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 10),
+                _buildPriceDetails(theme.colorScheme.tertiary),
+                const SizedBox(height: 30),
+                // Action Buttons
+                _buildActionButtons(context),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      }),
     );
   }
 
@@ -182,16 +202,16 @@ class BookingDetail extends StatelessWidget {
         const SizedBox(height: 8),
         Row(
           children: [
-            //TODO: Add Cancel Booking Functionality
             Expanded(
               child: OutlineButton(
                   text: 'Cancel Booking',
-                  onPressed: () {},
+                  onPressed: () {
+                    _showCancelConfirmationDialog(context);
+                  },
                   textColor: Colors.red,
                   outlineColor: Colors.red),
             ),
             const SizedBox(width: 16),
-            //TODO: Add Reschedule Functionality
             Expanded(
               child: OutlineButton(
                 text: 'Reschedule',
@@ -201,6 +221,33 @@ class BookingDetail extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+  
+  void _showCancelConfirmationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Konfirmasi Pembatalan'),
+          content: Text('Apakah Anda yakin ingin membatalkan booking ini?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Tutup dialog
+              },
+              child: Text('Tidak'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Tutup dialog
+                controller.cancelBooking(); // Panggil fungsi cancel booking
+              },
+              child: Text('Ya, Batalkan', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
     );
   }
 }

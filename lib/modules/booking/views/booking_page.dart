@@ -7,12 +7,11 @@ import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
-class BookingPage extends StatelessWidget {
+class BookingPage extends GetView<BookingController> {
   const BookingPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final bookingController = Get.put(BookingController());
     final VenueModel venue = Get.arguments as VenueModel;
 
     return Scaffold(
@@ -42,7 +41,7 @@ class BookingPage extends StatelessWidget {
               fit: BoxFit.cover),
           const SizedBox(height: 8.0),
           //name
-          Text(venue?.name ?? 'Venue Name',
+          Text(venue.name ?? 'Venue Name',
               style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 8.0),
           //Reviews & Rating
@@ -81,7 +80,7 @@ class BookingPage extends StatelessWidget {
                 textSize: '12',
                 text: 'Change',
                 onPressed: () {
-                  bookingController.displayChangeDateBottomSheet(context);
+                  controller.displayChangeDateBottomSheet(context);
                 },
                 width: 80,
                 height: 40,
@@ -112,7 +111,7 @@ class BookingPage extends StatelessWidget {
                 textSize: '12',
                 text: 'Details',
                 onPressed: () {
-                  bookingController.displayDetailBottomSheet(context);
+                  controller.displayDetailBottomSheet(context);
                 },
                 width: 80,
                 height: 40,
@@ -123,7 +122,11 @@ class BookingPage extends StatelessWidget {
       )),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: SecondaryButton(text: 'Continue', onPressed: () {}),
+        child: SecondaryButton(
+            text: 'Continue',
+            onPressed: () async {
+              controller.saveBooking(venue);
+            }),
       ),
     );
   }

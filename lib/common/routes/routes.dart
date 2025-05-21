@@ -98,8 +98,9 @@ class MyRoutes {
         name: bookingPage,
         page: () => const BookingPage(),
         binding: BookingBinding()),
-    GetPage(name: bookingList, page: () => BookingsListPage()),
-    GetPage(name: bookingDetail, page: () => BookingDetail()),
+    GetPage(name: bookingList, page: () => BookingsListPage(),
+    ),
+    GetPage(name: bookingDetail, page: () => BookingDetail(), binding: BookingBinding()),
 
     // SearchFilter
     GetPage(name: searchActivity, page: () => SearchActivityPage()),

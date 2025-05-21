@@ -1,11 +1,10 @@
 import 'dart:async';
+import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:get/get.dart';
-import '../widgets/booking_card.dart'; // Import enum BookingStatus
 import 'package:function_mobile/common/routes/routes.dart';
 
 class BookingCardController extends GetxController {
-  Rxn<Duration> remainingTime =
-      Rxn<Duration>(); // Menggunakan Rxn untuk nullable value
+  Rxn<Duration> remainingTime = Rxn<Duration>();
   Timer? _timer;
   final Rx<BookingStatus> status = Rx<BookingStatus>(BookingStatus.pending);
 
@@ -26,15 +25,7 @@ class BookingCardController extends GetxController {
     Get.toNamed(MyRoutes.bookingDetail, arguments: bookingId);
   }
 
-  void startTimer(Duration initialDuration) {
-    _timer?.cancel(); // Hentikan timer jika sudah ada yang berjalan
-
-    remainingTime.value = initialDuration;
-
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      decreaseTime();
-    });
-  }
+  void startTimer() {}
 
   void decreaseTime() {
     if (remainingTime.value != null && remainingTime.value!.inSeconds > 0) {
