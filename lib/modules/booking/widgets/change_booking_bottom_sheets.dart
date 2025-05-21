@@ -9,7 +9,7 @@ class ChangeBookingBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(BookingController());
+    final controller = Get.find<BookingController>();
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 30, 16, 16),
@@ -41,7 +41,7 @@ class ChangeBookingBottomSheet extends StatelessWidget {
             text: 'Save Date',
             onPressed: () {
               print(
-                  'Saved: ${controller.selectedRange.value}, Capacity: ${controller.selectedCapacity.value}');
+                  'Saved: ${controller.selectedDateRange.value}, Capacity: ${controller.selectedCapacity.value}');
               Get.back();
             },
           ),
@@ -52,7 +52,7 @@ class ChangeBookingBottomSheet extends StatelessWidget {
 
   Widget _dateRangePicker(BookingController controller) {
     return Obx(() {
-      final range = controller.selectedRange.value;
+      final range = controller.selectedDateRange.value;
 
       return Container(
         padding: const EdgeInsets.all(16),
@@ -85,7 +85,9 @@ class ChangeBookingBottomSheet extends StatelessWidget {
                   lastDate: DateTime.now().add(const Duration(days: 365)),
                   initialDateRange: range,
                 );
-                if (picked != null) controller.setDateRange(picked);
+                if (picked != null) {
+                  controller.setDateRange(picked);
+                }
               },
               icon: Icons.date_range,
               text: 'Change Date',
@@ -97,8 +99,6 @@ class ChangeBookingBottomSheet extends StatelessWidget {
   }
 
   Widget _capacityDropdown(BookingController controller) {
-    const capacities = ['10', '20', '50', '100', '200'];
-
     return Obx(() {
       return Container(
         padding: const EdgeInsets.all(16),
@@ -109,12 +109,10 @@ class ChangeBookingBottomSheet extends StatelessWidget {
             Text('Select Capacity', style: Get.textTheme.titleMedium),
             const SizedBox(height: 8),
             DropdownButton<String>(
-              value: controller.selectedCapacity.value.isEmpty
-                  ? null
-                  : controller.selectedCapacity.value,
+              value: controller.selectedCapacity.value,
               isExpanded: true,
               hint: const Text('Choose Capacity'),
-              items: capacities.map((String capacity) {
+              items: controller.capacityOptions.map((String capacity) {
                 return DropdownMenuItem<String>(
                   value: capacity,
                   child: Text('$capacity Attendees'),

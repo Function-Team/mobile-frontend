@@ -11,8 +11,8 @@ class BottomNavView extends StatelessWidget {
   final BottomNavController controller = Get.find();
 
   BottomNavView({super.key});
+
   final List<Widget> pages = [
-    // Add your pages here
     HomePage(),
     BookingsListPage(),
     FavoritesPage(),
@@ -23,10 +23,7 @@ class BottomNavView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: PageView(
-          controller: controller.pageController,
-          onPageChanged: (index) => controller.currentIndex.value = index,
-          children: pages),
+      body: Obx(() => pages[controller.currentIndex.value]),
       bottomNavigationBar: Obx(
         () => BottomNavigationBar(
           currentIndex: controller.currentIndex.value,

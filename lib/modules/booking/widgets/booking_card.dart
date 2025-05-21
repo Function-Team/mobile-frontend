@@ -1,15 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:get/get.dart';
 import '../controllers/booking_card_controller.dart';
 import 'package:function_mobile/common/routes/routes.dart';
-
-enum BookingStatus {
-  confirmed,
-  pending,
-  cancelled,
-  expired,
-  other,
-}
 
 extension BookingStatusExtension on BookingStatus {
   String get displayName {
@@ -55,37 +48,22 @@ extension BookingStatusExtension on BookingStatus {
 }
 
 class BookingCard extends StatelessWidget {
-  final String venueName;
-  final int bookingID;
-  final String bookingDate;
-  final String bookingTime;
-  final BookingStatus bookingStatus;
-  final int price;
-  final String priceType;
-  final Duration? timeRemaining;
+  final BookingModel bookingModel;
+  final VoidCallback onTap;
   final BookingCardController? _controller;
 
   BookingCard({
     super.key,
-    required this.venueName,
-    required this.bookingID,
-    required this.bookingDate,
-    required this.bookingTime,
-    required this.bookingStatus,
-    required this.price,
-    required this.priceType,
-    this.timeRemaining,
-  }) : _controller =
-            (timeRemaining != null && bookingStatus == BookingStatus.pending)
-                ? Get.put(BookingCardController(initialStatus: bookingStatus),
-                    tag: 'booking_$bookingID')
-                : null;
+    required this.bookingModel,
+    required this.onTap,
+  }) : _controller = null; // Inisialisasi controller di sini
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Get.toNamed(MyRoutes.bookingDetail, arguments: bookingID.toString());
+        Get.toNamed(MyRoutes.bookingDetail,
+            arguments: bookingModel.id.toString());
       },
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -115,7 +93,7 @@ class BookingCard extends StatelessWidget {
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         TextSpan(
-                          text: bookingID.toString(),
+                          text: bookingModel.id.toString(),
                         ),
                       ],
                     ),
@@ -135,7 +113,7 @@ class BookingCard extends StatelessWidget {
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     TextSpan(
-                      text: venueName,
+                      text: bookingModel.venue.name,
                     ),
                   ],
                 ),
@@ -150,7 +128,8 @@ class BookingCard extends StatelessWidget {
                           size: 18,
                           color: Theme.of(context).colorScheme.primary),
                       const SizedBox(width: 8),
-                      Text(bookingDate,
+                      Text(
+                          '${bookingModel.dateRange.start.day} - ${bookingModel.dateRange.end.day}',
                           style: Theme.of(context).textTheme.labelMedium),
                     ],
                   ),
@@ -160,7 +139,7 @@ class BookingCard extends StatelessWidget {
                           size: 18,
                           color: Theme.of(context).colorScheme.primary),
                       const SizedBox(width: 8),
-                      Text(bookingTime,
+                      Text(bookingModel.dateRange.start.toString(),
                           style: Theme.of(context).textTheme.labelMedium),
                     ],
                   ),
@@ -175,7 +154,7 @@ class BookingCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  'Price: $priceType $price',
+                  'Price: Rp. ${bookingModel.venue.price}',
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: Theme.of(context).colorScheme.primary,
@@ -252,7 +231,7 @@ class BookingCard extends StatelessWidget {
       });
     } else {
       return _buildStatusContainer(
-          bookingStatus.color, bookingStatus.displayName);
+          bookingModel.status.color, bookingModel.status.displayName);
     }
   }
 
