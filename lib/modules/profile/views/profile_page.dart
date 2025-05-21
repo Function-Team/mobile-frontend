@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
+import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 import 'package:function_mobile/modules/profile/models/profile_model.dart';
 import 'package:function_mobile/modules/profile/widgets/build_profile_card.dart';
 import 'package:function_mobile/modules/profile/widgets/build_profile_options.dart';
@@ -10,6 +11,8 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AuthController authController = Get.find<AuthController>();
+
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -42,14 +45,14 @@ class ProfilePage extends StatelessWidget {
                   ),
                   child: Column(
                     children: [
-                      buildProfileCard(
-                        profile: ProfileModel(),
+                      Obx(() => buildProfileCard(
+                        profile: ProfileModel.fromAuthUser(authController.user.value),
                         context: context,
                         onEdit: () {
                           Get.toNamed(MyRoutes.editProfile);
                         },
                         onTapViewProfile: () {},
-                      ),
+                      )),
                       SizedBox(height: 40),
                       buildProfileOptions(context),
                       SizedBox(height: 16),

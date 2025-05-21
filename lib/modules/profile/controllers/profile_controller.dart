@@ -1,37 +1,10 @@
 import 'package:get/get.dart';
-
-class User {
-  final String name;
-  final String email;
-  final String imageUrl;
-  final int posts;
-  final int followers;
-  final int following;
-
-  User({
-    required this.name,
-    required this.email,
-    required this.imageUrl,
-    required this.posts,
-    required this.followers,
-    required this.following,
-  });
-}
+import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 
 class ProfileController extends GetxController {
-  // Observable user data
-  final Rx<User> _user = User(
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    imageUrl: '',
-    posts: 28,
-    followers: 458,
-    following: 269,
-  ).obs;
-
-  // Getter for user data
-  User get user => _user.value;
-
+  // Get auth controller untuk akses user data
+  final AuthController _authController = Get.find<AuthController>();
+  
   // Loading state
   final RxBool isLoading = false.obs;
 
@@ -44,9 +17,10 @@ class ProfileController extends GetxController {
   Future<void> loadUserProfile() async {
     try {
       isLoading.value = true;
-      // TODO: Implement API call to fetch user profile
-      // For now, we're using dummy data initialized above
-      await Future.delayed(Duration(seconds: 1)); // Simulate network delay
+      
+      // Simulate loading delay jika diperlukan
+      await Future.delayed(Duration(milliseconds: 500));
+      
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -58,6 +32,11 @@ class ProfileController extends GetxController {
     }
   }
 
+  // Getter untuk akses mudah ke username dan email
+  String get username => _authController.user.value?.username ?? 'Guest';
+  String get email => _authController.user.value?.email ?? 'No Email';
+  String? get profilePicture => null; // TODO: Add profile picture support
+
   Future<void> updateProfile({
     String? name,
     String? email,
@@ -66,20 +45,7 @@ class ProfileController extends GetxController {
     try {
       isLoading.value = true;
       // TODO: Implement API call to update user profile
-      await Future.delayed(Duration(seconds: 1)); // Simulate network delay
-
-      _user.update((user) {
-        if (user != null) {
-          user = User(
-            name: name ?? user.name,
-            email: email ?? user.email,
-            imageUrl: imageUrl ?? user.imageUrl,
-            posts: user.posts,
-            followers: user.followers,
-            following: user.following,
-          );
-        }
-      });
+      await Future.delayed(Duration(seconds: 1));
 
       Get.snackbar(
         'Success',
@@ -98,27 +64,22 @@ class ProfileController extends GetxController {
   }
 
   void navigateToSettings() {
-    // TODO: Implement navigation to settings page
     Get.toNamed('/settings');
   }
 
   void navigateToEditProfile() {
-    // TODO: Implement navigation to edit profile page
     Get.toNamed('/edit-profile');
   }
 
   void navigateToNotifications() {
-    // TODO: Implement navigation to notifications page
     Get.toNamed('/notifications');
   }
 
   void navigateToPrivacy() {
-    // TODO: Implement navigation to privacy page
     Get.toNamed('/privacy');
   }
 
   void navigateToHelp() {
-    // TODO: Implement navigation to help page
     Get.toNamed('/help');
   }
 }
