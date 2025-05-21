@@ -4,6 +4,7 @@ import 'package:function_mobile/common/bindings/app_binding.dart'; // New AppBin
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/theme/app_theme.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:function_mobile/core/services/api_service.dart';
 import 'package:get/get.dart';
 
 Future main() async {
@@ -14,6 +15,7 @@ Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Run the app
   runApp(const MainApp());
+  Get.put(ApiService());
 }
 
 class MainApp extends StatelessWidget {
