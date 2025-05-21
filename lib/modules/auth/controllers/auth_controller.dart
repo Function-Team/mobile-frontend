@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:function_mobile/modules/auth/models/auth_model.dart';
 import 'package:function_mobile/modules/auth/services/auth_service.dart';
@@ -71,15 +73,27 @@ class AuthController extends GetxController {
     try {
       final isLoggedIn = await _authService.isLoggedIn();
       if (isLoggedIn) {
+        // Pertama coba dapatkan data user dari local storage
+        User? localUser = await _authService.getUserData();
+
+        if (localUser != null) {
+          user.value = localUser;
+          print("User loaded from storage: ${user.value?.username}");
+        }
+
+        // Kemudian coba refresh dari API
         try {
-          final userData =
-              await _authService.fetchProtectedData('/api/user/me');
+          final userData = await _authService.fetchProtectedData('/user/me');
           if (userData != null) {
             user.value = User.fromJson(userData);
+            await _authService.saveUserData(user.value!);
+            print("User refreshed from API: ${user.value?.username}");
           }
         } catch (e) {
-          print('Error getting user data: $e');
+          print('Error refreshing user data: $e');
+          // Tetap menggunakan data user lokal yang telah dimuat
         }
+
         Get.offAllNamed(MyRoutes.bottomNav);
       }
     } catch (e) {
@@ -108,16 +122,14 @@ class AuthController extends GetxController {
       );
 
       if (userData['access_token'] != null) {
-        if (userData['user'] != null) {
-          user.value = User.fromJson(userData['user']);
-        } else {
-          user.value = User(
-              id: 'temp_id',
-              username: emailLoginController.text.trim(),
-              email: '');
+        // Langsung fetch user info dari API
+        final userInfo = await _authService.fetchProtectedData('/user/me');
+        if (userInfo != null) {
+          user.value = User.fromJson(userInfo);
+          await _authService.saveUserData(user.value!);
+          Get.offAllNamed(MyRoutes.bottomNav);
         }
       }
-      Get.offAllNamed(MyRoutes.bottomNav);
     } catch (e) {
       String message = e.toString();
       if (message.contains('Exception:')) {
@@ -173,7 +185,7 @@ class AuthController extends GetxController {
           user.value = User.fromJson(userData['user']);
         } else {
           user.value = User(
-              id: 'temp_id',
+              id: -1,
               username: usernameSignUpController.text.trim(),
               email: emailSignUpController.text.trim());
         }
@@ -207,5 +219,12 @@ class AuthController extends GetxController {
     }
   }
 
-  String get username => user.value?.username ?? 'Guest';
+  String get username {
+    if (user.value?.username != null && user.value!.username.isNotEmpty) {
+      return user.value!.username;
+    } else if (user.value?.email != null) {
+      return user.value!.email.split('@')[0]; // Extract username from email
+    }
+    return 'Guest';
+  }
 }

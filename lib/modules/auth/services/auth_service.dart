@@ -1,5 +1,9 @@
+import 'dart:convert';
+
+import 'package:function_mobile/core/constants/app_constants.dart';
 import 'package:function_mobile/core/services/secure_storage_service.dart';
 import 'package:function_mobile/core/services/api_service.dart';
+import 'package:function_mobile/modules/auth/models/auth_model.dart';
 import 'package:get/get.dart';
 
 class AuthService extends GetxService {
@@ -109,19 +113,29 @@ class AuthService extends GetxService {
     };
   }
 
+ Future<void> saveUserData(User user) async {
+  await _secureStorage.saveUserData(user);
+}
+
+Future<User?> getUserData() async {
+  return await _secureStorage.getUserData();
+}
   Future<dynamic> fetchProtectedData(String endPoint) async {
-    try {
-      final response = await _apiService.getRequest(endPoint);
-      return response;
-    } on Exception catch (e) {
-      // Jika unauthorized, hapus token
-      if (e.toString().contains('401')) {
-        await removeToken();
-        throw Exception('Unauthorized, please login again');
-      }
-      throw Exception('Failed to fetch data: $e');
+  try {
+    if (endPoint.startsWith('/api/')) {
+      endPoint = endPoint.substring(4);
     }
+    // Interceptor sudah handle token, jadi tidak perlu manual
+    final response = await _apiService.getRequest(endPoint);
+    return response;
+  } catch (e) {
+    if (e.toString().contains('401')) {
+      await removeToken();
+      throw Exception('Unauthorized, please login again');
+    }
+    throw Exception('Failed to fetch data: $e');
   }
+}
 
   Future<bool> isLoggedIn() async {
     final token = await getToken();

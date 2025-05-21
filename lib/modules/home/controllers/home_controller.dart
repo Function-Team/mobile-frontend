@@ -1,3 +1,4 @@
+import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 import 'package:function_mobile/modules/navigation/controllers/bottom_nav_controller.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:get/get.dart';
@@ -73,4 +74,9 @@ class HomeController extends GetxController {
     // Start fresh fetch
     return fetchRecommendedVenues();
   }
+
+  String get username {
+  final authController = Get.find<AuthController>();
+  return authController.username;
+}
 }
