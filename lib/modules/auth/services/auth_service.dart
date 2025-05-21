@@ -1,9 +1,14 @@
 import 'package:function_mobile/core/services/secure_storage_service.dart';
 import 'package:function_mobile/core/services/api_service.dart';
+import 'package:get/get.dart';
 
-class AuthService {
-  final ApiService _apiService = ApiService();
+class AuthService extends GetxService {
+  late final ApiService _apiService;
   static final SecureStorageService _secureStorage = SecureStorageService();
+
+  AuthService() {
+    _apiService = Get.find<ApiService>();
+  }
 
   Future<void> saveToken(String token) async {
     await _secureStorage.saveToken(token);
@@ -17,21 +22,21 @@ class AuthService {
     await _secureStorage.deleteToken();
   }
 
-  Future<Map<String, dynamic>> login(String username, String password) async {
+  Future<Map<String, dynamic>> login(String email, String password) async {
     try {
-      print('Attempting login with username: $username');
+      print('Attempting login with email: $email');
 
-      final response = await _apiService.postRequest(
+      // Menggunakan postFormRequest untuk form data
+      final response = await _apiService.postFormRequest(
         '/login',
         {
-          'username': username,
+          'username': email, // Kirim email sebagai username
           'password': password,
         },
       );
 
       print('Login response body: $response');
 
-      // Pastikan response sudah berupa Map<String, dynamic>
       if (response != null && response['access_token'] != null) {
         await saveToken(response['access_token']);
         return Map<String, dynamic>.from(response);
@@ -63,7 +68,7 @@ class AuthService {
   Future<Map<String, dynamic>> signup(
       String username, String password, String email) async {
     try {
-      final response = await _apiService.postRequest(
+      final response = await _apiService.postFormRequest(
         '/signup',
         {
           'username': username,
@@ -72,7 +77,6 @@ class AuthService {
         },
       );
 
-      // Pastikan response sudah berupa Map<String, dynamic>
       if (response != null &&
           (response['access_token'] != null || response['user'] != null)) {
         if (response['access_token'] != null) {
@@ -97,7 +101,6 @@ class AuthService {
     }
   }
 
-  // Rest of the methods remain the same
   Future<Map<String, String>> getAuthHeaders() async {
     final token = await getToken();
     return {

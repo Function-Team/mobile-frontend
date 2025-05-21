@@ -12,7 +12,7 @@ class AuthController extends GetxController {
   final Rx<User?> user = Rx<User?>(null);
 
   // For login
-  final TextEditingController usernameLoginController = TextEditingController();
+  final TextEditingController emailLoginController = TextEditingController();
   final TextEditingController passwordLoginController = TextEditingController();
 
   // For register
@@ -36,7 +36,7 @@ class AuthController extends GetxController {
     emailSignUpController.dispose();
     passwordSignUpController.dispose();
     confirmSignUpPasswordController.dispose();
-    usernameLoginController.dispose();
+    emailLoginController.dispose();
     passwordLoginController.dispose();
     super.onClose();
   }
@@ -88,8 +88,8 @@ class AuthController extends GetxController {
   }
 
   Future<void> login() async {
-    if (usernameLoginController.text.isEmpty) {
-      errorMessage.value = 'Username cannot be empty';
+    if (emailLoginController.text.isEmpty) {
+      errorMessage.value = 'Email cannot be empty';
       return;
     }
 
@@ -103,7 +103,7 @@ class AuthController extends GetxController {
 
     try {
       final userData = await _authService.login(
-        usernameLoginController.text.trim(),
+        emailLoginController.text.trim(),
         passwordLoginController.text,
       );
 
@@ -113,7 +113,7 @@ class AuthController extends GetxController {
         } else {
           user.value = User(
               id: 'temp_id',
-              username: usernameLoginController.text.trim(),
+              username: emailLoginController.text.trim(),
               email: '');
         }
       }
