@@ -9,8 +9,8 @@ class ApiService extends GetxService {
   ApiService() {
     _dio = dio.Dio(dio.BaseOptions(
       baseUrl: AppConstants.baseUrl,
-      connectTimeout: const Duration(seconds: 15),
-      receiveTimeout: const Duration(seconds: 10),
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 15),
       headers: {
         "Content-Type": "application/json",
       },
@@ -22,7 +22,7 @@ class ApiService extends GetxService {
       requestHeader: true,
       requestBody: true,
       responseHeader: true,
-      responseBody: false,
+      responseBody: true,
       error: true,
     ));
 
