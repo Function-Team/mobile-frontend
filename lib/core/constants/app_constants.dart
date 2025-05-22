@@ -1,6 +1,9 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AppConstants {
+  static const String _computerIP = '192.168.18.4';
+  static const String _port = '8000';
+
   // API URLs with better fallbacks and debugging
   static String get baseUrlProd {
     final url = dotenv.env['API_URL'];
@@ -10,13 +13,14 @@ class AppConstants {
     }
     return url;
   }
-  
+
   static String get baseUrlLocal {
     final url = dotenv.env['API_URL_LOCAL'];
     if (url == null || url.isEmpty) {
       print("Warning: API_URL_LOCAL not found in .env file, using default");
       // Default for Android emulator
-      return 'http://10.0.2.2:8000/api';
+      // return 'http://10.0.2.2:8000/api';
+      return 'http://$_computerIP:$_port/api'; //ini untuk rizal
     }
     return url;
   }
@@ -25,18 +29,19 @@ class AppConstants {
   static String get baseUrl {
     // Change this based on your development needs
     const bool useLocal = true; // Set to false for production
-    
+
     final selectedUrl = useLocal ? baseUrlLocal : baseUrlProd;
     print("Using API base URL: $selectedUrl");
     print("Environment: ${useLocal ? 'LOCAL' : 'PRODUCTION'}");
-    
+
     return selectedUrl;
   }
 
   // Alternative URLs for different environments
   static String get baseUrlEmulator => 'http://10.0.2.2:8000/api';
   static String get baseUrlLocalhost => 'http://localhost:8000/api';
-  
+  static String get baseUrlRealDevice => 'http://$_computerIP:$_port/api';
+
   // Method to get URL based on device type
   static String getApiUrlForDevice() {
     // You can implement device detection logic here
@@ -57,10 +62,11 @@ class AppConstants {
     print("Local (from .env): $baseUrlLocal");
     print("Production (from .env): $baseUrlProd");
     print("Emulator default: $baseUrlEmulator");
-    print("Localhost: $baseUrlLocalhost");
+    print("Real Device: $baseUrlRealDevice");
+    print("Computer IP: $_computerIP:$_port");
     print("Currently using: $baseUrl");
   }
-  
+
   // Method to validate URL format
   static bool isValidUrl(String url) {
     try {
@@ -70,12 +76,13 @@ class AppConstants {
       return false;
     }
   }
-  
+
   // Get troubleshooting info
   static Map<String, dynamic> getTroubleshootingInfo() {
     return {
       'current_base_url': baseUrl,
       'is_valid_url': isValidUrl(baseUrl),
+      'computer_ip': '$_computerIP:$_port',
       'suggested_urls': {
         'android_emulator': baseUrlEmulator,
         'localhost': baseUrlLocalhost,
@@ -92,6 +99,7 @@ class AppConstants {
         '4. For physical device, use your computer\'s IP address',
         '5. Check your firewall settings',
         '6. Verify the port number (default: 8000)',
+        '7. Try disabling antivirus temporarily',
       ],
     };
   }

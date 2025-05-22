@@ -76,28 +76,72 @@ class BookingsListPage extends GetView<BookingListController> {
   }
 
   PreferredSizeWidget _buildTabBar() {
-    return TabBar(
-      controller: controller.tabController,
-      labelColor: Colors.white,
-      unselectedLabelColor: Colors.white70,
-      indicatorColor: Colors.white,
-      indicatorWeight: 3,
-      tabs: [
-        Obx(() => Tab(
-              text: 'All (${controller.bookings.length})',
-            )),
-        Obx(() => Tab(
-              text: 'Pending (${controller.pendingCount.value})',
-            )),
-        Obx(() => Tab(
-              text: 'Confirmed (${controller.confirmedCount.value})',
-            )),
-        Obx(() => Tab(
-              text: 'Expired (${controller.expiredCount.value})',
-            )),
-      ],
-    );
-  }
+  return PreferredSize(
+    preferredSize: const Size.fromHeight(48),
+    child: Container(
+      color: Theme.of(Get.context!).colorScheme.primary,
+      child: TabBar(
+        controller: controller.tabController,
+        labelColor: Colors.white,
+        unselectedLabelColor: Colors.white70,
+        indicatorColor: Colors.white,
+        indicatorWeight: 3,
+        labelStyle: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.normal,
+        ),
+        isScrollable: true, // Membuat tab bisa di-scroll jika terlalu panjang
+        tabAlignment: TabAlignment.start,
+        tabs: [
+          Obx(() => Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                child: Text(
+                  'All (${controller.bookings.length})',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              )),
+          Obx(() => Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                child: Text(
+                  'Pending (${controller.pendingCount.value})',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              )),
+          Obx(() => Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                child: Text(
+                  'Confirmed (${controller.confirmedCount.value})',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              )),
+          Obx(() => Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                child: Text(
+                  'Expired (${controller.expiredCount.value})',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              )),
+        ],
+      ),
+    ),
+  );
+}
 
   Widget _buildLoadingState() {
     return const Center(

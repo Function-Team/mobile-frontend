@@ -373,7 +373,7 @@ class BookingCard extends StatelessWidget {
             child: OutlineButton(
               text: 'View Details',
               onPressed: onTap,
-              height: 36,
+              height: 40,
             ),
           ),
         );
