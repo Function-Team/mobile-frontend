@@ -57,11 +57,10 @@ class SignupPage extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Email (Optional)",
-                        style: Theme.of(context).textTheme.bodyLarge),
+                    Text("Email", style: Theme.of(context).textTheme.bodyLarge),
                     SizedBox(height: 8),
                     AuthTextField(
-                      hintText: 'Enter your email (optional)',
+                      hintText: 'Enter your email',
                       isPassword: false,
                       controller: authController.emailSignUpController,
                     ),
