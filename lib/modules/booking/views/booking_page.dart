@@ -143,6 +143,14 @@ class BookingPage extends GetView<BookingController> {
                       fontWeight: FontWeight.bold,
                     ),
               ),
+              OutlineButton(
+                text: 'Change',
+                textSize: '12',
+                onPressed: () =>
+                    controller.displayChangeDateBottomSheet(context),
+                width: 80,
+                height: 32,
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -328,6 +336,13 @@ class BookingPage extends GetView<BookingController> {
                       fontWeight: FontWeight.bold,
                     ),
               ),
+              OutlineButton(
+                text: 'Details',
+                textSize: '12',
+                onPressed: () => controller.displayDetailBottomSheet(context),
+                width: 80,
+                height: 32,
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -335,7 +350,9 @@ class BookingPage extends GetView<BookingController> {
             final summary = controller.getBookingSummary(venue);
             return Column(
               children: [
-                _buildPriceRow('Venue Price (Base)', summary['base_price']),
+                _buildPriceRow(
+                    'Venue Price (${summary['number_of_days']} day${summary['number_of_days'] > 1 ? 's' : ''})',
+                    summary['base_price']),
                 _buildPriceRow('Service Fee', summary['service_fee']),
                 _buildPriceRow('Tax (10%)', summary['tax']),
                 const Divider(),
@@ -361,7 +378,7 @@ class BookingPage extends GetView<BookingController> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Base price: IDR ${NumberFormat("#,##0", "id_ID").format(venue.price ?? 0)} per booking session',
+                          'Base price: IDR ${NumberFormat("#,##0", "id_ID").format(summary['price_per_day'])} per day × ${summary['number_of_days']} day${summary['number_of_days'] > 1 ? 's' : ''}',
                           style: TextStyle(
                             fontSize: 12,
                             color: Theme.of(context).primaryColor,

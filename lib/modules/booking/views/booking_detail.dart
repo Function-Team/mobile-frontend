@@ -48,23 +48,12 @@ class BookingDetailPage extends GetView<BookingDetailController> {
         PopupMenuButton<String>(
           onSelected: (value) {
             switch (value) {
-              case 'refresh':
-                controller.refreshBookingDetail();
-                break;
               case 'download':
                 controller.downloadBookingReceipt();
                 break;
             }
           },
           itemBuilder: (context) => [
-            const PopupMenuItem(
-              value: 'refresh',
-              child: ListTile(
-                leading: Icon(Icons.refresh),
-                title: Text('Refresh'),
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
             const PopupMenuItem(
               value: 'download',
               child: ListTile(
@@ -397,12 +386,10 @@ class BookingDetailPage extends GetView<BookingDetailController> {
               value: booking.formattedTimeRange,
             ),
             const SizedBox(height: 12),
-            _buildDetailRow(
-              context,
-              icon: Icons.schedule,
-              label: 'Duration',
-              value: controller.bookingSummary['duration_text'] ?? 'N/A',
-            ),
+            _buildDetailRow(context,
+                icon: Icons.schedule,
+                label: 'Duration',
+                value: _formatDuration(booking.duration)),
             const SizedBox(height: 12),
             _buildDetailRow(
               context,
@@ -532,6 +519,17 @@ class BookingDetailPage extends GetView<BookingDetailController> {
         ),
       ],
     );
+  }
+
+  String _formatDuration(Duration duration) {
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes % 60;
+
+    if (hours > 0) {
+      return '${hours}h ${minutes}m';
+    } else {
+      return '${minutes}m';
+    }
   }
 
   Widget _buildPriceRow(String label, dynamic amount, {bool isTotal = false}) {

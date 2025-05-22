@@ -233,10 +233,19 @@ class BookingController extends GetxController {
     }
   }
 
-  // Get booking summary for display - using venue's existing price
+  // Get booking summary for display - using venue's existing price with day calculation
   Map<String, dynamic> getBookingSummary(VenueModel venue) {
-    // Use the venue's existing price directly
-    final basePrice = venue.price?.toDouble() ?? 0.0;
+    // Calculate number of days
+    int numberOfDays = 1; // Default to 1 day
+    if (selectedDateRange.value != null) {
+      numberOfDays = selectedDateRange.value!.duration.inDays + 1; // +1 because duration.inDays doesn't count the start day
+      if (numberOfDays <= 0) numberOfDays = 1; // Minimum 1 day
+    }
+    
+    // Base price per day
+    final pricePerDay = venue.price?.toDouble() ?? 0.0;
+    final basePrice = pricePerDay * numberOfDays;
+    
     final tax = basePrice * 0.1; // 10% tax
     final serviceFee = 25000.0; // Fixed service fee in IDR
     final finalTotal = basePrice + tax + serviceFee;
@@ -253,6 +262,8 @@ class BookingController extends GetxController {
 
     return {
       'base_price': basePrice,
+      'price_per_day': pricePerDay,
+      'number_of_days': numberOfDays,
       'tax': tax,
       'service_fee': serviceFee,
       'total': finalTotal,
@@ -260,7 +271,7 @@ class BookingController extends GetxController {
       'duration_hours': duration.inHours + (duration.inMinutes % 60) / 60.0,
       'capacity': selectedCapacity.value,
       'venue_name': venue.name ?? 'Unknown Venue',
-      'venue_price_per_session': basePrice, // Harga per sesi dari venue
+      'venue_price_per_day': pricePerDay,
       'booking_date': selectedDateRange.value?.start.toIso8601String().split('T')[0] ?? '',
       'start_time': startTime.value != null 
           ? BookingService.formatTimeForAPI(startTime.value!) 

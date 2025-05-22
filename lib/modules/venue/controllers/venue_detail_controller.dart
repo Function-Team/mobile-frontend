@@ -9,11 +9,12 @@ import 'package:url_launcher/url_launcher.dart';
 
 class VenueDetailController extends GetxController {
   final VenueRepository _venueRepository = VenueRepository();
-  final FavoritesController _favoritesController = Get.find<FavoritesController>();
-  
+  final FavoritesController _favoritesController =
+      Get.find<FavoritesController>();
+
   // Add this property
   final RxBool isFavorite = false.obs;
-  
+
   // Observable variables
   final Rx<VenueModel?> venue = Rx<VenueModel?>(null);
   final RxBool isLoading = true.obs;
@@ -62,7 +63,8 @@ class VenueDetailController extends GetxController {
   Future<void> toggleFavorite() async {
     if (venue.value?.id != null) {
       await _favoritesController.toggleFavorite(venue.value!.id!);
-      isFavorite.value = await _favoritesController.isFavorite(venue.value!.id!);
+      isFavorite.value =
+          await _favoritesController.isFavorite(venue.value!.id!);
     }
   }
 
@@ -243,20 +245,4 @@ class VenueDetailController extends GetxController {
         arguments: {'images': controller.venueImages, 'initialIndex': 0});
   }
 
-  // ! Still Error idk why
-  Future<void> launchUrlWithSnackbar(
-      String urlString, BuildContext context) async {
-    final Uri url = Uri.parse(urlString);
-
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Could not launch the URL."),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
 }

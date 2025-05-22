@@ -28,7 +28,7 @@ class HomeController extends GetxController {
   }
 
   void goToProfile() {
-    Get.find<BottomNavController>().changePage(3);
+    Get.find<BottomNavController>().changePage(4);
   }
 
   Future<void> fetchRecommendedVenues() async {
@@ -76,7 +76,7 @@ class HomeController extends GetxController {
   }
 
   String get username {
-  final authController = Get.find<AuthController>();
-  return authController.username;
-}
+    final authController = Get.find<AuthController>();
+    return authController.username;
+  }
 }

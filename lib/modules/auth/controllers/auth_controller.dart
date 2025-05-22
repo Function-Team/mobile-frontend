@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:function_mobile/modules/auth/models/auth_model.dart';
 import 'package:function_mobile/modules/auth/services/auth_service.dart';
@@ -12,23 +11,22 @@ class AuthController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxString errorMessage = ''.obs;
   final Rx<User?> user = Rx<User?>(null);
+  final RxBool isLoggedIn = false.obs; // Add this for better state tracking
 
   // For login
   final TextEditingController emailLoginController = TextEditingController();
   final TextEditingController passwordLoginController = TextEditingController();
 
   // For register
-  final TextEditingController usernameSignUpController =
-      TextEditingController();
+  final TextEditingController usernameSignUpController = TextEditingController();
   final TextEditingController emailSignUpController = TextEditingController();
-  final TextEditingController passwordSignUpController =
-      TextEditingController();
-  final TextEditingController confirmSignUpPasswordController =
-      TextEditingController();
+  final TextEditingController passwordSignUpController = TextEditingController();
+  final TextEditingController confirmSignUpPasswordController = TextEditingController();
 
   @override
   void onInit() {
     super.onInit();
+    // Check login status immediately when controller is initialized
     checkLoginStatus();
   }
 
@@ -54,9 +52,7 @@ class AuthController extends GetxController {
   }
 
   void goToForgotPassword() {
-    //TODO: Implement forgot password
     errorMessage.value = '';
-    // Get.toNamed(MyRoutes.forgotPassword);
   }
 
   void goToPrivacyPolicy() {
@@ -71,33 +67,58 @@ class AuthController extends GetxController {
 
   Future<void> checkLoginStatus() async {
     try {
-      final isLoggedIn = await _authService.isLoggedIn();
-      if (isLoggedIn) {
-        // Pertama coba dapatkan data user dari local storage
+      print("Checking login status...");
+      
+      // Check if we have a token
+      final hasToken = await _authService.isLoggedIn();
+      
+      if (hasToken) {
+        print("Token found, loading user data...");
+        
+        // Try to load user from local storage first
         User? localUser = await _authService.getUserData();
-
+        
         if (localUser != null) {
           user.value = localUser;
+          isLoggedIn.value = true;
           print("User loaded from storage: ${user.value?.username}");
         }
 
-        // Kemudian coba refresh dari API
+        // Try to refresh from API (but don't fail if this doesn't work)
         try {
           final userData = await _authService.fetchProtectedData('/user/me');
           if (userData != null) {
-            user.value = User.fromJson(userData);
-            await _authService.saveUserData(user.value!);
-            print("User refreshed from API: ${user.value?.username}");
+            final refreshedUser = User.fromJson(userData);
+            user.value = refreshedUser;
+            await _authService.saveUserData(refreshedUser);
+            isLoggedIn.value = true;
+            print("User data refreshed from API: ${user.value?.username}");
           }
         } catch (e) {
-          print('Error refreshing user data: $e');
-          // Tetap menggunakan data user lokal yang telah dimuat
+          print('Could not refresh user data from API: $e');
+          // If we have local user data, that's fine
+          if (localUser != null) {
+            print("Using cached user data");
+          } else {
+            // If no local data and API failed, consider not logged in
+            await logout();
+            return;
+          }
         }
 
-        Get.offAllNamed(MyRoutes.bottomNav);
+        // Navigate to main app if we have user data
+        if (user.value != null) {
+          Get.offAllNamed(MyRoutes.bottomNav);
+        }
+      } else {
+        print("No token found, user not logged in");
+        isLoggedIn.value = false;
+        user.value = null;
       }
     } catch (e) {
       print('Error checking login status: $e');
+      isLoggedIn.value = false;
+      user.value = null;
     }
   }
 
@@ -122,11 +143,14 @@ class AuthController extends GetxController {
       );
 
       if (userData['access_token'] != null) {
-        // Langsung fetch user info dari API
+        // Fetch user info from API
         final userInfo = await _authService.fetchProtectedData('/user/me');
         if (userInfo != null) {
           user.value = User.fromJson(userInfo);
           await _authService.saveUserData(user.value!);
+          isLoggedIn.value = true;
+          
+          print("Login successful: ${user.value?.username}");
           Get.offAllNamed(MyRoutes.bottomNav);
         }
       }
@@ -138,8 +162,7 @@ class AuthController extends GetxController {
 
       if (message.contains('FormatException') ||
           message.contains('Internal Server Error')) {
-        message =
-            'The server is currently unavailable. Please try again later.';
+        message = 'The server is currently unavailable. Please try again later.';
       }
 
       errorMessage.value = message;
@@ -164,7 +187,6 @@ class AuthController extends GetxController {
       return;
     }
 
-    // Additional validation
     if (passwordSignUpController.text.length < 6) {
       errorMessage.value = 'Password must be at least 6 characters';
       return;
@@ -181,16 +203,24 @@ class AuthController extends GetxController {
       );
 
       if (userData['access_token'] != null) {
-        if (userData['user'] != null) {
-          user.value = User.fromJson(userData['user']);
-        } else {
+        // Try to get user data, or create from signup info
+        try {
+          final userInfo = await _authService.fetchProtectedData('/user/me');
+          user.value = User.fromJson(userInfo);
+        } catch (e) {
+          // If API call fails, create user from signup data
           user.value = User(
-              id: -1,
-              username: usernameSignUpController.text.trim(),
-              email: emailSignUpController.text.trim());
+            id: -1,
+            username: usernameSignUpController.text.trim(),
+            email: emailSignUpController.text.trim(),
+          );
         }
+        
+        await _authService.saveUserData(user.value!);
+        isLoggedIn.value = true;
+        
+        Get.offAllNamed(MyRoutes.bottomNav);
       }
-      Get.offAllNamed(MyRoutes.bottomNav);
     } catch (e) {
       String message = e.toString();
       if (message.contains('Exception:')) {
@@ -199,8 +229,7 @@ class AuthController extends GetxController {
 
       if (message.contains('FormatException') ||
           message.contains('Internal Server Error')) {
-        message =
-            'The server is currently unavailable. Please try again later.';
+        message = 'The server is currently unavailable. Please try again later.';
       }
 
       errorMessage.value = message;
@@ -213,6 +242,8 @@ class AuthController extends GetxController {
     try {
       await _authService.logout();
       user.value = null;
+      isLoggedIn.value = false;
+      print("Logout completed");
       Get.offAllNamed(MyRoutes.login);
     } catch (e) {
       errorMessage.value = 'Error during logout: ${e.toString()}';
@@ -223,8 +254,24 @@ class AuthController extends GetxController {
     if (user.value?.username != null && user.value!.username.isNotEmpty) {
       return user.value!.username;
     } else if (user.value?.email != null) {
-      return user.value!.email.split('@')[0]; // Extract username from email
+      return user.value!.email.split('@')[0];
     }
     return 'Guest';
+  }
+
+  // Method to refresh user session
+  Future<void> refreshSession() async {
+    if (isLoggedIn.value) {
+      try {
+        final userData = await _authService.fetchProtectedData('/user/me');
+        if (userData != null) {
+          user.value = User.fromJson(userData);
+          await _authService.saveUserData(user.value!);
+        }
+      } catch (e) {
+        print('Could not refresh session: $e');
+        // Don't logout on refresh failure, just log the error
+      }
+    }
   }
 }

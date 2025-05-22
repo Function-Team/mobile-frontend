@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:function_mobile/core/services/api_service.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
+import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
+import 'package:function_mobile/modules/venue/data/repositories/venue_repository.dart';
 import 'package:get/get.dart';
 import 'dart:convert';
 
@@ -13,7 +15,8 @@ class BookingService extends GetxService {
   Future<BookingModel> createBooking(BookingCreateRequest request) async {
     try {
       print('Creating booking with data: ${request.toJson()}');
-      final response = await _apiService.postRequest('/booking', request.toJson());
+      final response =
+          await _apiService.postRequest('/booking', request.toJson());
       print('Booking created successfully: $response');
       return BookingModel.fromJson(response);
     } catch (e) {
@@ -26,9 +29,43 @@ class BookingService extends GetxService {
     try {
       final response = await _apiService.getRequest('/booking');
       print('Fetched bookings: $response');
-      
+
       if (response is List) {
-        return response.map((json) => BookingModel.fromJson(json)).toList();
+        final bookings = <BookingModel>[];
+
+        for (final bookingData in response) {
+          try {
+            // Fetch venue data for each booking
+            VenueModel? venue;
+            if (bookingData['place_id'] != null) {
+              final venueRepository = VenueRepository();
+              venue =
+                  await venueRepository.getVenueById(bookingData['place_id']);
+            }
+
+            // Create booking model with venue data
+            final booking = BookingModel(
+              id: bookingData['id'],
+              placeId: bookingData['place_id'],
+              userId: bookingData['user_id'],
+              startTime: bookingData['start_time'],
+              endTime: bookingData['end_time'],
+              date: DateTime.parse(bookingData['date']),
+              isConfirmed: bookingData['is_confirmed'] ?? false,
+              createdAt: bookingData['created_at'] != null
+                  ? DateTime.parse(bookingData['created_at'])
+                  : null,
+              place: venue, // Include venue data
+            );
+
+            bookings.add(booking);
+          } catch (e) {
+            print('Error processing booking ${bookingData['id']}: $e');
+            // Skip this booking but continue with others
+          }
+        }
+
+        return bookings;
       }
       return [];
     } catch (e) {
@@ -69,7 +106,8 @@ class BookingService extends GetxService {
 
   Future<List<BookingModel>> getBookingsByMonth(int month, int year) async {
     try {
-      final response = await _apiService.getRequest('/booking?month=$month&year=$year');
+      final response =
+          await _apiService.getRequest('/booking?month=$month&year=$year');
       if (response is List) {
         return response.map((json) => BookingModel.fromJson(json)).toList();
       }
@@ -90,7 +128,7 @@ class BookingService extends GetxService {
     try {
       final bookingsJson = await _storage.read(key: 'local_bookings');
       if (bookingsJson == null) return [];
-      
+
       final List<dynamic> jsonList = jsonDecode(bookingsJson);
       return jsonList.map((json) => BookingModel.fromJson(json)).toList();
     } catch (e) {
@@ -125,10 +163,10 @@ class BookingService extends GetxService {
     try {
       // Try to get from API first
       final apiBookings = await getUserBookings();
-      
+
       // Save to local storage
       await saveLocalBookings(apiBookings);
-      
+
       return apiBookings;
     } catch (e) {
       print('Sync failed, using local bookings: $e');
@@ -145,23 +183,26 @@ class BookingService extends GetxService {
   }) async {
     try {
       final bookings = await getUserBookings();
-      
+
       // Filter bookings for the same place and date
-      final conflictingBookings = bookings.where((booking) => 
-        booking.placeId == placeId && 
-        booking.date.year == date.year &&
-        booking.date.month == date.month &&
-        booking.date.day == date.day &&
-        (booking.status == BookingStatus.confirmed || booking.status == BookingStatus.pending)
-      ).toList();
+      final conflictingBookings = bookings
+          .where((booking) =>
+              booking.placeId == placeId &&
+              booking.date.year == date.year &&
+              booking.date.month == date.month &&
+              booking.date.day == date.day &&
+              (booking.status == BookingStatus.confirmed ||
+                  booking.status == BookingStatus.pending))
+          .toList();
 
       // Check for time overlaps
       for (final booking in conflictingBookings) {
-        if (_timesOverlap(startTime, endTime, booking.startTime, booking.endTime)) {
+        if (_timesOverlap(
+            startTime, endTime, booking.startTime, booking.endTime)) {
           return true;
         }
       }
-      
+
       return false;
     } catch (e) {
       print('Error checking time conflict: $e');
