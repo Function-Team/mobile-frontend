@@ -100,7 +100,7 @@ class MyRoutes {
         binding: BookingBinding()),
     GetPage(name: bookingList, page: () => BookingsListPage(),
     ),
-    GetPage(name: bookingDetail, page: () => BookingDetail(), binding: BookingBinding()),
+    GetPage(name: bookingDetail, page: () => BookingDetailPage(), binding: BookingBinding()),
 
     // SearchFilter
     GetPage(name: searchActivity, page: () => SearchActivityPage()),
