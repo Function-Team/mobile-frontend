@@ -79,7 +79,7 @@ class SettingsPage extends StatelessWidget {
               _buildSettingsItem(
                 title: 'Terms & Conditions',
                 onTap: () {
-                  // Navigate to Terms & Conditions Page
+                  Get.toNamed(MyRoutes.termsOfService);
                 },
                 trailing: Icon(Icons.keyboard_arrow_right),
               ),
