@@ -203,17 +203,17 @@ class VenueDetailController extends GetxController {
     }
   }
 
-  void contactHost() {
-    if (venue.value?.host?.id != null) {
-      Get.toNamed('/chat', arguments: {'hostId': venue.value!.host!.id});
-    } else {
-      Get.snackbar(
-        'Error',
-        'Cannot contact host at the moment',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-    }
-  }
+  // void contactHost() {
+  //   if (venue.value?.host?.id != null) {
+  //     Get.toNamed('/chat', arguments: {'hostId': venue.value!.host!.id});
+  //   } else {
+  //     Get.snackbar(
+  //       'Error',
+  //       'Cannot contact host at the moment',
+  //       snackPosition: SnackPosition.BOTTOM,
+  //     );
+  //   }
+  // }
 
   // Retry loading data
   void retryLoading() {
