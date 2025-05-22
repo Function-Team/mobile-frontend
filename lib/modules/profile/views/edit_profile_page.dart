@@ -11,7 +11,7 @@ class EditProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AuthController authController = Get.find<AuthController>();
-    
+
     // Controllers untuk form
     final TextEditingController usernameController = TextEditingController();
     final TextEditingController emailController = TextEditingController();
@@ -33,23 +33,20 @@ class EditProfilePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Obx(() => _buildProfilePicture(
-              context, 
-              profilePicture: authController.user.value?.toString() // TODO: Add profile picture URL
-            )),
+            Obx(() => _buildProfilePicture(context,
+                profilePicture: authController.user.value
+                    ?.toString() // TODO: Add profile picture URL
+                )),
             const SizedBox(height: 24),
-            _buildProfileForm(usernameController, emailController, phoneController),
+            _buildProfileForm(
+                usernameController, emailController, phoneController),
             const SizedBox(height: 30),
             SecondaryButton(
               text: 'Save Changes',
               width: double.infinity,
               onPressed: () {
                 // TODO: Implement save functionality
-                Get.snackbar(
-                  'Success', 
-                  'Profile updated successfully',
-                  snackPosition: SnackPosition.BOTTOM,
-                );
+                
               },
             ),
           ],
@@ -119,10 +116,9 @@ class EditProfilePage extends StatelessWidget {
   }
 
   Widget _buildProfileForm(
-    TextEditingController usernameController,
-    TextEditingController emailController, 
-    TextEditingController phoneController
-  ) {
+      TextEditingController usernameController,
+      TextEditingController emailController,
+      TextEditingController phoneController) {
     return Column(
       children: [
         PrimaryTextField(

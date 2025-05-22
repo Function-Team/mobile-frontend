@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:function_mobile/modules/home/controllers/home_controller.dart';
 import 'package:function_mobile/modules/home/widgets/venue_recommend_card.dart';
 import 'package:get/get.dart';
@@ -97,8 +98,10 @@ Widget buildRecommendation(BuildContext context, HomeController controller) {
                     if (venue.id != null) {
                       controller.goToVenueDetails(venue);
                     } else {
-                      Get.snackbar('Error', 'Cannot open venue details',
-                          snackPosition: SnackPosition.BOTTOM);
+                      CustomSnackbar.show(
+                          context: Get.context!,
+                          message: 'Cannot open venue details',
+                          type: SnackbarType.error);
                     }
                   },
                 ),

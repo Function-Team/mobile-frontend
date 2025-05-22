@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
+import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 // import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
@@ -197,11 +198,10 @@ class VenueDetailController extends GetxController {
       Get.toNamed(MyRoutes.bookingList,
           arguments: {'venueId': venue.value!.id});
     } else {
-      Get.snackbar(
-        'Error',
-        'Cannot book this venue at the moment',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      CustomSnackbar.show(
+          context: Get.context!,
+          message: 'Cannot book this venue at the moment',
+          type: SnackbarType.error);
     }
   }
 

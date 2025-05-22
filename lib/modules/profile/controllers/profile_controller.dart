@@ -1,3 +1,4 @@
+import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 
@@ -22,11 +23,10 @@ class ProfileController extends GetxController {
       await Future.delayed(Duration(milliseconds: 500));
       
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to load profile data',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      CustomSnackbar.show(
+          context: Get.context!,
+          message: 'Failed to load user profile',
+          type: SnackbarType.error);
     } finally {
       isLoading.value = false;
     }
@@ -47,17 +47,15 @@ class ProfileController extends GetxController {
       // TODO: Implement API call to update user profile
       await Future.delayed(Duration(seconds: 1));
 
-      Get.snackbar(
-        'Success',
-        'Profile updated successfully',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      CustomSnackbar.show(
+          context: Get.context!,
+          message: 'Success to update profile',
+          type: SnackbarType.success);
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to update profile',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      CustomSnackbar.show(
+          context: Get.context!,
+          message: 'Failed to update profile',
+          type: SnackbarType.error);
     } finally {
       isLoading.value = false;
     }
