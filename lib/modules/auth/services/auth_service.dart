@@ -1,9 +1,8 @@
-import 'dart:convert';
-import 'package:function_mobile/core/constants/app_constants.dart';
 import 'package:function_mobile/core/services/secure_storage_service.dart';
 import 'package:function_mobile/core/services/api_service.dart';
 import 'package:function_mobile/modules/auth/models/auth_model.dart';
 import 'package:get/get.dart';
+import 'package:dio/dio.dart' as dio;
 
 class AuthService extends GetxService {
   late final ApiService _apiService;
@@ -14,93 +13,102 @@ class AuthService extends GetxService {
   }
 
   Future<void> saveToken(String token) async {
-    try {
-      await _secureStorage.saveToken(token);
-      print("Token saved successfully");
-      print("Token preview: ${token.substring(0, 10)}...");
-    } catch (e) {
-      print("Error saving token: $e");
-      throw Exception("Failed to save authentication token");
-    }
+    await _secureStorage.saveToken(token);
   }
 
   Future<String?> getToken() async {
-    try {
-      final token = await _secureStorage.getToken();
-      if (token != null) {
-        print("Token retrieved from storage: ${token.substring(0, 10)}...");
-      } else {
-        print("No token found in storage");
-      }
-      return token;
-    } catch (e) {
-      print("Error getting token: $e");
-      return null;
-    }
+    return await _secureStorage.getToken();
   }
 
   Future<void> removeToken() async {
-    try {
-      await _secureStorage.deleteToken();
-      print("Token removed from storage");
-    } catch (e) {
-      print("Error removing token: $e");
-    }
+    await _secureStorage.deleteToken();
   }
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
-      print("Attempting login with email: $email");
+      print('Attempting login with email: $email');
 
+      // Menggunakan postFormRequest untuk form data
       final response = await _apiService.postFormRequest(
         '/login',
         {
-          'username': email, // FastAPI OAuth2 expects 'username' field
+          'username': email, // Kirim email sebagai username
           'password': password,
         },
       );
 
-      print("Login response received: ${response != null ? 'success' : 'null'}");
+      print('Login response body: $response');
 
       if (response != null && response['access_token'] != null) {
-        final token = response['access_token'];
-        print("Access token received: ${token.substring(0, 10)}...");
-        
-        // Save token to secure storage
-        await saveToken(token);
-        
-        // Verify token was saved
-        final savedToken = await getToken();
-        if (savedToken == null) {
-          throw Exception("Failed to save authentication token");
-        }
-        
+        await saveToken(response['access_token']);
         return Map<String, dynamic>.from(response);
       } else {
-        String errorMessage = 'Login failed. Invalid response from server.';
-        if (response != null && response['detail'] != null) {
-          if (response['detail'] is List) {
-            final details = response['detail'] as List;
-            if (details.isNotEmpty) {
-              errorMessage = details.map((e) => e['msg']).join(", ");
-            }
+        throw Exception(
+            'Invalid credentials. Please check your email and password.');
+      }
+    } on dio.DioException catch (e) {
+      print(
+          'DioException during login: ${e.response?.statusCode} - ${e.response?.data}');
+
+      // Handle specific HTTP status codes
+      if (e.response?.statusCode == 401) {
+        throw Exception('Invalid email or password. Please try again.');
+      } else if (e.response?.statusCode == 422) {
+        // Handle validation errors
+        final errorData = e.response?.data;
+        if (errorData != null && errorData['detail'] != null) {
+          if (errorData['detail'] is List) {
+            final details = errorData['detail'] as List;
+            final errorMessages = details.map((error) {
+              if (error is Map && error['msg'] != null) {
+                return error['msg'].toString();
+              }
+              return error.toString();
+            }).join(', ');
+            throw Exception(errorMessages);
           } else {
-            errorMessage = response['detail'];
+            throw Exception(errorData['detail'].toString());
           }
         }
-        throw Exception(errorMessage);
+        throw Exception('Please check your input and try again.');
+      } else if (e.response?.statusCode == 400) {
+        final errorData = e.response?.data;
+        if (errorData != null && errorData['detail'] != null) {
+          throw Exception(errorData['detail'].toString());
+        }
+        throw Exception('Bad request. Please check your credentials.');
+      } else if (e.response?.statusCode == 500) {
+        throw Exception('Server error. Please try again later.');
+      } else if (e.type == dio.DioExceptionType.connectionTimeout ||
+          e.type == dio.DioExceptionType.receiveTimeout) {
+        throw Exception(
+            'Connection timeout. Please check your internet connection.');
+      } else if (e.type == dio.DioExceptionType.connectionError) {
+        throw Exception(
+            'Unable to connect to server. Please check your internet connection.');
+      } else {
+        throw Exception('Login failed. Please try again.');
       }
     } catch (e) {
-      print("Error during login: $e");
+      print('General error during login: $e');
+
+      // If it's already our custom exception, re-throw it
+      if (e.toString().startsWith('Exception:')) {
+        rethrow;
+      }
+
+      // Handle other types of errors
       if (e.toString().contains('FormatException')) {
-        throw Exception('Server returned an invalid response. Please try again later.');
+        throw Exception(
+            'Server returned invalid data. Please try again later.');
       } else {
-        throw Exception('Error during login: $e');
+        throw Exception('An unexpected error occurred. Please try again.');
       }
     }
   }
 
-  Future<Map<String, dynamic>> signup(String username, String password, String email) async {
+  Future<Map<String, dynamic>> signup(
+      String username, String password, String email) async {
     try {
       final response = await _apiService.postRequest(
         '/signup',
@@ -111,23 +119,81 @@ class AuthService extends GetxService {
         },
       );
 
-      if (response != null && response['access_token'] != null) {
-        final token = response['access_token'];
-        await saveToken(token);
+      if (response != null &&
+          (response['access_token'] != null || response['user'] != null)) {
+        if (response['access_token'] != null) {
+          await saveToken(response['access_token']);
+        }
         return Map<String, dynamic>.from(response);
       } else {
-        String errorMessage = 'Signup failed. Invalid response from server.';
-        if (response != null && response['detail'] != null) {
-          errorMessage = response['detail'];
+        throw Exception('Account creation failed. Please try again.');
+      }
+    } on dio.DioException catch (e) {
+      print(
+          'DioException during signup: ${e.response?.statusCode} - ${e.response?.data}');
+
+      // Handle specific HTTP status codes
+      if (e.response?.statusCode == 400) {
+        final errorData = e.response?.data;
+        if (errorData != null && errorData['detail'] != null) {
+          final detail = errorData['detail'].toString();
+          if (detail.toLowerCase().contains('username already registered')) {
+            throw Exception(
+                'This username is already taken. Please choose another.');
+          } else if (detail
+              .toLowerCase()
+              .contains('email already registered')) {
+            throw Exception(
+                'This email is already registered. Please use a different email.');
+          } else {
+            throw Exception(detail);
+          }
         }
-        throw Exception(errorMessage);
+        throw Exception('Invalid registration data. Please check your inputs.');
+      } else if (e.response?.statusCode == 422) {
+        // Handle validation errors
+        final errorData = e.response?.data;
+        if (errorData != null && errorData['detail'] != null) {
+          if (errorData['detail'] is List) {
+            final details = errorData['detail'] as List;
+            final errorMessages = details.map((error) {
+              if (error is Map && error['msg'] != null) {
+                return error['msg'].toString();
+              }
+              return error.toString();
+            }).join(', ');
+            throw Exception(errorMessages);
+          } else {
+            throw Exception(errorData['detail'].toString());
+          }
+        }
+        throw Exception('Please check your input and try again.');
+      } else if (e.response?.statusCode == 500) {
+        throw Exception('Server error. Please try again later.');
+      } else if (e.type == dio.DioExceptionType.connectionTimeout ||
+          e.type == dio.DioExceptionType.receiveTimeout) {
+        throw Exception(
+            'Connection timeout. Please check your internet connection.');
+      } else if (e.type == dio.DioExceptionType.connectionError) {
+        throw Exception(
+            'Unable to connect to server. Please check your internet connection.');
+      } else {
+        throw Exception('Registration failed. Please try again.');
       }
     } catch (e) {
-      print("Error during signup: $e");
+      print('General error during signup: $e');
+
+      // If it's already our custom exception, re-throw it
+      if (e.toString().startsWith('Exception:')) {
+        rethrow;
+      }
+
+      // Handle other types of errors
       if (e.toString().contains('FormatException')) {
-        throw Exception('Server returned an invalid response. Please try again later.');
+        throw Exception(
+            'Server returned invalid data. Please try again later.');
       } else {
-        throw Exception('Error during signup: $e');
+        throw Exception('An unexpected error occurred. Please try again.');
       }
     }
   }
@@ -136,112 +202,54 @@ class AuthService extends GetxService {
     final token = await getToken();
     return {
       'Content-Type': 'application/json',
-      'Authorization': token != null ? 'Bearer $token' : '',
+      'Authorization': 'Bearer $token',
     };
   }
 
   Future<void> saveUserData(User user) async {
-    try {
-      await _secureStorage.saveUserData(user);
-      print("User data saved successfully");
-    } catch (e) {
-      print("Error saving user data: $e");
-    }
+    await _secureStorage.saveUserData(user);
   }
 
   Future<User?> getUserData() async {
-    try {
-      return await _secureStorage.getUserData();
-    } catch (e) {
-      print("Error getting user data: $e");
-      return null;
-    }
+    return await _secureStorage.getUserData();
   }
 
   Future<dynamic> fetchProtectedData(String endPoint) async {
     try {
-      // Remove /api/ prefix if present since it's already in baseUrl
       if (endPoint.startsWith('/api/')) {
         endPoint = endPoint.substring(4);
       }
-      
-      print("Fetching protected data from: $endPoint");
-      
-      // Check if we have a token before making request
-      final token = await getToken();
-      if (token == null) {
-        throw Exception('No authentication token found. Please login again.');
-      }
-      
+      // Interceptor sudah handle token, jadi tidak perlu manual
       final response = await _apiService.getRequest(endPoint);
-      print("Protected data fetched successfully");
       return response;
-    } catch (e) {
-      print("Error fetching protected data: $e");
-      if (e.toString().contains('401') || e.toString().contains('Authentication required')) {
+    } on dio.DioException catch (e) {
+      if (e.response?.statusCode == 401) {
         await removeToken();
-        throw Exception('Authentication expired. Please login again.');
+        throw Exception('Your session has expired. Please login again.');
+      } else if (e.response?.statusCode == 403) {
+        throw Exception(
+            'Access denied. You don\'t have permission to access this resource.');
+      } else if (e.response?.statusCode == 404) {
+        throw Exception('Resource not found.');
+      } else if (e.response?.statusCode == 500) {
+        throw Exception('Server error. Please try again later.');
+      } else {
+        throw Exception('Failed to fetch data. Please try again.');
       }
-      throw Exception('Failed to fetch data: $e');
+    } catch (e) {
+      if (e.toString().startsWith('Exception:')) {
+        rethrow;
+      }
+      throw Exception('An unexpected error occurred while fetching data.');
     }
   }
 
   Future<bool> isLoggedIn() async {
-    try {
-      final token = await getToken();
-      final hasToken = token != null && token.isNotEmpty;
-      print("Is logged in check: $hasToken");
-      return hasToken;
-    } catch (e) {
-      print("Error checking login status: $e");
-      return false;
-    }
+    final token = await getToken();
+    return token != null && token.isNotEmpty;
   }
 
   Future<void> logout() async {
-    try {
-      await removeToken();
-      await _secureStorage.deleteToken(); // Make sure token is deleted
-      print("Logout completed");
-    } catch (e) {
-      print("Error during logout: $e");
-    }
-  }
-
-  // Debug method to check authentication state
-  Future<Map<String, dynamic>> debugAuthState() async {
-    try {
-      final token = await getToken();
-      final userData = await getUserData();
-      final isLoggedIn = await this.isLoggedIn();
-      
-      return {
-        'has_token': token != null,
-        'token_length': token?.length ?? 0,
-        'token_preview': token != null ? '${token.substring(0, 10)}...' : 'none',
-        'has_user_data': userData != null,
-        'user_id': userData?.id,
-        'username': userData?.username,
-        'is_logged_in': isLoggedIn,
-        'storage_key': AppConstants.tokenKey,
-      };
-    } catch (e) {
-      return {
-        'error': e.toString(),
-        'has_token': false,
-        'is_logged_in': false,
-      };
-    }
-  }
-
-  // Method to validate token with server
-  Future<bool> validateToken() async {
-    try {
-      final response = await fetchProtectedData('/user/me');
-      return response != null;
-    } catch (e) {
-      print("Token validation failed: $e");
-      return false;
-    }
+    await removeToken();
   }
 }

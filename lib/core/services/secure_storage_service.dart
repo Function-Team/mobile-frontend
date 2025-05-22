@@ -19,44 +19,139 @@ class SecureStorageService {
     await _storage.delete(key: AppConstants.tokenKey);
   }
 
-  Future<void> saveFavorites(List<int> favoriteIds) async {
-    await _storage.write(key: 'favorites', value: jsonEncode(favoriteIds));
+  // User-specific favorites methods
+  String _getFavoritesKeyForUser(int userId) {
+    return 'favorites_user_$userId';
   }
 
-  Future<List<int>> getFavorites() async {
-    final favoritesJson = await _storage.read(key: 'favorites');
+  Future<void> saveFavorites(List<int> favoriteIds, int userId) async {
+    final key = _getFavoritesKeyForUser(userId);
+    await _storage.write(key: key, value: jsonEncode(favoriteIds));
+  }
+
+  Future<List<int>> getFavorites(int userId) async {
+    final key = _getFavoritesKeyForUser(userId);
+    final favoritesJson = await _storage.read(key: key);
     if (favoritesJson == null) return [];
-    return List<int>.from(jsonDecode(favoritesJson));
-  }
 
-  Future<void> addFavorite(int venueId) async {
-    final favorites = await getFavorites();
-    if (!favorites.contains(venueId)) {
-      favorites.add(venueId);
-      await saveFavorites(favorites);
+    try {
+      return List<int>.from(jsonDecode(favoritesJson));
+    } catch (e) {
+      print('Error parsing favorites for user $userId: $e');
+      return [];
     }
   }
 
-  Future<void> removeFavorite(int venueId) async {
-    final favorites = await getFavorites();
-    favorites.remove(venueId);
-    await saveFavorites(favorites);
+  Future<void> addFavorite(int venueId, int userId) async {
+    final favorites = await getFavorites(userId);
+    if (!favorites.contains(venueId)) {
+      favorites.add(venueId);
+      await saveFavorites(favorites, userId);
+    }
   }
-  // Tambahkan method ini ke SecureStorageService
-Future<void> saveUserData(User user) async {
-  final jsonData = jsonEncode(user.toJson());
-  await _storage.write(key: AppConstants.userKey, value: jsonData);
-}
 
-Future<User?> getUserData() async {
-  final jsonData = await _storage.read(key: AppConstants.userKey);
-  if (jsonData == null) return null;
-  
-  try {
-    return User.fromJson(jsonDecode(jsonData));
-  } catch (e) {
-    print('Error parsing user data: $e');
-    return null;
+  Future<void> removeFavorite(int venueId, int userId) async {
+    final favorites = await getFavorites(userId);
+    favorites.remove(venueId);
+    await saveFavorites(favorites, userId);
   }
-}
+
+  // Clear favorites for a specific user (useful when user logs out)
+  Future<void> clearFavoritesForUser(int userId) async {
+    final key = _getFavoritesKeyForUser(userId);
+    await _storage.delete(key: key);
+  }
+
+  // Clear all user-specific data (useful for complete logout)
+  Future<void> clearAllUserData() async {
+    // Get all keys
+    final allKeys = await _storage.readAll();
+
+    // Delete all user-specific keys (favorites_user_*)
+    for (String key in allKeys.keys) {
+      if (key.startsWith('favorites_user_')) {
+        await _storage.delete(key: key);
+      }
+    }
+
+    // Also clear user data and token
+    await _storage.delete(key: AppConstants.userKey);
+    await _storage.delete(key: AppConstants.tokenKey);
+  }
+
+  // Migrate old favorites to user-specific storage (run once when user logs in)
+  Future<void> migrateFavoritesToUser(int userId) async {
+    try {
+      // Check if old favorites exist
+      final oldFavoritesJson = await _storage.read(key: 'favorites');
+      if (oldFavoritesJson != null) {
+        final oldFavorites = List<int>.from(jsonDecode(oldFavoritesJson));
+
+        // Save to user-specific storage
+        await saveFavorites(oldFavorites, userId);
+
+        // Delete old storage
+        await _storage.delete(key: 'favorites');
+
+        print('Migrated ${oldFavorites.length} favorites for user $userId');
+      }
+    } catch (e) {
+      print('Error migrating favorites: $e');
+    }
+  }
+
+  // User data methods
+  Future<void> saveUserData(User user) async {
+    final jsonData = jsonEncode(user.toJson());
+    await _storage.write(key: AppConstants.userKey, value: jsonData);
+
+    // Migrate old favorites when user data is saved
+    await migrateFavoritesToUser(user.id);
+  }
+
+  Future<User?> getUserData() async {
+    final jsonData = await _storage.read(key: AppConstants.userKey);
+    if (jsonData == null) return null;
+
+    try {
+      return User.fromJson(jsonDecode(jsonData));
+    } catch (e) {
+      print('Error parsing user data: $e');
+      return null;
+    }
+  }
+
+  // Get current user ID (helper method)
+  Future<int?> getCurrentUserId() async {
+    final user = await getUserData();
+    return user?.id;
+  }
+
+  // Method to check if favorites exist for current user
+  Future<bool> hasFavoritesForCurrentUser() async {
+    final userId = await getCurrentUserId();
+    if (userId == null) return false;
+
+    final favorites = await getFavorites(userId);
+    return favorites.isNotEmpty;
+  }
+
+  // Debug method to list all stored data
+  Future<void> debugPrintAllData() async {
+    final allData = await _storage.readAll();
+    print('=== Secure Storage Debug ===');
+    for (var entry in allData.entries) {
+      if (entry.key.startsWith('favorites_user_')) {
+        try {
+          final favorites = List<int>.from(jsonDecode(entry.value));
+          print('${entry.key}: ${favorites.length} favorites');
+        } catch (e) {
+          print('${entry.key}: Invalid data');
+        }
+      } else {
+        print('${entry.key}: ${entry.value.length} characters');
+      }
+    }
+    print('===========================');
+  }
 }
