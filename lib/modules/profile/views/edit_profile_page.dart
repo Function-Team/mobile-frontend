@@ -2,12 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/buttons/secondary_button.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
 import 'package:function_mobile/common/widgets/inputs/primary_text_field.dart';
+import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
+import 'package:get/get.dart';
 
 class EditProfilePage extends StatelessWidget {
   const EditProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final AuthController authController = Get.find<AuthController>();
+    
+    // Controllers untuk form
+    final TextEditingController usernameController = TextEditingController();
+    final TextEditingController emailController = TextEditingController();
+    final TextEditingController phoneController = TextEditingController();
+
+    // Populate controllers dengan data existing
+    if (authController.user.value != null) {
+      usernameController.text = authController.user.value!.username;
+      emailController.text = authController.user.value!.email;
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Profile'),
@@ -18,14 +33,24 @@ class EditProfilePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            _buildProfilePicture(context),
+            Obx(() => _buildProfilePicture(
+              context, 
+              profilePicture: authController.user.value?.toString() // TODO: Add profile picture URL
+            )),
             const SizedBox(height: 24),
-            _buildProfileForm(),
+            _buildProfileForm(usernameController, emailController, phoneController),
             const SizedBox(height: 30),
             SecondaryButton(
               text: 'Save Changes',
               width: double.infinity,
-              onPressed: () {},
+              onPressed: () {
+                // TODO: Implement save functionality
+                Get.snackbar(
+                  'Success', 
+                  'Profile updated successfully',
+                  snackPosition: SnackPosition.BOTTOM,
+                );
+              },
             ),
           ],
         ),
@@ -65,7 +90,7 @@ class EditProfilePage extends StatelessWidget {
               bottom: 5,
               right: 5,
               child: GestureDetector(
-                onTap: () {}, // Tambahkan fungsi untuk upload gambar
+                onTap: () {}, // TODO: Implement image upload
                 child: Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
@@ -93,26 +118,36 @@ class EditProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileForm() {
+  Widget _buildProfileForm(
+    TextEditingController usernameController,
+    TextEditingController emailController, 
+    TextEditingController phoneController
+  ) {
     return Column(
       children: [
         PrimaryTextField(
-            label: 'Username',
-            hintText: 'Enter your username',
-            prefixIcon: Icon(Icons.person),
-            keyboardType: TextInputType.text),
+          label: 'Username',
+          hintText: 'Enter your username',
+          prefixIcon: Icon(Icons.person),
+          keyboardType: TextInputType.text,
+          controller: usernameController,
+        ),
         SizedBox(height: 16),
         PrimaryTextField(
-            label: 'Email',
-            hintText: 'Enter your email address',
-            prefixIcon: Icon(Icons.email),
-            keyboardType: TextInputType.emailAddress),
+          label: 'Email',
+          hintText: 'Enter your email address',
+          prefixIcon: Icon(Icons.email),
+          keyboardType: TextInputType.emailAddress,
+          controller: emailController,
+        ),
         SizedBox(height: 16),
         PrimaryTextField(
-            label: 'Phone Number',
-            hintText: 'Enter your phone number',
-            prefixIcon: Icon(Icons.phone),
-            keyboardType: TextInputType.phone),
+          label: 'Phone Number',
+          hintText: 'Enter your phone number',
+          prefixIcon: Icon(Icons.phone),
+          keyboardType: TextInputType.phone,
+          controller: phoneController,
+        ),
       ],
     );
   }

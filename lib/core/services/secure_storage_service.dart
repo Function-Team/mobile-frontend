@@ -2,6 +2,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:function_mobile/core/constants/app_constants.dart';
 import 'dart:convert';
 
+import 'package:function_mobile/modules/auth/models/auth_model.dart';
+
 class SecureStorageService {
   final _storage = const FlutterSecureStorage();
 
@@ -40,4 +42,21 @@ class SecureStorageService {
     favorites.remove(venueId);
     await saveFavorites(favorites);
   }
+  // Tambahkan method ini ke SecureStorageService
+Future<void> saveUserData(User user) async {
+  final jsonData = jsonEncode(user.toJson());
+  await _storage.write(key: AppConstants.userKey, value: jsonData);
+}
+
+Future<User?> getUserData() async {
+  final jsonData = await _storage.read(key: AppConstants.userKey);
+  if (jsonData == null) return null;
+  
+  try {
+    return User.fromJson(jsonDecode(jsonData));
+  } catch (e) {
+    print('Error parsing user data: $e');
+    return null;
+  }
+}
 }

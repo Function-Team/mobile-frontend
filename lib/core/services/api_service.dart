@@ -22,7 +22,7 @@ class ApiService extends GetxService {
       requestHeader: true,
       requestBody: true,
       responseHeader: true,
-      responseBody: true,
+      responseBody: false,
       error: true,
     ));
 
@@ -33,6 +33,7 @@ class ApiService extends GetxService {
         final token = await authService.getToken();
         if (token != null && token.isNotEmpty) {
           options.headers["Authorization"] = "Bearer $token";
+           print("Adding token to header: Bearer $token");
         }
         return handler.next(options);
       },
@@ -50,9 +51,10 @@ class ApiService extends GetxService {
   // Getter for accessing Dio instance directly if needed
   dio.Dio get dioInstance => _dio;
 
-  Future<dynamic> getRequest(String endpoint) async {
+  Future<dynamic> getRequest(String endpoint,{Map<String, dynamic>? headers}) async {
     try {
-      final response = await _dio.get(endpoint);
+      final options = headers != null ? dio.Options(headers: headers) : null;
+      final response = await _dio.get(endpoint, options: options);
       return response.data;
     } on dio.DioException catch (e) {
       _handleDioError(e);
