@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:function_mobile/core/services/api_service.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:function_mobile/modules/venue/data/repositories/venue_repository.dart';
 import 'package:get/get.dart';
-import 'dart:convert';
 
 class BookingService extends GetxService {
   final ApiService _apiService = Get.find<ApiService>();
-  final _storage = const FlutterSecureStorage();
 
   // API Methods
   Future<BookingModel> createBooking(BookingCreateRequest request) async {
@@ -27,7 +24,7 @@ class BookingService extends GetxService {
 
   Future<List<BookingModel>> getUserBookings() async {
     try {
-      final response = await _apiService.getRequest('/booking');
+      final response = await _apiService.getRequest('/bookings/me');
       print('Fetched bookings: $response');
 
       if (response is List) {
@@ -70,8 +67,7 @@ class BookingService extends GetxService {
       return [];
     } catch (e) {
       print('Error fetching bookings from API: $e');
-      // Fallback to local storage
-      return await getLocalBookings();
+      throw Exception('Failed to fetch bookings: $e');
     }
   }
 
@@ -82,16 +78,6 @@ class BookingService extends GetxService {
     } catch (e) {
       print('Error fetching booking by ID: $e');
       return null;
-    }
-  }
-
-  Future<BookingModel> confirmBooking(int bookingId) async {
-    try {
-      final response = await _apiService.putRequest('/booking/$bookingId', {});
-      return BookingModel.fromJson(response);
-    } catch (e) {
-      print('Error confirming booking: $e');
-      throw Exception('Failed to confirm booking: $e');
     }
   }
 
@@ -118,62 +104,6 @@ class BookingService extends GetxService {
     }
   }
 
-  // Local Storage Methods (for offline support)
-  Future<void> saveLocalBookings(List<BookingModel> bookings) async {
-    final jsonList = bookings.map((booking) => booking.toJson()).toList();
-    await _storage.write(key: 'local_bookings', value: jsonEncode(jsonList));
-  }
-
-  Future<List<BookingModel>> getLocalBookings() async {
-    try {
-      final bookingsJson = await _storage.read(key: 'local_bookings');
-      if (bookingsJson == null) return [];
-
-      final List<dynamic> jsonList = jsonDecode(bookingsJson);
-      return jsonList.map((json) => BookingModel.fromJson(json)).toList();
-    } catch (e) {
-      print('Error reading local bookings: $e');
-      return [];
-    }
-  }
-
-  Future<void> addLocalBooking(BookingModel booking) async {
-    final bookings = await getLocalBookings();
-    bookings.add(booking);
-    await saveLocalBookings(bookings);
-  }
-
-  Future<void> updateLocalBooking(BookingModel updatedBooking) async {
-    final bookings = await getLocalBookings();
-    final index = bookings.indexWhere((b) => b.id == updatedBooking.id);
-    if (index != -1) {
-      bookings[index] = updatedBooking;
-      await saveLocalBookings(bookings);
-    }
-  }
-
-  Future<void> removeLocalBooking(int bookingId) async {
-    final bookings = await getLocalBookings();
-    bookings.removeWhere((booking) => booking.id == bookingId);
-    await saveLocalBookings(bookings);
-  }
-
-  // Sync Methods
-  Future<List<BookingModel>> syncBookings() async {
-    try {
-      // Try to get from API first
-      final apiBookings = await getUserBookings();
-
-      // Save to local storage
-      await saveLocalBookings(apiBookings);
-
-      return apiBookings;
-    } catch (e) {
-      print('Sync failed, using local bookings: $e');
-      return await getLocalBookings();
-    }
-  }
-
   // Helper method to check if booking time conflicts exist
   Future<bool> checkTimeConflict({
     required int placeId,
@@ -182,12 +112,34 @@ class BookingService extends GetxService {
     required String endTime,
   }) async {
     try {
-      final bookings = await getUserBookings();
+      final response = await _apiService.getRequest('/bookings/me');
+      print('Fetched bookings for conflict check: $response');
 
-      // Filter bookings for the same place and date
+      if (response is! List) return false;
+
+      final bookings = <BookingModel>[];
+      for (final bookingData in response) {
+        if (bookingData['place_id'] == placeId) {
+          // Only check bookings for the specific venue
+          final booking = BookingModel(
+            id: bookingData['id'],
+            placeId: bookingData['place_id'],
+            userId: bookingData['user_id'],
+            startTime: bookingData['start_time'],
+            endTime: bookingData['end_time'],
+            date: DateTime.parse(bookingData['date']),
+            isConfirmed: bookingData['is_confirmed'] ?? false,
+            createdAt: bookingData['created_at'] != null
+                ? DateTime.parse(bookingData['created_at'])
+                : null,
+          );
+          bookings.add(booking);
+        }
+      }
+
+      // Filter bookings for the same date
       final conflictingBookings = bookings
           .where((booking) =>
-              booking.placeId == placeId &&
               booking.date.year == date.year &&
               booking.date.month == date.month &&
               booking.date.day == date.day &&

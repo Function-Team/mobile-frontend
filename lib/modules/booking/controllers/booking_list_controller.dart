@@ -54,9 +54,8 @@ class BookingListController extends GetxController
       hasError.value = false;
       errorMessage.value = '';
 
-      final fetchedBookings = await _bookingService.syncBookings();
+      final fetchedBookings = await _bookingService.getUserBookings();
       bookings.assignAll(fetchedBookings);
-
       _updateBookingCounts();
       _filterBookingsByTab();
       _sortBookings();
@@ -127,26 +126,6 @@ class BookingListController extends GetxController
   void setSortOption(String sortOption) {
     selectedSort.value = sortOption;
     _sortBookings();
-  }
-
-  // Booking actions
-  Future<void> confirmBooking(BookingModel booking) async {
-    try {
-      final confirmedBooking = await _bookingService.confirmBooking(booking.id);
-
-      // Update local booking list
-      final index = bookings.indexWhere((b) => b.id == booking.id);
-      if (index != -1) {
-        bookings[index] = confirmedBooking;
-      }
-
-      _updateBookingCounts();
-      _filterBookingsByTab();
-
-      _showSuccess('Booking confirmed successfully!');
-    } catch (e) {
-      _showError('Failed to confirm booking: ${e.toString()}');
-    }
   }
 
   Future<void> cancelBooking(BookingModel booking) async {
