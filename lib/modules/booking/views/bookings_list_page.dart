@@ -269,7 +269,6 @@ class BookingsListPage extends GetView<BookingListController> {
                     onTap: () => controller.goToBookingDetail(booking),
                     onCancel: () =>
                         controller.showCancelConfirmationDialog(booking),
-                    onConfirm: () => controller.confirmBooking(booking),
                     onViewVenue: () => controller.goToVenueDetail(booking),
                   ),
                 );

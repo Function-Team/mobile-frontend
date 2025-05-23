@@ -49,9 +49,6 @@ class AppConstants {
     return baseUrlEmulator;
   }
 
-  // Asset Paths
-  static const String imagePath = 'assets/images/';
-
   // Storage Keys
   static const String tokenKey = 'auth_token';
   static const String userKey = 'user_data';

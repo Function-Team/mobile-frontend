@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:function_mobile/core/services/secure_storage_service.dart';
@@ -283,11 +281,12 @@ class AuthController extends GetxController {
       errorMessage.value = '';
       final secureStorage = SecureStorageService();
       await secureStorage.clearAllUserData();
+
       // Show logout message
       CustomSnackbar.show(
           context: Get.context!,
           message: 'You have been successfully logged out',
-          type: SnackbarType.success);
+          type: SnackbarType.info);
       Get.offAllNamed(MyRoutes.login);
     } catch (e) {
       errorMessage.value = 'Error during logout. Please try again.';
