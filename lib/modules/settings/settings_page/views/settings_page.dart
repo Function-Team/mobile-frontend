@@ -41,12 +41,6 @@ class SettingsPage extends StatelessWidget {
                 },
                 trailing: Icon(Icons.keyboard_arrow_right),
               ),
-              //NOTE: Optional Feature
-              // _buildSettingsItem(
-              //   title: 'Account Privacy',
-              //   onTap: () {},
-              //   trailing: Icon(Icons.keyboard_arrow_right),
-              // ),
               SizedBox(height: 16),
               Text('Preferences'),
               _buildSettingsItem(
@@ -94,7 +88,6 @@ class SettingsPage extends StatelessWidget {
               _buildSettingsItem(
                 title: 'Logout',
                 onTap: () {
-                  //TODO: Implement Logout
                   controller.logout();
                 },
                 textColor: Theme.of(context).colorScheme.error,
