@@ -143,14 +143,6 @@ class BookingPage extends GetView<BookingController> {
                       fontWeight: FontWeight.bold,
                     ),
               ),
-              OutlineButton(
-                text: 'Change',
-                textSize: '12',
-                onPressed: () =>
-                    controller.displayChangeDateBottomSheet(context),
-                width: 80,
-                height: 32,
-              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -335,14 +327,7 @@ class BookingPage extends GetView<BookingController> {
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
-              ),
-              OutlineButton(
-                text: 'Details',
-                textSize: '12',
-                onPressed: () => controller.displayDetailBottomSheet(context),
-                width: 80,
-                height: 32,
-              ),
+              ),  
             ],
           ),
           const SizedBox(height: 16),

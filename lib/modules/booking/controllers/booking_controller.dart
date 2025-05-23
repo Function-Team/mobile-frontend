@@ -1,5 +1,8 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
+import 'package:function_mobile/core/constants/app_constants.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_list_controller.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:function_mobile/modules/booking/services/booking_service.dart';
@@ -25,8 +28,7 @@ class BookingController extends GetxController {
 
   // Booking state
   final RxBool isProcessing = false.obs;
-  final RxString bookingStatus =
-      'idle'.obs; // idle, processing, success, failed
+  final RxString bookingStatus = 'idle'.obs; // idle, processing, success, failed
   final RxInt remainingSeconds = 300.obs; // 5 minutes countdown
   Timer? _timer;
 
@@ -185,54 +187,75 @@ class BookingController extends GetxController {
     Get.find<BookingListController>().refreshBookings();
   }
 
-  // Main booking creation method using BookingModel
   Future<void> saveBooking(VenueModel venue) async {
-    if (!isFormValid()) return;
+  if (!isFormValid()) return;
 
-    try {
-      isProcessing.value = true;
-      bookingStatus.value = 'processing';
+  try {
+    isProcessing.value = true;
+    bookingStatus.value = 'processing';
 
-      // Check for time conflicts first
-      final hasConflict = await _bookingService.checkTimeConflict(
-        placeId: venue.id!,
-        date: selectedDateRange.value!.start,
-        startTime: BookingService.formatTimeForAPI(startTime.value!),
-        endTime: BookingService.formatTimeForAPI(endTime.value!),
-      );
+    // Debug info
+    debugBookingRequest(venue);
 
-      if (hasConflict) {
-        _showError(
-            'This time slot is already booked. Please choose a different time.');
-        return;
-      }
+    // Create booking request untuk FastAPI
+    final bookingRequest = BookingCreateRequest(
+      placeId: venue.id!,
+      startTime: BookingService.formatTimeForAPI(startTime.value!),
+      endTime: BookingService.formatTimeForAPI(endTime.value!),
+      date: selectedDateRange.value!.start,
+    );
 
-      // Create booking request
-      final bookingRequest = BookingCreateRequest(
-        placeId: venue.id!,
-        startTime: BookingService.formatTimeForAPI(startTime.value!),
-        endTime: BookingService.formatTimeForAPI(endTime.value!),
-        date: selectedDateRange.value!.start,
-      );
+    print('Sending booking request to FastAPI:');
+    print('URL: ${AppConstants.baseUrl}/booking');
+    print('Data: ${bookingRequest.toJson()}');
 
-      // Create booking via API
-      final createdBooking =
-          await _bookingService.createBooking(bookingRequest);
-
-      bookingStatus.value = 'success';
-
-      _showSuccess('Booking created successfully!');
-
-      // Navigate to booking list after a short delay
-      await Future.delayed(const Duration(seconds: 1));
-      goToBookingListPage();
-    } catch (e) {
-      bookingStatus.value = 'failed';
-      _showError('Failed to create booking: ${e.toString()}');
-      print('Error saving booking: $e');
-    } finally {
-      isProcessing.value = false;
+    // Create booking via FastAPI
+    final createdBooking = await _bookingService.createBooking(bookingRequest);
+    
+    bookingStatus.value = 'success';
+    
+    _showSuccess('Booking request submitted successfully! Please wait for admin approval.');
+    
+    // Navigate to booking list after a short delay
+    await Future.delayed(const Duration(seconds: 2));
+    goToBookingListPage();
+    
+  } catch (e) {
+    bookingStatus.value = 'failed';
+    
+    String errorMessage = 'Failed to create booking';
+    if (e.toString().contains('Connection refused') || 
+        e.toString().contains('SocketException') ||
+        e.toString().contains('Failed host lookup')) {
+      errorMessage = 'Cannot connect to server. Please check if FastAPI is running.';
+    } else if (e.toString().contains('Time slot is already booked')) {
+      errorMessage = 'This time slot is already booked. Please choose a different time.';
+    } else if (e.toString().contains('Validation failed') || 
+               e.toString().contains('422')) {
+      errorMessage = 'Please check your booking details and try again.';
     }
+    
+    _showError(errorMessage);
+    print('Error saving booking: $e');
+  } finally {
+    isProcessing.value = false;
+  }
+}
+
+  // Helper method untuk debugging
+  void debugBookingRequest(VenueModel venue) {
+    print('=== BOOKING DEBUG INFO ===');
+    print('Venue: ${venue.name} (ID: ${venue.id})');
+    print('Date: ${selectedDateRange.value?.start}');
+    print('Start Time: ${startTime.value}');
+    print('End Time: ${endTime.value}');
+    print('Capacity: ${selectedCapacity.value}');
+    print('Guest Name: ${guestNameController.text}');
+    print('Guest Email: ${guestEmailController.text}');
+    print('Guest Phone: ${guestPhoneController.text}');
+    print('Special Requests: ${specialRequestsController.text}');
+    print('API Base URL: ${AppConstants.baseUrl}');
+    print('========================');
   }
 
   // Get booking summary for display - using venue's existing price with day calculation
@@ -365,7 +388,7 @@ class BookingController extends GetxController {
     return slots;
   }
 
-  // Check if a time slot is available
+  // Check if a time slot is available (menggunakan FastAPI backend untuk check conflict)
   Future<bool> isTimeSlotAvailable(
       VenueModel venue, DateTime date, TimeOfDay time) async {
     try {
