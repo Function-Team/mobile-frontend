@@ -632,13 +632,13 @@ class BookingDetailPage extends GetView<BookingDetailController> {
           ),
         ),
       );
-      actions.add(
-        Expanded(
-          child: PrimaryButton(
-              text: controller.isLoading.value ? 'Loading...' : 'Reschedule',
-              onPressed: () {}),
-        ),
-      );
+      // actions.add(
+      //   Expanded(
+      //     child: PrimaryButton(
+      //         text: controller.isLoading.value ? 'Loading...' : 'Reschedule',
+      //         onPressed: () {}),
+      //   ),
+      // );
 
       if (actions.isEmpty) return const SizedBox.shrink();
 
