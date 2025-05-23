@@ -5,26 +5,27 @@ import 'package:function_mobile/modules/booking/services/booking_service.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:get/get.dart';
 
-class BookingListController extends GetxController with GetTickerProviderStateMixin {
+class BookingListController extends GetxController
+    with GetTickerProviderStateMixin {
   final BookingService _bookingService = BookingService();
-  
+
   // State management
   final RxList<BookingModel> bookings = <BookingModel>[].obs;
   final RxBool isLoading = true.obs;
   final RxBool hasError = false.obs;
   final RxString errorMessage = ''.obs;
-  
+
   // Filter and sort options
   final RxString selectedFilter = 'all'.obs;
   final RxString selectedSort = 'date_desc'.obs;
-  
+
   // Tab controller for different booking statuses
   late TabController tabController;
   final RxInt currentTabIndex = 0.obs;
-  
+
   // Filtered bookings based on current tab
   final RxList<BookingModel> filteredBookings = <BookingModel>[].obs;
-  
+
   // Booking counts for each status
   final RxInt pendingCount = 0.obs;
   final RxInt confirmedCount = 0.obs;
@@ -55,11 +56,10 @@ class BookingListController extends GetxController with GetTickerProviderStateMi
 
       final fetchedBookings = await _bookingService.syncBookings();
       bookings.assignAll(fetchedBookings);
-      
+
       _updateBookingCounts();
       _filterBookingsByTab();
       _sortBookings();
-      
     } catch (e) {
       hasError.value = true;
       errorMessage.value = 'Failed to load bookings: ${e.toString()}';
@@ -76,9 +76,12 @@ class BookingListController extends GetxController with GetTickerProviderStateMi
   }
 
   void _updateBookingCounts() {
-    pendingCount.value = bookings.where((b) => b.status == BookingStatus.pending).length;
-    confirmedCount.value = bookings.where((b) => b.status == BookingStatus.confirmed).length;
-    expiredCount.value = bookings.where((b) => b.status == BookingStatus.expired).length;
+    pendingCount.value =
+        bookings.where((b) => b.status == BookingStatus.pending).length;
+    confirmedCount.value =
+        bookings.where((b) => b.status == BookingStatus.confirmed).length;
+    expiredCount.value =
+        bookings.where((b) => b.status == BookingStatus.expired).length;
   }
 
   void _filterBookingsByTab() {
@@ -88,18 +91,16 @@ class BookingListController extends GetxController with GetTickerProviderStateMi
         break;
       case 1: // Pending
         filteredBookings.assignAll(
-          bookings.where((b) => b.status == BookingStatus.pending).toList()
-        );
+            bookings.where((b) => b.status == BookingStatus.pending).toList());
         break;
       case 2: // Confirmed
-        filteredBookings.assignAll(
-          bookings.where((b) => b.status == BookingStatus.confirmed).toList()
-        );
+        filteredBookings.assignAll(bookings
+            .where((b) => b.status == BookingStatus.confirmed)
+            .toList());
         break;
       case 3: // Expired
         filteredBookings.assignAll(
-          bookings.where((b) => b.status == BookingStatus.expired).toList()
-        );
+            bookings.where((b) => b.status == BookingStatus.expired).toList());
         break;
     }
   }
@@ -113,12 +114,12 @@ class BookingListController extends GetxController with GetTickerProviderStateMi
         filteredBookings.sort((a, b) => a.date.compareTo(b.date));
         break;
       case 'venue_name':
-        filteredBookings.sort((a, b) => 
-          (a.place?.name ?? '').compareTo(b.place?.name ?? ''));
+        filteredBookings.sort(
+            (a, b) => (a.place?.name ?? '').compareTo(b.place?.name ?? ''));
         break;
       case 'status':
-        filteredBookings.sort((a, b) => 
-          a.status.index.compareTo(b.status.index));
+        filteredBookings
+            .sort((a, b) => a.status.index.compareTo(b.status.index));
         break;
     }
   }
@@ -132,16 +133,16 @@ class BookingListController extends GetxController with GetTickerProviderStateMi
   Future<void> confirmBooking(BookingModel booking) async {
     try {
       final confirmedBooking = await _bookingService.confirmBooking(booking.id);
-      
+
       // Update local booking list
       final index = bookings.indexWhere((b) => b.id == booking.id);
       if (index != -1) {
         bookings[index] = confirmedBooking;
       }
-      
+
       _updateBookingCounts();
       _filterBookingsByTab();
-      
+
       _showSuccess('Booking confirmed successfully!');
     } catch (e) {
       _showError('Failed to confirm booking: ${e.toString()}');
@@ -151,13 +152,13 @@ class BookingListController extends GetxController with GetTickerProviderStateMi
   Future<void> cancelBooking(BookingModel booking) async {
     try {
       await _bookingService.cancelBooking(booking.id);
-      
+
       // Remove from local list
       bookings.removeWhere((b) => b.id == booking.id);
-      
+
       _updateBookingCounts();
       _filterBookingsByTab();
-      
+
       _showSuccess('Booking cancelled successfully!');
     } catch (e) {
       _showError('Failed to cancel booking: ${e.toString()}');
@@ -169,8 +170,7 @@ class BookingListController extends GetxController with GetTickerProviderStateMi
       AlertDialog(
         title: const Text('Cancel Booking'),
         content: Text(
-          'Are you sure you want to cancel this booking for ${booking.place?.name ?? 'this venue'}?'
-        ),
+            'Are you sure you want to cancel this booking for ${booking.place?.name ?? 'this venue'}?'),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
@@ -200,8 +200,8 @@ class BookingListController extends GetxController with GetTickerProviderStateMi
         int.parse(booking.startTime.split(':')[0]),
         int.parse(booking.startTime.split(':')[1]),
       );
-      return bookingDateTime.isAfter(now) && 
-             (booking.status == BookingStatus.confirmed || 
+      return bookingDateTime.isAfter(now) &&
+          (booking.status == BookingStatus.confirmed ||
               booking.status == BookingStatus.pending);
     }).toList();
   }
@@ -221,11 +221,12 @@ class BookingListController extends GetxController with GetTickerProviderStateMi
   }
 
   List<BookingModel> getBookingsForDate(DateTime date) {
-    return bookings.where((booking) => 
-      booking.date.year == date.year &&
-      booking.date.month == date.month &&
-      booking.date.day == date.day
-    ).toList();
+    return bookings
+        .where((booking) =>
+            booking.date.year == date.year &&
+            booking.date.month == date.month &&
+            booking.date.day == date.day)
+        .toList();
   }
 
   // Navigation methods
@@ -288,10 +289,10 @@ class BookingListController extends GetxController with GetTickerProviderStateMi
       final venueName = booking.place?.name?.toLowerCase() ?? '';
       final venueAddress = booking.place?.address?.toLowerCase() ?? '';
       final searchTerm = query.toLowerCase();
-      
-      return venueName.contains(searchTerm) || 
-             venueAddress.contains(searchTerm) ||
-             booking.formattedDate.toLowerCase().contains(searchTerm);
+
+      return venueName.contains(searchTerm) ||
+          venueAddress.contains(searchTerm) ||
+          booking.formattedDate.toLowerCase().contains(searchTerm);
     }).toList();
 
     searchResults.assignAll(results);

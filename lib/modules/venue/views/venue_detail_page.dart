@@ -4,6 +4,7 @@ import 'package:function_mobile/common/widgets/buttons/custom_text_button.dart';
 import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 import 'package:function_mobile/common/widgets/buttons/secondary_button.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
+import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:function_mobile/modules/venue/widgets/category_chip.dart';
 import 'package:function_mobile/modules/venue/widgets/venue_detail/about_detail.dart';
 import 'package:function_mobile/modules/venue/widgets/venue_detail/facilities_section.dart';
@@ -710,11 +711,11 @@ class VenueDetailPage extends StatelessWidget {
                         arguments: venue,
                       );
                     } else {
-                      Get.snackbar(
-                        'Error',
-                        'Venue information not available',
-                        snackPosition: SnackPosition.BOTTOM,
-                      );
+                      CustomSnackbar.show(
+                        context: context,
+                        message: 'Venue information not available',
+                        type: SnackbarType.error,
+                      ); // Show snackbar if venue information is no
                     }
                   },
                 ),

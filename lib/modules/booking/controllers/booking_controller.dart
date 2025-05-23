@@ -13,19 +13,20 @@ import 'dart:async';
 
 class BookingController extends GetxController {
   final BookingService _bookingService = BookingService();
-  
+
   // Form data
   final Rx<DateTimeRange?> selectedDateRange = Rx<DateTimeRange?>(null);
   final RxString selectedCapacity = '10'.obs;
   final RxList<String> capacityOptions = ['10', '20', '50', '100', '200'].obs;
-  
+
   // Time slots - using TimeOfDay for UI, will convert to String for API
   final Rx<TimeOfDay?> startTime = Rx<TimeOfDay?>(null);
   final Rx<TimeOfDay?> endTime = Rx<TimeOfDay?>(null);
-  
+
   // Booking state
   final RxBool isProcessing = false.obs;
-  final RxString bookingStatus = 'idle'.obs; // idle, processing, success, failed
+  final RxString bookingStatus =
+      'idle'.obs; // idle, processing, success, failed
   final RxInt remainingSeconds = 300.obs; // 5 minutes countdown
   Timer? _timer;
 
@@ -42,7 +43,7 @@ class BookingController extends GetxController {
     if (!capacityOptions.contains(selectedCapacity.value)) {
       selectedCapacity.value = capacityOptions[0];
     }
-    
+
     // Set default time slots
     startTime.value = TimeOfDay.now();
     endTime.value = TimeOfDay(
@@ -67,38 +68,38 @@ class BookingController extends GetxController {
       _showError('Please select booking dates');
       return false;
     }
-    
+
     if (startTime.value == null || endTime.value == null) {
       _showError('Please select start and end times');
       return false;
     }
-    
+
     // Validate time range
     final start = startTime.value!;
     final end = endTime.value!;
     final startMinutes = start.hour * 60 + start.minute;
     final endMinutes = end.hour * 60 + end.minute;
-    
+
     if (endMinutes <= startMinutes) {
       _showError('End time must be after start time');
       return false;
     }
-    
+
     if (guestNameController.text.trim().isEmpty) {
       _showError('Please enter guest name');
       return false;
     }
-    
+
     if (guestEmailController.text.trim().isEmpty) {
       _showError('Please enter email address');
       return false;
     }
-    
+
     if (guestPhoneController.text.trim().isEmpty) {
       _showError('Please enter phone number');
       return false;
     }
-    
+
     return true;
   }
 
@@ -201,7 +202,8 @@ class BookingController extends GetxController {
       );
 
       if (hasConflict) {
-        _showError('This time slot is already booked. Please choose a different time.');
+        _showError(
+            'This time slot is already booked. Please choose a different time.');
         return;
       }
 
@@ -214,16 +216,16 @@ class BookingController extends GetxController {
       );
 
       // Create booking via API
-      final createdBooking = await _bookingService.createBooking(bookingRequest);
-      
+      final createdBooking =
+          await _bookingService.createBooking(bookingRequest);
+
       bookingStatus.value = 'success';
-      
+
       _showSuccess('Booking created successfully!');
-      
+
       // Navigate to booking list after a short delay
       await Future.delayed(const Duration(seconds: 1));
       goToBookingListPage();
-      
     } catch (e) {
       bookingStatus.value = 'failed';
       _showError('Failed to create booking: ${e.toString()}');
@@ -233,10 +235,20 @@ class BookingController extends GetxController {
     }
   }
 
-  // Get booking summary for display - using venue's existing price
+  // Get booking summary for display - using venue's existing price with day calculation
   Map<String, dynamic> getBookingSummary(VenueModel venue) {
-    // Use the venue's existing price directly
-    final basePrice = venue.price?.toDouble() ?? 0.0;
+    // Calculate number of days
+    int numberOfDays = 1; // Default to 1 day
+    if (selectedDateRange.value != null) {
+      numberOfDays = selectedDateRange.value!.duration.inDays +
+          1; // +1 because duration.inDays doesn't count the start day
+      if (numberOfDays <= 0) numberOfDays = 1; // Minimum 1 day
+    }
+
+    // Base price per day
+    final pricePerDay = venue.price?.toDouble() ?? 0.0;
+    final basePrice = pricePerDay * numberOfDays;
+
     final tax = basePrice * 0.1; // 10% tax
     final serviceFee = 25000.0; // Fixed service fee in IDR
     final finalTotal = basePrice + tax + serviceFee;
@@ -253,6 +265,8 @@ class BookingController extends GetxController {
 
     return {
       'base_price': basePrice,
+      'price_per_day': pricePerDay,
+      'number_of_days': numberOfDays,
       'tax': tax,
       'service_fee': serviceFee,
       'total': finalTotal,
@@ -260,13 +274,14 @@ class BookingController extends GetxController {
       'duration_hours': duration.inHours + (duration.inMinutes % 60) / 60.0,
       'capacity': selectedCapacity.value,
       'venue_name': venue.name ?? 'Unknown Venue',
-      'venue_price_per_session': basePrice, // Harga per sesi dari venue
-      'booking_date': selectedDateRange.value?.start.toIso8601String().split('T')[0] ?? '',
-      'start_time': startTime.value != null 
-          ? BookingService.formatTimeForAPI(startTime.value!) 
+      'venue_price_per_day': pricePerDay,
+      'booking_date':
+          selectedDateRange.value?.start.toIso8601String().split('T')[0] ?? '',
+      'start_time': startTime.value != null
+          ? BookingService.formatTimeForAPI(startTime.value!)
           : '',
-      'end_time': endTime.value != null 
-          ? BookingService.formatTimeForAPI(endTime.value!) 
+      'end_time': endTime.value != null
+          ? BookingService.formatTimeForAPI(endTime.value!)
           : '',
     };
   }
@@ -275,7 +290,7 @@ class BookingController extends GetxController {
   String formatDuration(Duration duration) {
     final hours = duration.inHours;
     final minutes = duration.inMinutes % 60;
-    
+
     if (hours > 0 && minutes > 0) {
       return '${hours}h ${minutes}m';
     } else if (hours > 0) {
@@ -293,17 +308,16 @@ class BookingController extends GetxController {
 
     final selectedDate = selectedDateRange.value!.start;
     final now = DateTime.now();
-    
+
     // Check if date is in the past
     if (selectedDate.isBefore(DateTime(now.year, now.month, now.day))) {
       return 'Cannot book for past dates';
     }
 
     // Check if booking is for today but time has passed
-    if (selectedDate.year == now.year && 
-        selectedDate.month == now.month && 
+    if (selectedDate.year == now.year &&
+        selectedDate.month == now.month &&
         selectedDate.day == now.day) {
-      
       if (startTime.value != null) {
         final bookingDateTime = DateTime(
           selectedDate.year,
@@ -312,7 +326,7 @@ class BookingController extends GetxController {
           startTime.value!.hour,
           startTime.value!.minute,
         );
-        
+
         if (bookingDateTime.isBefore(now.add(const Duration(hours: 1)))) {
           return 'Booking must be at least 1 hour from now';
         }
@@ -352,7 +366,8 @@ class BookingController extends GetxController {
   }
 
   // Check if a time slot is available
-  Future<bool> isTimeSlotAvailable(VenueModel venue, DateTime date, TimeOfDay time) async {
+  Future<bool> isTimeSlotAvailable(
+      VenueModel venue, DateTime date, TimeOfDay time) async {
     try {
       final endTime = TimeOfDay(hour: time.hour + 1, minute: time.minute);
       return !(await _bookingService.checkTimeConflict(

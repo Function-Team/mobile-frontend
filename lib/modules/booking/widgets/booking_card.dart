@@ -356,10 +356,8 @@ class BookingCard extends StatelessWidget {
           actions.add(
             Expanded(
               child: OutlineButton(
-                text: 'Cancel',
-                onPressed: onCancel!,
-                textColor: Colors.red,
-                outlineColor: Colors.red,
+                text: 'View Details',
+                onPressed: onTap,
                 height: 36,
               ),
             ),

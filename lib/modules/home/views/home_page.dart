@@ -3,9 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 import 'package:function_mobile/modules/home/controllers/home_controller.dart';
 import 'package:function_mobile/modules/home/controllers/search_filter_controller.dart';
+import 'package:function_mobile/modules/home/widgets/build_blog.dart';
 import 'package:function_mobile/modules/home/widgets/build_header.dart';
+import 'package:function_mobile/modules/home/widgets/build_promo.dart';
 import 'package:function_mobile/modules/home/widgets/build_recommendation.dart';
 import 'package:function_mobile/modules/home/widgets/search_container.dart';
+import 'package:function_mobile/modules/profile/models/profile_model.dart';
 import 'package:get/get.dart';
 
 class HomePage extends StatelessWidget {
@@ -62,7 +65,7 @@ class HomePage extends StatelessWidget {
                       children: [
                         buildHeader(
                           context,
-                          profilePicture: 'https://picsum.photos/200',
+                          profilePicture: ProfileModel().profilePicture,
                           name: authController.username,
                           onTapProfile: () {
                             homeController.goToProfile();
@@ -90,6 +93,16 @@ class HomePage extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 child: buildRecommendation(context, homeController),
               ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: buildPromo(),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: buildBlog(),
+              ),
+              const SizedBox(
+                  height: 50), // Add some space at the bottom of the conten
             ],
           ),
         ),

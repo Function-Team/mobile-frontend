@@ -17,7 +17,7 @@ class ChattingPage extends StatelessWidget {
           Expanded(
             flex: 8,
             child: ListView.builder(
-                itemCount: 8,
+                itemCount: 5,
                 itemBuilder: (BuildContext context, int index) {
                   return MessageCard(
                       sender: 'John Doe',

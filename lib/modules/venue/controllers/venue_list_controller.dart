@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:function_mobile/common/routes/routes.dart';
+import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:function_mobile/modules/venue/data/repositories/venue_repository.dart';
 import 'package:get/get.dart';
@@ -180,8 +181,10 @@ class VenueListController extends GetxController {
     if (venue.id != null) {
       Get.toNamed(MyRoutes.venueDetail, arguments: {'venueId': venue.id});
     } else {
-      Get.snackbar('Error', 'Cannot open venue details',
-          snackPosition: SnackPosition.BOTTOM);
+      CustomSnackbar.show(
+          context: Get.context!,
+          message: 'Cannot open venue details',
+          type: SnackbarType.error);
     }
   }
 }

@@ -1,3 +1,4 @@
+import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 import 'package:function_mobile/modules/navigation/controllers/bottom_nav_controller.dart';
 import 'package:function_mobile/common/routes/routes.dart';
@@ -22,13 +23,15 @@ class HomeController extends GetxController {
     if (venue.id != null) {
       Get.toNamed(MyRoutes.venueDetail, arguments: {'venueId': venue.id});
     } else {
-      Get.snackbar('Error', 'Cannot open venue details',
-          snackPosition: SnackPosition.BOTTOM);
+      CustomSnackbar.show(
+          context: Get.context!,
+          message: 'Cannot open venue details',
+          type: SnackbarType.error);
     }
   }
 
   void goToProfile() {
-    Get.find<BottomNavController>().changePage(3);
+    Get.find<BottomNavController>().changePage(4);
   }
 
   Future<void> fetchRecommendedVenues() async {
@@ -76,7 +79,7 @@ class HomeController extends GetxController {
   }
 
   String get username {
-  final authController = Get.find<AuthController>();
-  return authController.username;
-}
+    final authController = Get.find<AuthController>();
+    return authController.username;
+  }
 }

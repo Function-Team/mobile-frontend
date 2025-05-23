@@ -8,17 +8,17 @@ import 'package:get/get.dart';
 
 class BookingDetailController extends GetxController {
   final BookingService _bookingService = BookingService();
-  
+
   // State management
   final Rx<BookingModel?> booking = Rx<BookingModel?>(null);
   final RxBool isLoading = true.obs;
   final RxBool hasError = false.obs;
   final RxString errorMessage = ''.obs;
-  
+
   // Action states
   final RxBool isConfirming = false.obs;
   final RxBool isCancelling = false.obs;
-  
+
   int? bookingId;
 
   @override
@@ -41,7 +41,7 @@ class BookingDetailController extends GetxController {
       errorMessage.value = '';
 
       final fetchedBooking = await _bookingService.getBookingById(bookingId!);
-      
+
       if (fetchedBooking != null) {
         booking.value = fetchedBooking;
       } else {
@@ -57,45 +57,23 @@ class BookingDetailController extends GetxController {
     }
   }
 
-  Future<void> confirmBooking() async {
-    if (booking.value == null) return;
-
-    try {
-      isConfirming.value = true;
-      
-      final confirmedBooking = await _bookingService.confirmBooking(booking.value!.id);
-      booking.value = confirmedBooking;
-      
-      // Update booking list
-      final bookingListController = Get.find<BookingListController>();
-      bookingListController.fetchBookings();
-      
-      _showSuccess('Booking confirmed successfully!');
-    } catch (e) {
-      _showError('Failed to confirm booking: ${e.toString()}');
-    } finally {
-      isConfirming.value = false;
-    }
-  }
-
   Future<void> cancelBooking() async {
     if (booking.value == null) return;
 
     try {
       isCancelling.value = true;
-      
+
       await _bookingService.cancelBooking(booking.value!.id);
-      
+
       // Update booking list
       final bookingListController = Get.find<BookingListController>();
       bookingListController.fetchBookings();
-      
+
       _showSuccess('Booking cancelled successfully!');
-      
+
       // Navigate back after a short delay
       await Future.delayed(const Duration(seconds: 1));
       Get.back();
-      
     } catch (e) {
       _showError('Failed to cancel booking: ${e.toString()}');
     } finally {
@@ -200,10 +178,10 @@ Time: ${booking.value!.formattedTimeRange}
 Status: ${booking.value!.statusDisplayName}
 Booking ID: #${booking.value!.id}
       ''';
-      
+
       // You can use the share_plus package here
       // Share.share(bookingInfo);
-      
+
       _showSuccess('Booking details copied to clipboard');
     }
   }
@@ -226,15 +204,9 @@ Booking ID: #${booking.value!.id}
     }
   }
 
-  // Computed properties
-  bool get canConfirm => 
-      booking.value?.status == BookingStatus.pending && 
-      !isConfirming.value && 
-      !isCancelling.value;
-
   bool get canCancel {
     if (booking.value == null) return false;
-    
+
     final now = DateTime.now();
     final bookingDateTime = DateTime(
       booking.value!.date.year,
@@ -243,17 +215,17 @@ Booking ID: #${booking.value!.id}
       int.parse(booking.value!.startTime.split(':')[0]),
       int.parse(booking.value!.startTime.split(':')[1]),
     );
-    
-    return (booking.value!.status == BookingStatus.pending || 
+
+    return (booking.value!.status == BookingStatus.pending ||
             booking.value!.status == BookingStatus.confirmed) &&
-           bookingDateTime.isAfter(now) &&
-           !isConfirming.value && 
-           !isCancelling.value;
+        bookingDateTime.isAfter(now) &&
+        !isConfirming.value &&
+        !isCancelling.value;
   }
 
   bool get canReschedule {
     if (booking.value == null) return false;
-    
+
     final now = DateTime.now();
     final bookingDateTime = DateTime(
       booking.value!.date.year,
@@ -262,17 +234,18 @@ Booking ID: #${booking.value!.id}
       int.parse(booking.value!.startTime.split(':')[0]),
       int.parse(booking.value!.startTime.split(':')[1]),
     );
-    
-    return (booking.value!.status == BookingStatus.confirmed || 
+
+    return (booking.value!.status == BookingStatus.confirmed ||
             booking.value!.status == BookingStatus.pending) &&
-           bookingDateTime.isAfter(now.add(const Duration(hours: 24))) && // At least 24 hours notice
-           !isConfirming.value && 
-           !isCancelling.value;
+        bookingDateTime.isAfter(
+            now.add(const Duration(hours: 24))) && // At least 24 hours notice
+        !isConfirming.value &&
+        !isCancelling.value;
   }
 
   bool get isPastBooking {
     if (booking.value == null) return false;
-    
+
     final now = DateTime.now();
     final bookingEndDateTime = DateTime(
       booking.value!.date.year,
@@ -281,13 +254,13 @@ Booking ID: #${booking.value!.id}
       int.parse(booking.value!.endTime.split(':')[0]),
       int.parse(booking.value!.endTime.split(':')[1]),
     );
-    
+
     return bookingEndDateTime.isBefore(now);
   }
 
   String get timeUntilBooking {
     if (booking.value == null) return '';
-    
+
     final now = DateTime.now();
     final bookingDateTime = DateTime(
       booking.value!.date.year,
@@ -296,13 +269,13 @@ Booking ID: #${booking.value!.id}
       int.parse(booking.value!.startTime.split(':')[0]),
       int.parse(booking.value!.startTime.split(':')[1]),
     );
-    
+
     if (bookingDateTime.isBefore(now)) {
       return 'Past booking';
     }
-    
+
     final difference = bookingDateTime.difference(now);
-    
+
     if (difference.inDays > 0) {
       return '${difference.inDays} day${difference.inDays > 1 ? 's' : ''} to go';
     } else if (difference.inHours > 0) {
@@ -314,18 +287,18 @@ Booking ID: #${booking.value!.id}
 
   Map<String, dynamic> get bookingSummary {
     if (booking.value?.place == null) return {};
-    
+
     final venue = booking.value!.place!;
     final duration = booking.value!.duration;
     final basePrice = venue.price?.toDouble() ?? 0.0;
-    
+
     // Calculate pricing
     final hours = duration.inHours + (duration.inMinutes % 60) / 60.0;
     final subtotal = basePrice * hours;
     final tax = subtotal * 0.10; // 10% tax
     final serviceFee = 25000.0; // Fixed service fee
     final total = subtotal + tax + serviceFee;
-    
+
     return {
       'base_price': basePrice,
       'hours': hours,
@@ -340,7 +313,7 @@ Booking ID: #${booking.value!.id}
   String _formatDuration(Duration duration) {
     final hours = duration.inHours;
     final minutes = duration.inMinutes % 60;
-    
+
     if (hours > 0) {
       if (minutes > 0) {
         return '$hours hour${hours > 1 ? 's' : ''} $minutes minute${minutes > 1 ? 's' : ''}';
