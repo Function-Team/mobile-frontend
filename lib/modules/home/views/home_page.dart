@@ -8,6 +8,7 @@ import 'package:function_mobile/modules/home/widgets/build_header.dart';
 import 'package:function_mobile/modules/home/widgets/build_promo.dart';
 import 'package:function_mobile/modules/home/widgets/build_recommendation.dart';
 import 'package:function_mobile/modules/home/widgets/search_container.dart';
+import 'package:function_mobile/modules/profile/models/profile_model.dart';
 import 'package:get/get.dart';
 
 class HomePage extends StatelessWidget {
@@ -64,7 +65,7 @@ class HomePage extends StatelessWidget {
                       children: [
                         buildHeader(
                           context,
-                          profilePicture: 'https://picsum.photos/200',
+                          profilePicture: ProfileModel().profilePicture,
                           name: authController.username,
                           onTapProfile: () {
                             homeController.goToProfile();

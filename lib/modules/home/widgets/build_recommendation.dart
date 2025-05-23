@@ -12,7 +12,7 @@ Widget buildRecommendation(BuildContext context, HomeController controller) {
     children: [
       Text(
         'Recommendation',
-        style: Theme.of(context).textTheme.headlineSmall,
+        style: Theme.of(context).textTheme.headlineMedium,
       ),
       const SizedBox(height: 10),
       Obx(() {

@@ -16,7 +16,7 @@ Widget buildPromo() {
         children: [
           Text(
             'Promo',
-            style: Get.theme.textTheme.headlineSmall,
+            style: Get.theme.textTheme.headlineMedium,
           ),
         ],
       ),

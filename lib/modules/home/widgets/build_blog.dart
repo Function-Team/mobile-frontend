@@ -8,7 +8,7 @@ Widget buildBlog() {
     children: [
       Text(
         'Blog',
-        style: Get.theme.textTheme.headlineSmall,
+        style: Get.theme.textTheme.headlineMedium,
       ),
       const SizedBox(height: 10),
       SizedBox(
@@ -19,13 +19,30 @@ Widget buildBlog() {
               itemBuilder: (BuildContext context, int index) {
                 return Container(
                     margin: EdgeInsets.only(right: 16),
-                    width: 500,
-                    height: 200,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: NetworkImageWithLoader(
-                          imageUrl:
-                              'https://picsum.photos/seed/picsum/500/200'),
+                    width: 200,
+                    height: 500,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: NetworkImageWithLoader(
+                                imageUrl:
+                                    'https://picsum.photos/seed/picsum/300/200'),
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Expanded(
+                          child: Text(
+                            softWrap: true,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            'Lorem Ipsum dolor sit amet',
+                            style: Get.theme.textTheme.headlineSmall,
+                          ),
+                        ),
+                      ],
                     ));
               })),
     ],
