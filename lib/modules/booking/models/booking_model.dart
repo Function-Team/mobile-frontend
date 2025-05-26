@@ -14,11 +14,11 @@ class BookingModel {
   final int placeId;
   final int userId;
   final String startTime; // "HH:MM:SS" format
-  final String endTime;   // "HH:MM:SS" format
+  final String endTime; // "HH:MM:SS" format
   final DateTime date;
   final bool isConfirmed;
   final DateTime? createdAt;
-  
+
   // Related models (populated from joins)
   final VenueModel? place;
   final UserModel? user;
@@ -43,7 +43,7 @@ class BookingModel {
   // Computed properties
   BookingStatus get status {
     if (isConfirmed) return BookingStatus.confirmed;
-    
+
     // Check if booking is expired (past date + end time)
     final bookingEndDateTime = DateTime(
       date.year,
@@ -52,11 +52,11 @@ class BookingModel {
       int.parse(endTime.split(':')[0]),
       int.parse(endTime.split(':')[1]),
     );
-    
+
     if (bookingEndDateTime.isBefore(DateTime.now())) {
       return BookingStatus.expired;
     }
-    
+
     return BookingStatus.pending;
   }
 
@@ -116,15 +116,11 @@ class BookingModel {
       endTime: json['end_time'],
       date: DateTime.parse(json['date']),
       isConfirmed: json['is_confirmed'] ?? false,
-      createdAt: json['created_at'] != null 
-          ? DateTime.parse(json['created_at']) 
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
           : null,
-      place: json['place'] != null 
-          ? VenueModel.fromJson(json['place']) 
-          : null,
-      user: json['user'] != null 
-          ? UserModel.fromJson(json['user']) 
-          : null,
+      place: json['place'] != null ? VenueModel.fromJson(json['place']) : null,
+      user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
       reviews: json['reviews'] != null
           ? (json['reviews'] as List)
               .map((review) => ReviewModel.fromJson(review))
@@ -261,12 +257,116 @@ class PaymentModel {
 }
 
 // Booking Create Request Model
+// class BookingCreateRequest {
+//   final int placeId;
+//   final String startTime;
+//   final String endTime;
+//   final DateTime date;
+
+//   BookingCreateRequest({
+//     required this.placeId,
+//     required this.startTime,
+//     required this.endTime,
+//     required this.date,
+//   });
+
+//   Map<String, dynamic> toJson() {
+//     return {
+//       'place_id': placeId,
+//       'start_time': startTime,
+//       'end_time': endTime,
+//       'date': date.toIso8601String().split('T')[0],
+//       'is_confirmed': false,
+//     };
+//   }
+// }
+
+// Update untuk BookingCreateRequest di booking_model.dart
+
+// Model untuk Mobile Booking Request ke Web Admin Laravel
+class MobileBookingCreateRequest {
+  final int placeId;
+  final int userId;
+  final String venueName;
+  final String userName;
+  final String userEmail;
+  final String? userPhone;
+  final DateTime date;
+  final String startTime;
+  final String endTime;
+  final int capacity;
+  final String? notes;
+
+  MobileBookingCreateRequest({
+    required this.placeId,
+    required this.userId,
+    required this.venueName,
+    required this.userName,
+    required this.userEmail,
+    this.userPhone,
+    required this.date,
+    required this.startTime,
+    required this.endTime,
+    required this.capacity,
+    this.notes,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'place_id': placeId,
+      'user_id': userId,
+      'venue_name': venueName,
+      'user_name': userName,
+      'user_email': userEmail,
+      'user_phone': userPhone,
+      'date': date.toIso8601String().split('T')[0], // YYYY-MM-DD format
+      'start_time': startTime,
+      'end_time': endTime,
+      'capacity': capacity,
+      'notes': notes,
+    };
+  }
+  // Factory method to create from venue and form data
+  factory MobileBookingCreateRequest.fromVenueAndForm({
+    required VenueModel venue,
+    required DateTime date,
+    required TimeOfDay startTime,
+    required TimeOfDay endTime,
+    required int capacity,
+    String? specialRequests,
+    required String userName,
+    required String userEmail,
+    String? userPhone,
+  }) {
+    // Format time for API
+    final formattedStartTime = 
+        '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}';
+    final formattedEndTime = 
+        '${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}';
+
+    return MobileBookingCreateRequest(
+      placeId: venue.id!,
+      userId: 1, // Default user ID for testing
+      venueName: venue.name ?? 'Unknown Venue',
+      userName: userName,
+      userEmail: userEmail,
+      userPhone: userPhone,
+      date: date,
+      startTime: formattedStartTime,
+      endTime: formattedEndTime,
+      capacity: capacity,
+      notes: specialRequests,
+    );
+  }
+}
+
+// Keep existing BookingCreateRequest untuk FastAPI backend
 class BookingCreateRequest {
   final int placeId;
   final String startTime;
   final String endTime;
   final DateTime date;
-  
+
   BookingCreateRequest({
     required this.placeId,
     required this.startTime,

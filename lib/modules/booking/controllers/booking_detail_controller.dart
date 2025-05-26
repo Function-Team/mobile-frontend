@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
@@ -27,6 +29,7 @@ class BookingDetailController extends GetxController {
     bookingId = int.tryParse(Get.arguments?.toString() ?? '');
     if (bookingId != null) {
       fetchBookingDetail();
+      startStatusCheckTimer(); // Start auto-refresh
     } else {
       hasError.value = true;
       errorMessage.value = 'Invalid booking ID';
@@ -200,8 +203,50 @@ Booking ID: #${booking.value!.id}
 
   Future<void> refreshBookingDetail() async {
     if (bookingId != null) {
-      await fetchBookingDetail();
+      try {
+        isLoading.value = true;
+        hasError.value = false;
+        errorMessage.value = '';
+
+        final fetchedBooking = await _bookingService.getBookingById(bookingId!);
+
+        if (fetchedBooking != null) {
+          // Update with new status
+          booking.value = fetchedBooking;
+
+          // Show a notification if status has changed since last check
+          if (booking.value?.isConfirmed == true &&
+              booking.value?.status == BookingStatus.confirmed) {
+            _showSuccess('Your booking has been confirmed by the venue!');
+          }
+        } else {
+          // If booking is null, it might have been cancelled by admin
+          hasError.value = true;
+          errorMessage.value = 'Booking may have been cancelled by the venue.';
+          _showError(
+              'This booking has been cancelled by the venue administrator.');
+        }
+      } catch (e) {
+        hasError.value = true;
+        errorMessage.value =
+            'Failed to refresh booking details: ${e.toString()}';
+      } finally {
+        isLoading.value = false;
+      }
     }
+  }
+
+// Auto-refresh timer to check for status updates
+  void startStatusCheckTimer() {
+    // Check every 30 seconds for updates
+    Timer.periodic(const Duration(seconds: 30), (timer) {
+      if (Get.currentRoute.contains(MyRoutes.bookingDetail)) {
+        refreshBookingDetail();
+      } else {
+        // Stop timer if we navigate away
+        timer.cancel();
+      }
+    });
   }
 
   bool get canCancel {

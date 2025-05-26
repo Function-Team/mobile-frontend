@@ -8,17 +8,30 @@ import 'package:get/get.dart';
 class BookingService extends GetxService {
   final ApiService _apiService = Get.find<ApiService>();
 
-  // API Methods
+  // Method untuk membuat booking langsung ke FastAPI
   Future<BookingModel> createBooking(BookingCreateRequest request) async {
     try {
       print('Creating booking with data: ${request.toJson()}');
-      final response =
-          await _apiService.postRequest('/booking', request.toJson());
+      
+      // Kirim langsung ke FastAPI
+      final response = await _apiService.postRequest('/booking', request.toJson());
+      
       print('Booking created successfully: $response');
       return BookingModel.fromJson(response);
     } catch (e) {
-      print('Error creating booking via API: $e');
+      print('Error creating booking via FastAPI: $e');
       throw Exception('Failed to create booking: $e');
+    }
+  }
+
+  // Get booking by ID dari FastAPI
+  Future<BookingModel?> getBookingById(int bookingId) async {
+    try {
+      final response = await _apiService.getRequest('/booking/$bookingId');
+      return BookingModel.fromJson(response);
+    } catch (e) {
+      print('Error fetching booking by ID: $e');
+      return null;
     }
   }
 
@@ -36,8 +49,7 @@ class BookingService extends GetxService {
             VenueModel? venue;
             if (bookingData['place_id'] != null) {
               final venueRepository = VenueRepository();
-              venue =
-                  await venueRepository.getVenueById(bookingData['place_id']);
+              venue = await venueRepository.getVenueById(bookingData['place_id']);
             }
 
             // Create booking model with venue data
@@ -71,16 +83,7 @@ class BookingService extends GetxService {
     }
   }
 
-  Future<BookingModel?> getBookingById(int bookingId) async {
-    try {
-      final response = await _apiService.getRequest('/booking/$bookingId');
-      return BookingModel.fromJson(response);
-    } catch (e) {
-      print('Error fetching booking by ID: $e');
-      return null;
-    }
-  }
-
+  // Cancel booking di FastAPI
   Future<void> cancelBooking(int bookingId) async {
     try {
       await _apiService.deleteRequest('/booking/$bookingId');
@@ -89,22 +92,7 @@ class BookingService extends GetxService {
       throw Exception('Failed to cancel booking: $e');
     }
   }
-
-  Future<List<BookingModel>> getBookingsByMonth(int month, int year) async {
-    try {
-      final response =
-          await _apiService.getRequest('/booking?month=$month&year=$year');
-      if (response is List) {
-        return response.map((json) => BookingModel.fromJson(json)).toList();
-      }
-      return [];
-    } catch (e) {
-      print('Error fetching bookings by month: $e');
-      return [];
-    }
-  }
-
-  // Helper method to check if booking time conflicts exist
+  // Helper method to check time conflicts
   Future<bool> checkTimeConflict({
     required int placeId,
     required DateTime date,
@@ -158,7 +146,7 @@ class BookingService extends GetxService {
       return false;
     } catch (e) {
       print('Error checking time conflict: $e');
-      return false;
+      return false; // Assume no conflict if we can't check
     }
   }
 
@@ -178,7 +166,7 @@ class BookingService extends GetxService {
 
   // Utility method to format time for API
   static String formatTimeForAPI(TimeOfDay time) {
-    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}:00';
+    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
 
   // Utility method to parse time from API
