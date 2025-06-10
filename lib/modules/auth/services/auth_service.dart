@@ -3,6 +3,7 @@ import 'package:function_mobile/core/services/api_service.dart';
 import 'package:function_mobile/modules/auth/models/auth_model.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart' as dio;
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 class AuthService extends GetxService {
   late final ApiService _apiService;
@@ -22,6 +23,24 @@ class AuthService extends GetxService {
 
   Future<void> removeToken() async {
     await _secureStorage.deleteToken();
+  }
+
+  // Extract user ID from JWT token
+  Future<int?> getUserIdFromToken() async {
+    try {
+      final token = await getToken();
+      if (token == null) return null;
+      
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      
+      // The backend uses 'sub' field for email, we need to get user ID differently
+      // For now, we'll store it when we login successfully
+      final userData = await getUserData();
+      return userData?.id;
+    } catch (e) {
+      print('Error extracting user ID from token: $e');
+      return null;
+    }
   }
 
   Future<Map<String, dynamic>> login(String email, String password) async {
@@ -214,14 +233,43 @@ class AuthService extends GetxService {
     return await _secureStorage.getUserData();
   }
 
+  // Fix user/me endpoint call with proper user ID
+  Future<dynamic> fetchUserInfo() async {
+    try {
+      // Get user ID from stored user data
+      final userData = await getUserData();
+      if (userData?.id == null) {
+        print('AuthService: No user ID available for /user/me call');
+        return null;
+      }
+
+      print('AuthService: Calling /user/me with ID: ${userData!.id}');
+      
+      // Call the corrected endpoint with user ID as query parameter
+      final response = await _apiService.getRequest('/user/me?id=${userData.id}');
+      return response;
+      
+    } catch (e) {
+      print('AuthService: Error fetching user info: $e');
+      return null;
+    }
+  }
+
   Future<dynamic> fetchProtectedData(String endPoint) async {
     try {
       if (endPoint.startsWith('/api/')) {
         endPoint = endPoint.substring(4);
       }
+      
+      // Handle /user/me endpoint specially
+      if (endPoint == '/user/me' || endPoint == 'user/me') {
+        return await fetchUserInfo();
+      }
+      
       // Interceptor sudah handle token, jadi tidak perlu manual
       final response = await _apiService.getRequest(endPoint);
       return response;
+      
     } on dio.DioException catch (e) {
       if (e.response?.statusCode == 401) {
         await removeToken();
@@ -244,12 +292,93 @@ class AuthService extends GetxService {
     }
   }
 
+  // login status check
   Future<bool> isLoggedIn() async {
     final token = await getToken();
-    return token != null && token.isNotEmpty;
+    final user = await getUserData();
+    
+    if (token == null || user == null) return false;
+    
+    // Tambah validasi token
+    try {
+      return !JwtDecoder.isExpired(token);
+    } catch (e) {
+      print('Token validation error: $e');
+      return false;
+    }
   }
 
   Future<void> logout() async {
-    await removeToken();
+    try {
+      print('AuthService: Starting logout process...');
+      
+      // Clear token from secure storage
+      await removeToken();
+      print('AuthService: Token removed from storage');
+      
+      // Optional: Call logout endpoint on server if available
+      try {
+        // Uncomment if your backend has a logout endpoint
+        // await _apiService.postRequest('/logout', {});
+        print('AuthService: Server logout completed');
+      } catch (e) {
+        // Server logout failed, but continue with local logout
+        print('AuthService: Server logout failed (continuing anyway): $e');
+      }
+      
+      print('AuthService: Logout completed successfully');
+    } catch (e) {
+      print('AuthService: Error during logout: $e');
+      // Even if there's an error, we should still try to clear local data
+      await removeToken();
+      throw Exception('Logout failed: ${e.toString()}');
+    }
+  }
+
+  // Clear all user data method
+  Future<void> clearAllUserData() async {
+    try {
+      await removeToken();
+      await _secureStorage.clearAllUserData();
+      print('AuthService: All user data cleared');
+    } catch (e) {
+      print('AuthService: Error clearing user data: $e');
+      throw Exception('Failed to clear user data: ${e.toString()}');
+    }
+  }
+
+  // Check if token is valid (not expired)
+  Future<bool> isTokenValid() async {
+    try {
+      final token = await getToken();
+      if (token == null) return false;
+      
+      // Check if token is expired
+      if (JwtDecoder.isExpired(token)) {
+        print('AuthService: Token is expired');
+        return false;
+      }
+      
+      return true;
+    } catch (e) {
+      print('AuthService: Token validation failed: $e');
+      return false;
+    }
+  }
+
+  // Get user info from token
+  Future<Map<String, dynamic>?> getUserInfoFromToken() async {
+    try {
+      final token = await getToken();
+      if (token == null) return null;
+      
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      print('AuthService: Decoded token: $decodedToken');
+      
+      return decodedToken;
+    } catch (e) {
+      print('AuthService: Error decoding token: $e');
+      return null;
+    }
   }
 }

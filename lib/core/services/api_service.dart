@@ -1,4 +1,3 @@
-// Fixed API Service with better authentication handling
 import 'package:get/get.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';

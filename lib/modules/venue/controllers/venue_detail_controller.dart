@@ -195,8 +195,6 @@ class VenueDetailController extends GetxController {
     if (venue.value?.id != null) {
       Get.toNamed(MyRoutes.bookingList,
           arguments: {'venueId': venue.value!.id});
-      Get.toNamed(MyRoutes.bookingList,
-          arguments: {'venueId': venue.value!.id});
     } else {
       CustomSnackbar.show(
           context: Get.context!,
@@ -227,22 +225,41 @@ class VenueDetailController extends GetxController {
     }
   }
 
-  void openFullscreenImage(BuildContext context, String imageUrl,
-      int initialIndex, VenueDetailController controller) {
-    if (controller.venueImages.isEmpty) return;
+  void openGallery(BuildContext context, {int initialIndex = 0}) {
+    if (venueImages.isEmpty) {
+        print('No images available for gallery');
+        return;
+    }
+
+    if (initialIndex < 0 || initialIndex >= venueImages.length) {
+        print('Invalid image index: $initialIndex, using 0');
+        initialIndex = 0;
+    }
 
     Get.toNamed(MyRoutes.imageGallery, arguments: {
-      'images': controller.venueImages,
-      'initialIndex': initialIndex
+        'images': venueImages,
+        'initialIndex': initialIndex
     });
-  }
+}
 
-  void openFullscreenGallery(
-      BuildContext context, VenueDetailController controller) {
-    if (controller.venueImages.isEmpty) return;
+  //  Method for opening gallery with specific index
+  void openImageAtIndex(BuildContext context, int index) {
+    if (venueImages.isEmpty) {
+      print('No images available for gallery');
+      return;
+    }
 
-    Get.toNamed(MyRoutes.imageGallery,
-        arguments: {'images': controller.venueImages, 'initialIndex': 0});
+    if (index < 0 || index >= venueImages.length) {
+      print('Invalid image index: $index');
+      return;
+    }
+
+    print('Opening gallery at index $index');
+    
+    Get.toNamed(MyRoutes.imageGallery, arguments: {
+      'images': venueImages,
+      'initialIndex': index
+    });
   }
 
 }

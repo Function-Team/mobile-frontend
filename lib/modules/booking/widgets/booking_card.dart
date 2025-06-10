@@ -358,7 +358,7 @@ class BookingCard extends StatelessWidget {
               child: OutlineButton(
                 text: 'View Details',
                 onPressed: onTap,
-                height: 36,
+                height: 40,
               ),
             ),
           );
@@ -376,31 +376,31 @@ class BookingCard extends StatelessWidget {
           ),
         );
 
-        // Show cancel only if booking is in the future
-        final now = DateTime.now();
-        final bookingDateTime = DateTime(
-          booking.date.year,
-          booking.date.month,
-          booking.date.day,
-          int.parse(booking.startTime.split(':')[0]),
-          int.parse(booking.startTime.split(':')[1]),
-        );
+      // // Show cancel only if booking is in the future
+      // final now = DateTime.now();
+      // final bookingDateTime = DateTime(
+      //   booking.date.year,
+      //   booking.date.month,
+      //   booking.date.day,
+      //   int.parse(booking.startTime.split(':')[0]),
+      //   int.parse(booking.startTime.split(':')[1]),
+      // );
 
-        if (bookingDateTime.isAfter(now) && onCancel != null) {
-          actions.add(const SizedBox(width: 8));
-          actions.add(
-            Expanded(
-              child: OutlineButton(
-                text: 'Cancel',
-                onPressed: onCancel!,
-                textColor: Colors.red,
-                outlineColor: Colors.red,
-                height: 36,
-              ),
-            ),
-          );
-        }
-        break;
+      // if (bookingDateTime.isAfter(now) && onCancel != null) {
+      //   actions.add(const SizedBox(width: 8));
+      //   actions.add(
+      //     Expanded(
+      //       child: OutlineButton(
+      //         text: 'Cancel',
+      //         onPressed: onCancel!,
+      //         textColor: Colors.red,
+      //         outlineColor: Colors.red,
+      //         height: 40,
+      //       ),
+      //     ),
+      //   );
+      // }
+      // break;
 
       case BookingStatus.expired:
         actions.add(
@@ -408,7 +408,7 @@ class BookingCard extends StatelessWidget {
             child: OutlineButton(
               text: 'View Details',
               onPressed: onTap,
-              height: 36,
+              height: 40,
             ),
           ),
         );
@@ -420,7 +420,7 @@ class BookingCard extends StatelessWidget {
             child: OutlineButton(
               text: 'View Details',
               onPressed: onTap,
-              height: 36,
+              height: 40,
             ),
           ),
         );

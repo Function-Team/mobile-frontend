@@ -256,32 +256,6 @@ class PaymentModel {
   }
 }
 
-// Booking Create Request Model
-// class BookingCreateRequest {
-//   final int placeId;
-//   final String startTime;
-//   final String endTime;
-//   final DateTime date;
-
-//   BookingCreateRequest({
-//     required this.placeId,
-//     required this.startTime,
-//     required this.endTime,
-//     required this.date,
-//   });
-
-//   Map<String, dynamic> toJson() {
-//     return {
-//       'place_id': placeId,
-//       'start_time': startTime,
-//       'end_time': endTime,
-//       'date': date.toIso8601String().split('T')[0],
-//       'is_confirmed': false,
-//     };
-//   }
-// }
-
-// Update untuk BookingCreateRequest di booking_model.dart
 
 // Model untuk Mobile Booking Request ke Web Admin Laravel
 class MobileBookingCreateRequest {
@@ -361,26 +335,99 @@ class MobileBookingCreateRequest {
 }
 
 // Keep existing BookingCreateRequest untuk FastAPI backend
+// Booking Create Request Model untuk Web Admin Laravel
+
 class BookingCreateRequest {
   final int placeId;
-  final String startTime;
-  final String endTime;
+  final int? userId;
+  final String venueName;
+  final String? userName;
+  final String userEmail;
+  final String? userPhone;
+  final String startTime; // DateTime dalam format string
+  final String endTime;   // DateTime dalam format string
   final DateTime date;
+  final int capacity;
+  final String? specialRequests;
+  final double? totalPrice;
 
   BookingCreateRequest({
     required this.placeId,
+    this.userId,
+    required this.venueName,
+    this.userName,
+    required this.userEmail,
+    this.userPhone,
     required this.startTime,
     required this.endTime,
     required this.date,
+    required this.capacity,
+    this.specialRequests,
+    this.totalPrice,
   });
 
   Map<String, dynamic> toJson() {
     return {
-      'place_id': placeId,
-      'start_time': startTime,
-      'end_time': endTime,
-      'date': date.toIso8601String().split('T')[0],
-      'is_confirmed': false,
+      'venue_id': placeId,
+      'user_id': userId ?? 1, // Default user ID untuk testing
+      'venue_name': venueName,
+      'user_name': userName,
+      'user_email': userEmail,
+      'user_phone': userPhone,
+      'start_date': startTime, // Format: "2024-12-25 09:00:00"
+      'end_date': endTime,     // Format: "2024-12-25 12:00:00"
+      'capacity': capacity,
+      'special_requests': specialRequests,
+      'total_price': totalPrice,
     };
+  }
+
+  // Factory method untuk create dari venue dan form data
+  factory BookingCreateRequest.fromVenueAndForm({
+    required VenueModel venue,
+    required DateTime date,
+    required TimeOfDay startTime,
+    required TimeOfDay endTime,
+    required int capacity,
+    String? specialRequests,
+    String userName = "Test User",
+    String userEmail = "test@example.com",
+    String? userPhone,
+  }) {
+    // Format datetime untuk web admin
+    final startDateTime = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      startTime.hour,
+      startTime.minute,
+    );
+    
+    final endDateTime = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      endTime.hour,
+      endTime.minute,
+    );
+
+    // Calculate total price
+    final hours = endDateTime.difference(startDateTime).inHours;
+    final totalPrice = (venue.price ?? 0) * hours.toDouble();
+
+    return BookingCreateRequest(
+      placeId: venue.id!,
+      userId: 1, // Default untuk testing
+      venueName: venue.name ?? 'Unknown Venue',
+      userName: userName,
+      userEmail: userEmail,
+      userPhone: userPhone,
+      startTime: startDateTime.toIso8601String(),
+      endTime: endDateTime.toIso8601String(),
+      date: date,
+      capacity: capacity,
+      specialRequests: specialRequests,
+      totalPrice: totalPrice,
+    );
   }
 }
