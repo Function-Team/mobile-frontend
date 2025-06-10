@@ -8,7 +8,7 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final AuthController controller = Get.find();
+    final AuthController authController = Get.find();
 
     return Scaffold(
         appBar: AppBar(
@@ -88,9 +88,13 @@ class SettingsPage extends StatelessWidget {
               _buildSettingsItem(
                 title: 'Logout',
                 onTap: () {
-                  controller.logout();
+                  authController.showLogoutConfirmation();
                 },
                 textColor: Theme.of(context).colorScheme.error,
+                trailing: Icon(
+                  Icons.logout,
+                  color: Theme.of(context).colorScheme.error,
+                ),
               ),
             ],
           ),

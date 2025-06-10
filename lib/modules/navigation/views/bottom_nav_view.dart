@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/common/widgets/bottom_sheets/logout_bottom_sheet.dart';
+import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 import 'package:function_mobile/modules/booking/views/bookings_list_page.dart';
 import 'package:function_mobile/modules/chat/views/chat_page.dart';
 import 'package:get/get.dart';
@@ -9,6 +11,7 @@ import 'package:function_mobile/modules/navigation/controllers/bottom_nav_contro
 
 class BottomNavView extends StatelessWidget {
   final BottomNavController controller = Get.find();
+  final AuthController authController = Get.find<AuthController>();
 
   BottomNavView({super.key});
 
@@ -22,7 +25,21 @@ class BottomNavView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+    canPop: false, 
+    onPopInvoked: (didPop) async {
+      if(!didPop) {
+        if(controller.currentIndex.value == 0){
+          final shouldExit = await LogoutBottomSheet.show(context, imagePath: 'assets/images/logout.svg');
+          if(shouldExit == true && context.mounted){
+            authController.logout();
+          }
+        }else{
+          controller.changePage(0);
+        }
+      }
+    },
+    child: Scaffold(
       body: Obx(() => pages[controller.currentIndex.value]),
       bottomNavigationBar: Obx(
         () => BottomNavigationBar(
@@ -35,7 +52,8 @@ class BottomNavView extends StatelessWidget {
                 icon: Icon(Icons.favorite), label: 'Favorites'),
             BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-          ],
+     ],
+          ),
         ),
       ),
     );

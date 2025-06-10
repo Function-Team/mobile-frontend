@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/common/widgets/bottom_sheets/logout_bottom_sheet.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:function_mobile/core/services/secure_storage_service.dart';
 import 'package:function_mobile/modules/auth/models/auth_model.dart';
@@ -69,41 +70,47 @@ class AuthController extends GetxController {
     errorMessage.value = '';
     Get.toNamed(MyRoutes.termsOfService);
   }
+
 // login status check
   Future<void> checkLoginStatus() async {
     try {
       print('AuthController: Checking login status...');
-      
+
       final isLoggedIn = await _authService.isLoggedIn();
       if (isLoggedIn) {
         print('AuthController: User appears to be logged in, loading data...');
-        
+
         // Pertama coba dapatkan data user dari local storage
         User? localUser = await _authService.getUserData();
 
         if (localUser != null) {
           user.value = localUser;
-          print("AuthController: User loaded from storage: ${user.value?.username}");
+          print(
+              "AuthController: User loaded from storage: ${user.value?.username}");
         }
 
         // Try to refresh user data with better error handling
         try {
           print('AuthController: Attempting to refresh user data from API...');
           final userData = await _authService.fetchUserInfo();
-          
+
           if (userData != null) {
             // Create User object from API response
             final refreshedUser = User(
               id: userData['id'] ?? localUser?.id ?? 0,
-              username: userData['username'] ?? localUser?.username ?? 'Unknown',
-              email: userData['email'] ?? localUser?.email ?? 'unknown@email.com',
+              username:
+                  userData['username'] ?? localUser?.username ?? 'Unknown',
+              email:
+                  userData['email'] ?? localUser?.email ?? 'unknown@email.com',
             );
-            
+
             user.value = refreshedUser;
             await _authService.saveUserData(refreshedUser);
-            print("AuthController: User refreshed from API: ${user.value?.username}");
+            print(
+                "AuthController: User refreshed from API: ${user.value?.username}");
           } else {
-            print('AuthController: Could not refresh user data, using local data');
+            print(
+                'AuthController: Could not refresh user data, using local data');
           }
         } catch (e) {
           print('AuthController: Error refreshing user data: $e');
@@ -138,7 +145,8 @@ class AuthController extends GetxController {
           );
           user.value = tempUser;
           await _authService.saveUserData(tempUser);
-          print('AuthController: Created temporary user from token: ${tempUser.username}');
+          print(
+              'AuthController: Created temporary user from token: ${tempUser.username}');
         }
       }
     } catch (e) {
@@ -185,7 +193,7 @@ class AuthController extends GetxController {
 
     try {
       print('AuthController: Attempting login...');
-      
+
       final userData = await _authService.login(
         emailLoginController.text.trim(),
         passwordLoginController.text,
@@ -193,20 +201,20 @@ class AuthController extends GetxController {
 
       if (userData['access_token'] != null) {
         print('AuthController: Login successful, token received');
-        
+
         // Create user from login response and token
         await _handleSuccessfulLogin();
-        
+
         // Clear form fields on successful login
         emailLoginController.clear();
         passwordLoginController.clear();
-        
+
         // Show success message
         CustomSnackbar.show(
             context: Get.context!,
             message: 'Welcome back, ${user.value?.username ?? 'User'}!',
             type: SnackbarType.success);
-            
+
         Get.offAllNamed(MyRoutes.bottomNav);
         Get.find<BottomNavController>().changePage(0);
       }
@@ -233,7 +241,7 @@ class AuthController extends GetxController {
     try {
       // First, try to get user info from API
       final userInfo = await _authService.fetchUserInfo();
-      
+
       if (userInfo != null) {
         // Create user from API response
         user.value = User(
@@ -255,13 +263,12 @@ class AuthController extends GetxController {
           print('AuthController: Created basic user as fallback');
         }
       }
-      
+
       // Save user data
       if (user.value != null) {
         await _authService.saveUserData(user.value!);
         print('AuthController: User data saved: ${user.value?.username}');
       }
-      
     } catch (e) {
       print('AuthController: Error handling successful login: $e');
       // Even if user info fetch fails, create a basic user so app doesn't break
@@ -368,60 +375,60 @@ class AuthController extends GetxController {
   }
 
   Future<void> logout() async {
+    await _executeLogout();
+  }
+
+  Future<void> _executeLogout() async {
     try {
       isLoading.value = true;
-      
       print('AuthController: Starting logout...');
       
-      // Call logout on service
       await _authService.logout();
-      
-      // Clear local user data
       user.value = null;
-      
-      // Clear any stored error messages
       errorMessage.value = '';
       
-      // Clear all user-related data from secure storage
       final secureStorage = SecureStorageService();
       await secureStorage.clearAllUserData();
 
-      print('AuthController: Logout completed');
-
-      // Show logout message
-      CustomSnackbar.show(
-          context: Get.context!,
-          message: 'You have been successfully logged out',
-          type: SnackbarType.info);
-          
-      // Navigate to login page
+      _showLogoutSuccess();
       Get.offAllNamed(MyRoutes.login);
       
     } catch (e) {
-      print('AuthController: Error during logout: $e');
-      
-      // Even if logout fails, clear local data and navigate
-      user.value = null;
-      errorMessage.value = '';
-      
-      try {
-        final secureStorage = SecureStorageService();
-        await secureStorage.clearAllUserData();
-      } catch (storageError) {
-        print('AuthController: Error clearing storage: $storageError');
-      }
-      
-      CustomSnackbar.show(
-          context: Get.context!,
-          message: 'Logged out with warnings. Please restart the app if needed.',
-          type: SnackbarType.warning);
-          
-      Get.offAllNamed(MyRoutes.login);
-      
+      await _handleLogoutError(e);
     } finally {
       isLoading.value = false;
     }
   }
+
+  void _showLogoutSuccess() {
+    CustomSnackbar.show(
+      context: Get.context!,
+      message: 'Berhasil keluar dari aplikasi',
+      type: SnackbarType.success,
+    );
+  }
+   Future<void> _handleLogoutError(dynamic error) async {
+    print('Logout error: $error');
+    
+    // Force cleanup
+    user.value = null;
+    errorMessage.value = '';
+    
+    try {
+      final secureStorage = SecureStorageService();
+      await secureStorage.clearAllUserData();
+    } catch (_) {}
+    
+    CustomSnackbar.show(
+      context: Get.context!,
+      message: 'Logout completed with warnings',
+      type: SnackbarType.warning,
+    );
+    
+    Get.offAllNamed(MyRoutes.login);
+  }
+
+ 
 
   // username getter
   String get username {
@@ -435,11 +442,11 @@ class AuthController extends GetxController {
 
   // Helper methods for better state management
   bool get isAuthenticated => user.value != null;
-  
+
   bool get hasValidUser => user.value != null && user.value!.id > 0;
-  
+
   String? get userEmail => user.value?.email;
-  
+
   int? get userId => user.value?.id;
 
   // Method to refresh user data
@@ -457,7 +464,7 @@ class AuthController extends GetxController {
           username: userData['username'] ?? user.value?.username ?? 'Unknown',
           email: userData['email'] ?? user.value?.email ?? 'unknown@email.com',
         );
-        
+
         user.value = refreshedUser;
         await _authService.saveUserData(refreshedUser);
         print("AuthController: User data refreshed successfully");
@@ -488,5 +495,21 @@ class AuthController extends GetxController {
     print('Is Authenticated: $isAuthenticated');
     print('Has Valid User: $hasValidUser');
     print('============================');
+  }
+}
+
+extension AuthControllerLogout on AuthController {
+
+  Future<void> showLogoutConfirmation() async {
+    if (Get.context == null) return;
+    
+    final shouldLogout = await LogoutBottomSheet.show(
+      Get.context!,
+      imagePath: 'assets/images/logout.png',
+    );
+    
+    if (shouldLogout == true) {
+      await _executeLogout(); 
+    }
   }
 }
