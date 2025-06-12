@@ -9,9 +9,9 @@ class ApiService extends GetxService {
   ApiService() {
     _dio = dio.Dio(dio.BaseOptions(
       baseUrl: AppConstants.baseUrl,
-      connectTimeout: const Duration(seconds: 30),
-      receiveTimeout: const Duration(seconds: 30),
-      sendTimeout: const Duration(seconds: 30),
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 10),
+      sendTimeout: const Duration(seconds: 10),
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json",
@@ -45,14 +45,12 @@ class ApiService extends GetxService {
 
           if (token != null && token.isNotEmpty) {
             options.headers["Authorization"] = "Bearer $token";
-            print(
-                "Added auth token to ${options.method} ${options.path}: Bearer ${token.substring(0, 10)}...");
+            print("Added auth token to ${options.method} ${options.path}: Bearer ${token.substring(0, 10)}...");
           } else {
             print("No auth token found for ${options.method} ${options.path}");
           }
         } catch (e) {
-          print(
-              "Warning: Could not add auth token to ${options.method} ${options.path}: $e");
+          print("Warning: Could not add auth token to ${options.method} ${options.path}: $e");
         }
 
         // Debug: Print all headers being sent
@@ -90,8 +88,7 @@ class ApiService extends GetxService {
     }
   }
 
-  Future<dynamic> getRequest(String endpoint,
-      {Map<String, dynamic>? headers}) async {
+  Future<dynamic> getRequest(String endpoint, {Map<String, dynamic>? headers}) async {
     try {
       print("GET Request: $endpoint");
 
@@ -120,8 +117,7 @@ class ApiService extends GetxService {
     }
   }
 
-  Future<dynamic> postRequest(
-      String endpoint, Map<String, dynamic> data) async {
+  Future<dynamic> postRequest(String endpoint, Map<String, dynamic> data) async {
     try {
       print("POST Request: $endpoint");
       print("POST Data: $data");
@@ -150,17 +146,17 @@ class ApiService extends GetxService {
     }
   }
 
-  Future<dynamic> postFormRequest(
-      String endpoint, Map<String, dynamic> data) async {
+  Future<dynamic> postFormRequest(String endpoint, Map<String, dynamic> data) async {
     try {
       print("POST Form Request: $endpoint");
+      print("POST Form Data: $data");
 
       final formData = dio.FormData.fromMap(data);
       final response = await _dio.post(
         endpoint,
         data: formData,
         options: dio.Options(
-          contentType: 'application/x-www-form-urlencoded',
+          contentType: 'application/x-www-form-urlencoded',  
           headers: {
             'Accept': 'application/json',
           },
@@ -171,11 +167,16 @@ class ApiService extends GetxService {
 
       if (response.statusCode! >= 200 && response.statusCode! < 300) {
         return response.data;
+      } else if (response.statusCode == 401) {
+        throw Exception("Authentication required. Please login again.");
       } else {
         throw Exception("HTTP ${response.statusCode}: ${response.data}");
       }
     } on dio.DioException catch (e) {
       print("POST Form Error for $endpoint: ${e.type} - ${e.message}");
+      if (e.response?.statusCode == 401) {
+        throw Exception("Authentication required. Please login again.");
+      }
       _handleDioError(e, endpoint);
       rethrow;
     } catch (e) {
@@ -183,7 +184,7 @@ class ApiService extends GetxService {
       throw Exception("Unexpected error: $e");
     }
   }
-
+  
   Future<dynamic> putRequest(String endpoint, Map<String, dynamic> data) async {
     try {
       print("PUT Request: $endpoint");
@@ -212,8 +213,7 @@ class ApiService extends GetxService {
     }
   }
 
-  Future<dynamic> patchRequest(
-      String endpoint, Map<String, dynamic> data) async {
+  Future<dynamic> patchRequest(String endpoint, Map<String, dynamic> data) async {
     try {
       print("PATCH Request: $endpoint");
 
@@ -274,8 +274,7 @@ class ApiService extends GetxService {
 
     switch (e.type) {
       case dio.DioExceptionType.connectionTimeout:
-        userMessage =
-            "Connection timeout. Please check if the server is running.";
+        userMessage = "Connection timeout. Please check if the server is running.";
         break;
 
       case dio.DioExceptionType.receiveTimeout:
@@ -287,8 +286,7 @@ class ApiService extends GetxService {
         break;
 
       case dio.DioExceptionType.connectionError:
-        userMessage =
-            "Cannot connect to server. Please check your internet connection and server status.";
+        userMessage = "Cannot connect to server. Please check your internet connection and server status.";
         break;
 
       case dio.DioExceptionType.badResponse:
@@ -314,14 +312,13 @@ class ApiService extends GetxService {
         userMessage = "Unknown network error occurred";
         break;
       case dio.DioExceptionType.badCertificate:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+        userMessage = "Certificate error occurred";
+        break;
     }
 
     throw Exception(userMessage);
   }
 
-  // Debug method to check token
   Future<Map<String, dynamic>> debugToken() async {
     try {
       const storage = FlutterSecureStorage();
@@ -330,8 +327,7 @@ class ApiService extends GetxService {
       return {
         'has_token': token != null,
         'token_length': token?.length ?? 0,
-        'token_preview':
-            token != null ? token.substring(0, 10) + '...' : 'none',
+        'token_preview': token != null ? token.substring(0, 10) + '...' : 'none',
         'storage_key': AppConstants.tokenKey,
       };
     } catch (e) {

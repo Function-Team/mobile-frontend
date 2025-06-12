@@ -5,13 +5,13 @@ class AppConstants {
   // UNCOMMENT ONLY ONE SECTION BELOW:
 
   // 🔥 FOR ANDROID STUDIO EMULATOR - UNCOMMENT THIS SECTION
-  static const bool _isEmulator = true;
-  static const String _deviceIP = 'railway.thefunction.id'; // Emulator uses this special IP
+  // static const bool _isEmulator = true;
+  // static const String _deviceIP = 'railway.thefunction.id'; // Emulator uses this special IP
 
   // 🔥 FOR REAL DEVICE - UNCOMMENT THIS SECTION
-  // static const bool _isEmulator = false;
-  // // static const String _deviceIP = '192.168.198.61';
-  // static const String _deviceIP = 'railway.thefunction.id';
+  static const bool _isEmulator = false;
+  // static const String _deviceIP = '192.168.198.61';
+  static const String _deviceIP = 'railway.thefunction.id';
   static const bool _isHttps = true;
 
   // ==================== SERVER CONFIGURATION ====================
