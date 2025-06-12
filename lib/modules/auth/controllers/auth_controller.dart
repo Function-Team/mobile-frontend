@@ -165,201 +165,195 @@ class AuthController extends GetxController {
   }
 
   Future<void> login() async {
-  // Clear previous error
-  errorMessage.value = '';
+    // Clear previous error
+    errorMessage.value = '';
 
-  // Client-side validation
-  if (emailLoginController.text.trim().isEmpty) {
-    errorMessage.value = 'Please enter your email address';
-    return;
-  }
+    // Client-side validation
+    if (emailLoginController.text.trim().isEmpty) {
+      errorMessage.value = 'Please enter your email address';
+      return;
+    }
 
-  if (!_isValidEmail(emailLoginController.text.trim())) {
-    errorMessage.value = 'Please enter a valid email address';
-    return;
-  }
+    if (!_isValidEmail(emailLoginController.text.trim())) {
+      errorMessage.value = 'Please enter a valid email address';
+      return;
+    }
 
-  if (passwordLoginController.text.isEmpty) {
-    errorMessage.value = 'Please enter your password';
-    return;
-  }
+    if (passwordLoginController.text.isEmpty) {
+      errorMessage.value = 'Please enter your password';
+      return;
+    }
 
-  if (passwordLoginController.text.length < 6) {
-    errorMessage.value = 'Password must be at least 6 characters long';
-    return;
-  }
+    if (passwordLoginController.text.length < 6) {
+      errorMessage.value = 'Password must be at least 6 characters long';
+      return;
+    }
 
-  isLoading.value = true;
+    isLoading.value = true;
 
-  try {
-    final userData = await _authService.login(
-      emailLoginController.text.trim(),
-      passwordLoginController.text,
-    );
+    try {
+      final userData = await _authService.login(
+        emailLoginController.text.trim(),
+        passwordLoginController.text,
+      );
 
-    print('Login successful: ${userData['access_token'] != null}');
 
-    if (userData['access_token'] != null) {
-      try {
-        print('Fetching user data after login...');
+      if (userData['access_token'] != null) {
+        // Langsung fetch user info dari API
         final userInfo = await _authService.fetchProtectedData('/user/me');
+
         if (userInfo != null) {
           user.value = User.fromJson(userInfo);
           await _authService.saveUserData(user.value!);
-          print('User data fetched and saved: ${user.value?.username}');
+
+          // Clear form fields on successful login
+          emailLoginController.clear();
+          passwordLoginController.clear();
+
+          // Show success message
+          CustomSnackbar.show(
+              context: Get.context!,
+              message: 'Welcome back, ${user.value?.username ?? 'User'}!',
+              type: SnackbarType.success);
+
+          Get.offAllNamed(MyRoutes.bottomNav);
+          Get.find<BottomNavController>().changePage(0);
+        } else {
+          // FALLBACK: Create user object with basic info
+          user.value = User(
+            id: -1, // temporary ID
+            username: "User", // We don't know the username yet
+            email: emailLoginController.text.trim(),
+            token: userData['access_token'],
+          );
+
+          await _authService.saveUserData(user.value!);
+
+          CustomSnackbar.show(
+              context: Get.context!,
+              message: 'Welcome back!',
+              type: SnackbarType.success);
+
+          Get.offAllNamed(MyRoutes.bottomNav);
+          Get.find<BottomNavController>().changePage(0);
         }
-      } catch (e) {
-        print('ailed to fetch user data after login: $e');
-        // Fallback: Create minimal user object from email
-        user.value = User(
-          id: -1,
-          email: emailLoginController.text.trim(),
-          username: emailLoginController.text.trim().split('@')[0],
-        );
-        await _authService.saveUserData(user.value!);
-        print('Created fallback user data: ${user.value?.username}');
+      }
+    } catch (e) {
+      // Extract clean error message
+      String message = e.toString();
+      if (message.startsWith('Exception: ')) {
+        message = message.substring(11);
       }
 
-      // Clear form fields on successful login
-      emailLoginController.clear();
-      passwordLoginController.clear();
+      errorMessage.value = message;
 
-      // Show success message
+      // Also show snackbar for better UX
       CustomSnackbar.show(
-        context: Get.context!,
-        message: 'Welcome back, ${user.value?.username ?? 'User'}!',
-        type: SnackbarType.success,
-      );
-
-      Get.offAllNamed(MyRoutes.bottomNav);
-      Get.find<BottomNavController>().changePage(0);
+          context: Get.context!,
+          message: 'Login Failed: $message',
+          type: SnackbarType.error);
+    } finally {
+      isLoading.value = false;
     }
-  } catch (e) {
-    // Extract clean error message
-    String message = e.toString();
-    if (message.startsWith('Exception: ')) {
-      message = message.substring(11);
-    }
-
-    errorMessage.value = message;
-    print('Login error: $message');
-
-    // Also show snackbar for better UX
-    CustomSnackbar.show(
-      context: Get.context!,
-      message: 'Login Failed: $message',
-      type: SnackbarType.error,
-    );
-  } finally {
-    isLoading.value = false;
   }
-}
 
   Future<void> signup() async {
-  // Clear previous error
-  errorMessage.value = '';
+    // Clear previous error
+    errorMessage.value = '';
 
-  // Client-side validation
-  if (usernameSignUpController.text.trim().isEmpty) {
-    errorMessage.value = 'Please enter a username';
-    return;
-  }
+    // Client-side validation
+    if (usernameSignUpController.text.trim().isEmpty) {
+      errorMessage.value = 'Please enter a username';
+      return;
+    }
 
-  if (usernameSignUpController.text.trim().length < 3) {
-    errorMessage.value = 'Username must be at least 3 characters long';
-    return;
-  }
+    if (usernameSignUpController.text.trim().length < 3) {
+      errorMessage.value = 'Username must be at least 3 characters long';
+      return;
+    }
 
-  if (emailSignUpController.text.trim().isEmpty) {
-    errorMessage.value = 'Please enter an email address';
-    return;
-  }
+    if (emailSignUpController.text.trim().isEmpty) {
+      errorMessage.value = 'Please enter an email address';
+      return;
+    }
 
-  if (!_isValidEmail(emailSignUpController.text.trim())) {
-    errorMessage.value = 'Please enter a valid email address';
-    return;
-  }
+    if (!_isValidEmail(emailSignUpController.text.trim())) {
+      errorMessage.value = 'Please enter a valid email address';
+      return;
+    }
 
-  if (passwordSignUpController.text.isEmpty) {
-    errorMessage.value = 'Please enter a password';
-    return;
-  }
+    if (passwordSignUpController.text.isEmpty) {
+      errorMessage.value = 'Please enter a password';
+      return;
+    }
 
-  if (passwordSignUpController.text.length < 6) {
-    errorMessage.value = 'Password must be at least 6 characters long';
-    return;
-  }
+    if (passwordSignUpController.text.length < 6) {
+      errorMessage.value = 'Password must be at least 6 characters long';
+      return;
+    }
 
-  if (passwordSignUpController.text != confirmSignUpPasswordController.text) {
-    errorMessage.value = 'Passwords do not match';
-    return;
-  }
+    if (passwordSignUpController.text != confirmSignUpPasswordController.text) {
+      errorMessage.value = 'Passwords do not match';
+      return;
+    }
 
-  isLoading.value = true;
+    isLoading.value = true;
 
-  try {
-    final userData = await _authService.signup(
-      usernameSignUpController.text.trim(),
-      passwordSignUpController.text,
-      emailSignUpController.text.trim(),
-    );
-
-    print('Signup successful: ${userData['access_token'] != null}');
-
-    if (userData['access_token'] != null) {
-      try {
-        print('Fetching user data after signup...');
-        final userInfo = await _authService.fetchProtectedData('/user/me');
-        if (userInfo != null) {
-          user.value = User.fromJson(userInfo);
-          await _authService.saveUserData(user.value!);
-          print('User data fetched and saved: ${user.value?.username}');
-        }
-      } catch (e) {
-        print('Failed to fetch user data after signup: $e');
-        user.value = User(
-          id: -1,
-          username: usernameSignUpController.text.trim(),
-          email: emailSignUpController.text.trim(),
-        );
-        await _authService.saveUserData(user.value!);
-        print('📝 Created fallback user data: ${user.value?.username}');
-      }
-
-      usernameSignUpController.clear();
-      emailSignUpController.clear();
-      passwordSignUpController.clear();
-      confirmSignUpPasswordController.clear();
-
-      // Show success message
-      CustomSnackbar.show(
-        context: Get.context!,
-        message: 'Account created successfully! Welcome, ${user.value?.username ?? 'User'}!',
-        type: SnackbarType.success,
+    try {
+      final userData = await _authService.signup(
+        usernameSignUpController.text.trim(),
+        passwordSignUpController.text,
+        emailSignUpController.text.trim(),
       );
 
-      Get.offAllNamed(MyRoutes.bottomNav);
-    }
-  } catch (e) {
-    // Extract clean error message
-    String message = e.toString();
-    if (message.startsWith('Exception: ')) {
-      message = message.substring(11);
-    }
+      print('Signup successful: ${userData['access_token'] != null}');
 
-    errorMessage.value = message;
-    print('Signup error: $message');
+      if (userData['access_token'] != null) {
+        // 🔧 FIX: Don't call /user/me after signup, create user object directly
+        user.value = User(
+          id: -1, // temporary ID - this is fine for the app to work
+          username: usernameSignUpController.text.trim(),
+          email: emailSignUpController.text.trim(),
+          token: userData['access_token'],
+        );
 
-    // Also show snackbar for better UX
-    CustomSnackbar.show(
-      context: Get.context!,
-      message: 'Registration Failed: $message',
-      type: SnackbarType.error,
-    );
-  } finally {
-    isLoading.value = false;
+        await _authService.saveUserData(user.value!);
+
+        usernameSignUpController.clear();
+        emailSignUpController.clear();
+        passwordSignUpController.clear();
+        confirmSignUpPasswordController.clear();
+
+        // Show success message
+        CustomSnackbar.show(
+          context: Get.context!,
+          message:
+              'Account created successfully! Welcome, ${user.value?.username ?? 'User'}!',
+          type: SnackbarType.success,
+        );
+
+        Get.offAllNamed(MyRoutes.bottomNav);
+      }
+    } catch (e) {
+      // Extract clean error message
+      String message = e.toString();
+      if (message.startsWith('Exception: ')) {
+        message = message.substring(11);
+      }
+
+      errorMessage.value = message;
+      print('Signup error: $message');
+
+      // Also show snackbar for better UX
+      CustomSnackbar.show(
+        context: Get.context!,
+        message: 'Registration Failed: $message',
+        type: SnackbarType.error,
+      );
+    } finally {
+      isLoading.value = false;
+    }
   }
-}
 
   Future<void> logout() async {
     await _executeLogout();
