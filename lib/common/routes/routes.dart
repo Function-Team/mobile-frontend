@@ -24,9 +24,6 @@ import 'package:function_mobile/modules/profile/views/profile_page.dart';
 import 'package:function_mobile/modules/settings/settings_page/views/settings_page.dart';
 import 'package:function_mobile/modules/venue/widgets/venue_detail/fullscreen_image_gallery.dart';
 import 'package:get/get.dart';
-
-// Feature-specific bindings are only required if they have
-// dependencies not covered in the AppBinding
 import 'package:function_mobile/modules/venue/bindings/venue_detail_binding.dart';
 import 'package:function_mobile/modules/venue/bindings/venue_list_binding.dart';
 import 'package:function_mobile/modules/profile/bindings/edit_profile_binding.dart';
@@ -122,6 +119,20 @@ class MyRoutes {
         name: venueDetail,
         page: () => VenueDetailPage(),
         binding: VenueDetailBinding()),
+    //Image Gallery
+    GetPage(
+      name: imageGallery,
+      page: () {
+        final args = Get.arguments as Map<String, dynamic>?;
+        final images = args?['images'] as List<dynamic>? ?? [];
+        final initialIndex = args?['initialIndex'] as int? ?? 0;
+        
+        return FullscreenImageGallery(
+          images: images,
+          initialIndex: initialIndex,
+        );
+      },
+    ),
 
     // Profile
     GetPage(name: profile, page: () => ProfilePage()),

@@ -13,9 +13,9 @@ Future main() async {
   debugPaintSizeEnabled = false;
   // Ensure Flutter is initialized
   WidgetsFlutterBinding.ensureInitialized();
+  Get.put(ApiService());
   // Run the app
   runApp(const MainApp());
-  Get.put(ApiService());
 }
 
 class MainApp extends StatelessWidget {

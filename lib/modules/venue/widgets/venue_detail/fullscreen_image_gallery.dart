@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// A reusable widget for displaying a fullscreen image gallery
 class FullscreenImageGallery extends StatefulWidget {
   final List<dynamic> images;
   final int initialIndex;
@@ -42,6 +41,26 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.images.isEmpty) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          iconTheme: IconThemeData(color: Colors.white),
+          title: Text(
+            'No Images Available',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+        body: Center(
+          child: Text(
+            'No images to display',
+            style: TextStyle(color: Colors.white, fontSize: 16),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: _showControls
@@ -60,7 +79,6 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery> {
           : null,
       body: Stack(
         children: [
-          // Main PageView for swiping images
           PageView.builder(
             controller: _pageController,
             itemCount: widget.images.length,
@@ -70,7 +88,8 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery> {
               });
             },
             itemBuilder: (context, index) {
-              final imageUrl = widget.images[index].imageUrl;
+              final image = widget.images[index];
+              final imageUrl = image?.imageUrl ?? image?.toString() ?? '';
               
               return GestureDetector(
                 onTap: _toggleControls,
@@ -78,7 +97,7 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery> {
                   child: InteractiveViewer(
                     minScale: 0.5,
                     maxScale: 3.0,
-                    child: imageUrl != null
+                    child: imageUrl.isNotEmpty
                         ? Image.network(
                             imageUrl,
                             fit: BoxFit.contain,
@@ -114,9 +133,17 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery> {
                             },
                           )
                         : Center(
-                            child: Text(
-                              "No image available",
-                              style: TextStyle(color: Colors.white60),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.image_not_supported,
+                                    size: 48, color: Colors.white60),
+                                SizedBox(height: 8),
+                                Text(
+                                  "No image available",
+                                  style: TextStyle(color: Colors.white60),
+                                ),
+                              ],
                             ),
                           ),
                   ),
@@ -125,7 +152,7 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery> {
             },
           ),
           
-          // Thumbnail gallery at the bottom (only visible when controls are showing)
+          // Thumbnail gallery at the bottom
           if (_showControls && widget.images.length > 1)
             Positioned(
               left: 0,
@@ -137,7 +164,9 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery> {
                   scrollDirection: Axis.horizontal,
                   itemCount: widget.images.length,
                   itemBuilder: (context, index) {
-                    final imageUrl = widget.images[index].imageUrl;
+                    final image = widget.images[index];
+                    final imageUrl = image?.imageUrl ?? image?.toString() ?? '';
+                    
                     return GestureDetector(
                       onTap: () {
                         _pageController.animateToPage(
@@ -159,7 +188,7 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery> {
                           ),
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: imageUrl != null
+                        child: imageUrl.isNotEmpty
                             ? Image.network(
                                 imageUrl,
                                 fit: BoxFit.cover,

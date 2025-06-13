@@ -198,19 +198,19 @@ class BookingController extends GetxController {
     debugBookingRequest(venue);
 
     // Create booking request untuk FastAPI
-    final bookingRequest = BookingCreateRequest(
-      placeId: venue.id!,
-      startTime: BookingService.formatTimeForAPI(startTime.value!),
-      endTime: BookingService.formatTimeForAPI(endTime.value!),
-      date: selectedDateRange.value!.start,
-    );
+    // final bookingRequest = BookingCreateRequest(
+    //   placeId: venue.id!,
+    //   startTime: BookingService.formatTimeForAPI(startTime.value!),
+    //   endTime: BookingService.formatTimeForAPI(endTime.value!),
+    //   date: selectedDateRange.value!.start,
+    // );
 
-    print('Sending booking request to FastAPI:');
-    print('URL: ${AppConstants.baseUrl}/booking');
-    print('Data: ${bookingRequest.toJson()}');
+    // print('Sending booking request to FastAPI:');
+    // print('URL: ${AppConstants.baseUrl}/booking');
+    // print('Data: ${bookingRequest.toJson()}');
 
-    // Create booking via FastAPI
-    final createdBooking = await _bookingService.createBooking(bookingRequest);
+    // // Create booking via FastAPI
+    // final createdBooking = await _bookingService.createBooking(bookingRequest);
     
     bookingStatus.value = 'success';
     

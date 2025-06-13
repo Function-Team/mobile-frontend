@@ -73,8 +73,8 @@ class VenueDetailPage extends StatelessWidget {
                         return GestureDetector(
                           onTap: () {
                             if (imageUrl != null && imageUrl.isNotEmpty) {
-                              controller.openFullscreenImage(
-                                  context, imageUrl, 0, controller);
+                              controller.openImageAtIndex(
+                                  context, 0);
                             }
                           },
                           child: NetworkImageWithLoader(
@@ -118,8 +118,8 @@ class VenueDetailPage extends StatelessWidget {
                         ImageGallery(
                           images: controller.venueImages,
                           onImageTap: (index) {
-                            controller.openFullscreenGallery(
-                                context, controller);
+                            controller.openImageAtIndex(
+                                context, index);
                           },
                         ),
                         _buildVenueInfoSection(context, controller),

@@ -10,6 +10,7 @@ class PrimaryButton extends StatelessWidget {
   final double? height;
   final double? paddingHorizontal;
   final double? paddingVertical;
+  final Color? backgroundColor;
 
   const PrimaryButton({
     required this.text,
@@ -21,7 +22,8 @@ class PrimaryButton extends StatelessWidget {
     this.height = 50,
     this.paddingHorizontal,
     this.paddingVertical,
-    super.key,
+    this.backgroundColor,
+    super.key, 
   });
 
   @override
