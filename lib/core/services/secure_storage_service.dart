@@ -19,6 +19,36 @@ class SecureStorageService {
     await _storage.delete(key: AppConstants.tokenKey);
   }
 
+    Future<void> saveRefreshToken(String refreshToken) async {
+    await _storage.write(key: AppConstants.refreshTokenKey, value: refreshToken);
+  }
+
+  // Refresh token management
+  Future<String?> getRefreshToken() async {
+    return await _storage.read(key: AppConstants.refreshTokenKey);
+  }
+
+  Future<void> deleteRefreshToken() async {
+    await _storage.delete(key: AppConstants.refreshTokenKey);
+  }
+
+  Future<void> saveTokens({
+    required String accessToken,
+    required String refreshToken,
+  }) async {
+    await Future.wait([
+      _storage.write(key: AppConstants.tokenKey, value: accessToken),
+      _storage.write(key: AppConstants.refreshTokenKey, value: refreshToken),
+    ]);
+  }
+
+  Future<void> deleteTokens() async {
+    await Future.wait([
+      _storage.delete(key: AppConstants.tokenKey),
+      _storage.delete(key: AppConstants.refreshTokenKey),
+    ]);
+  }
+
   // User-specific favorites methods
   String _getFavoritesKeyForUser(int userId) {
     return 'favorites_user_$userId';
@@ -76,7 +106,8 @@ class SecureStorageService {
 
     // Also clear user data and token
     await _storage.delete(key: AppConstants.userKey);
-    await _storage.delete(key: AppConstants.tokenKey);
+    await _storage.delete(key: AppConstants.tokenKey);  
+    await _storage.delete(key: AppConstants.refreshTokenKey);
   }
 
   // Migrate old favorites to user-specific storage (run once when user logs in)
@@ -136,8 +167,14 @@ class SecureStorageService {
     return favorites.isNotEmpty;
   }
 
+  Future<bool> hasValidTokens() async{
+    final accessToken = await getToken();
+    final refreshToken = await getRefreshToken();
+    return accessToken != null && refreshToken != null;
+  }
+
   // Debug method to list all stored data
-  Future<void> debugPrintAllData() async {
+   Future<void> debugPrintAllData() async {
     final allData = await _storage.readAll();
     print('=== Secure Storage Debug ===');
     for (var entry in allData.entries) {
@@ -148,6 +185,10 @@ class SecureStorageService {
         } catch (e) {
           print('${entry.key}: Invalid data');
         }
+      } else if (entry.key == AppConstants.tokenKey) {
+        print('Access Token: ${entry.value.length} characters');
+      } else if (entry.key == AppConstants.refreshTokenKey) {
+        print('Refresh Token: ${entry.value.length} characters');
       } else {
         print('${entry.key}: ${entry.value.length} characters');
       }
