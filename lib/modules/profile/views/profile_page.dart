@@ -57,10 +57,6 @@ class ProfilePage extends StatelessWidget {
                       SizedBox(height: 40),
                       buildProfileOptions(context),
                       SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () => Get.toNamed('/refresh-token-test'),
-                        child: const Text('🔄 Test Refresh Token'),
-                      )
                     ],
                   ),
                 ),
