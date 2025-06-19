@@ -107,6 +107,7 @@ class AuthResponse {
   final String message;
   final User? user;
   final String? accessToken;
+  final String? refreshToken;
   final String? tokenType;
 
   AuthResponse({
@@ -114,6 +115,7 @@ class AuthResponse {
     required this.message,
     this.user,
     this.accessToken,
+    this.refreshToken,
     this.tokenType,
   });
 
@@ -123,6 +125,7 @@ class AuthResponse {
       message: json['message'] ?? 'Unknown response',
       user: json['user'] != null ? User.fromJson(json['user']) : null,
       accessToken: json['access_token'],
+      refreshToken: json['refresh_token'],
       tokenType: json['token_type'],
     );
   }
@@ -133,7 +136,28 @@ class AuthResponse {
           json['access_token'] != null ? 'Login successful' : 'Login failed',
       user: json['user'] != null ? User.fromJson(json['user']) : null,
       accessToken: json['access_token'],
+      refreshToken: json['refresh_token'],
       tokenType: json['token_type'] ?? ['Bearer'],
+    );
+  }
+}
+
+class RefreshTokenResponse {
+  final String accessToken;
+  final String refreshToken;
+  final String tokenType;
+
+  RefreshTokenResponse({
+    required this.accessToken,
+    required this.refreshToken,
+    required this.tokenType,
+  });
+
+  factory RefreshTokenResponse.fromJson(Map<String, dynamic> json) {
+    return RefreshTokenResponse(
+      accessToken: json['access_token'] ?? '',
+      refreshToken: json['refresh_token'] ?? '',
+      tokenType: json['token_type'] ?? 'Bearer',
     );
   }
 }

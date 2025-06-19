@@ -46,16 +46,17 @@ class ProfilePage extends StatelessWidget {
                   child: Column(
                     children: [
                       Obx(() => buildProfileCard(
-                        profile: ProfileModel.fromAuthUser(authController.user.value),
-                        context: context,
-                        onEdit: () {
-                          Get.toNamed(MyRoutes.editProfile);
-                        },
-                        onTapViewProfile: () {},
-                      )),
+                            profile: ProfileModel.fromAuthUser(
+                                authController.user.value),
+                            context: context,
+                            onEdit: () {
+                              Get.toNamed(MyRoutes.editProfile);
+                            },
+                            onTapViewProfile: () {},
+                          )),
                       SizedBox(height: 40),
                       buildProfileOptions(context),
-                      SizedBox(height: 16),
+                      SizedBox(height: 15),
                     ],
                   ),
                 ),

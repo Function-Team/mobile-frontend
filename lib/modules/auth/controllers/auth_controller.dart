@@ -15,6 +15,9 @@ class AuthController extends GetxController {
   final RxString errorMessage = ''.obs;
   final Rx<User?> user = Rx<User?>(null);
 
+  final RxBool isRefreshingToken = false.obs;
+  final RxString refreshTokenStatus = ''.obs;
+
   // For login
   final TextEditingController emailLoginController = TextEditingController();
   final TextEditingController passwordLoginController = TextEditingController();
@@ -31,6 +34,7 @@ class AuthController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _authService.onSessionExpired = _handleSessionExpired;
     checkLoginStatus();
   }
 
@@ -80,7 +84,7 @@ class AuthController extends GetxController {
       if (isLoggedIn) {
         print('AuthController: User appears to be logged in, loading data...');
 
-        // Pertama coba dapatkan data user dari local storage
+        // Load user from local storage first
         User? localUser = await _authService.getUserData();
 
         if (localUser != null) {
@@ -92,31 +96,11 @@ class AuthController extends GetxController {
         // Try to refresh user data with better error handling
         try {
           print('AuthController: Attempting to refresh user data from API...');
-          final userData = await _authService.fetchUserInfo();
-
-          if (userData != null) {
-            // Create User object from API response
-            final refreshedUser = User(
-              id: userData['id'] ?? localUser?.id ?? 0,
-              username:
-                  userData['username'] ?? localUser?.username ?? 'Unknown',
-              email:
-                  userData['email'] ?? localUser?.email ?? 'unknown@email.com',
-            );
-
-            user.value = refreshedUser;
-            await _authService.saveUserData(refreshedUser);
-            print(
-                "AuthController: User refreshed from API: ${user.value?.username}");
-          } else {
-            print(
-                'AuthController: Could not refresh user data, using local data');
-          }
+          await refreshUserData();
         } catch (e) {
           print('AuthController: Error refreshing user data: $e');
           // Continue with local user data if API call fails
           if (localUser == null) {
-            // If we have no local user data and API fails, create minimal user from token
             await _createUserFromToken();
           }
         }
@@ -124,9 +108,24 @@ class AuthController extends GetxController {
         Get.offAllNamed(MyRoutes.bottomNav);
       } else {
         print('AuthController: User not logged in, staying on current page');
+
+        // NEW: Check if we have expired tokens that need cleanup
+        await _cleanupExpiredTokens();
       }
     } catch (e) {
       print('AuthController: Error checking login status: $e');
+    }
+  }
+
+  Future<void> _cleanupExpiredTokens() async {
+    try {
+      final tokenInfo = await _authService.getTokenInfo();
+      if (tokenInfo['requiresReauth'] == true) {
+        print('AuthController: Cleaning up expired tokens');
+        await _authService.clearAllUserData();
+      }
+    } catch (e) {
+      print('AuthController: Error cleaning up tokens: $e');
     }
   }
 
@@ -135,12 +134,11 @@ class AuthController extends GetxController {
     try {
       final tokenInfo = await _authService.getUserInfoFromToken();
       if (tokenInfo != null) {
-        // Extract email from 'sub' field in token
         final email = tokenInfo['sub'] as String?;
         if (email != null) {
           final tempUser = User(
-            id: 0, // Temporary ID
-            username: email.split('@')[0], // Extract username from email
+            id: 0,
+            username: email.split('@')[0],
             email: email,
           );
           user.value = tempUser;
@@ -159,195 +157,128 @@ class AuthController extends GetxController {
     errorMessage.value = '';
   }
 
-  // Validate email format
-  bool _isValidEmail(String email) {
-    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
-  }
-
   Future<void> login() async {
-    // Clear previous error
-    errorMessage.value = '';
-
-    // Client-side validation
-    if (emailLoginController.text.trim().isEmpty) {
-      errorMessage.value = 'Please enter your email address';
-      return;
-    }
-
-    if (!_isValidEmail(emailLoginController.text.trim())) {
-      errorMessage.value = 'Please enter a valid email address';
-      return;
-    }
-
-    if (passwordLoginController.text.isEmpty) {
-      errorMessage.value = 'Please enter your password';
-      return;
-    }
-
-    if (passwordLoginController.text.length < 6) {
-      errorMessage.value = 'Password must be at least 6 characters long';
-      return;
-    }
+    if (!_validateLoginForm()) return;
 
     isLoading.value = true;
+    errorMessage.value = '';
 
     try {
-      final userData = await _authService.login(
+      print('AuthController: Starting login process...');
+
+      final response = await _authService.login(
         emailLoginController.text.trim(),
-        passwordLoginController.text,
+        passwordLoginController.text.trim(),
       );
 
+      print('AuthController: Login response received');
 
-      if (userData['access_token'] != null) {
-        // Langsung fetch user info dari API
-        final userInfo = await _authService.fetchProtectedData('/user/me');
+      // Handle successful login
+      if (response['access_token'] != null) {
+        print('AuthController: Login successful, processing user data...');
 
-        if (userInfo != null) {
-          user.value = User.fromJson(userInfo);
-          await _authService.saveUserData(user.value!);
+        // Create AuthResponse to handle the response properly
+        final authResponse = AuthResponse.fromLoginResponse(response);
 
-          // Clear form fields on successful login
-          emailLoginController.clear();
-          passwordLoginController.clear();
-
-          // Show success message
-          CustomSnackbar.show(
-              context: Get.context!,
-              message: 'Welcome back, ${user.value?.username ?? 'User'}!',
-              type: SnackbarType.success);
-
-          Get.offAllNamed(MyRoutes.bottomNav);
-          Get.find<BottomNavController>().changePage(0);
+        // If user data is included in response, save it
+        if (authResponse.user != null) {
+          user.value = authResponse.user;
+          await _authService.saveUserData(authResponse.user!);
         } else {
-          // FALLBACK: Create user object with basic info
-          user.value = User(
-            id: -1, // temporary ID
-            username: "User", // We don't know the username yet
-            email: emailLoginController.text.trim(),
-            token: userData['access_token'],
-          );
-
-          await _authService.saveUserData(user.value!);
-
-          CustomSnackbar.show(
-              context: Get.context!,
-              message: 'Welcome back!',
-              type: SnackbarType.success);
-
-          Get.offAllNamed(MyRoutes.bottomNav);
-          Get.find<BottomNavController>().changePage(0);
+          // Try to fetch user data from API
+          await refreshUserData();
         }
+
+        // Clear form
+        emailLoginController.clear();
+        passwordLoginController.clear();
+
+        // Navigate to main app
+        Get.offAllNamed(MyRoutes.bottomNav);
+
+        // Show success message
+        CustomSnackbar.show(
+          context: Get.context!,
+          message: 'Login successful',
+          type: SnackbarType.success,
+        );
       }
     } catch (e) {
-      // Extract clean error message
-      String message = e.toString();
-      if (message.startsWith('Exception: ')) {
-        message = message.substring(11);
-      }
+      print('AuthController: Login error: $e');
+      errorMessage.value = e.toString().replaceFirst('Exception: ', '');
 
-      errorMessage.value = message;
-
-      // Also show snackbar for better UX
       CustomSnackbar.show(
-          context: Get.context!,
-          message: 'Login Failed: $message',
-          type: SnackbarType.error);
+        context: Get.context!,
+        message: 'Login Failed',
+        type: SnackbarType.error,
+      );
     } finally {
       isLoading.value = false;
     }
   }
 
   Future<void> signup() async {
-    // Clear previous error
-    errorMessage.value = '';
-
-    // Client-side validation
-    if (usernameSignUpController.text.trim().isEmpty) {
-      errorMessage.value = 'Please enter a username';
-      return;
-    }
-
-    if (usernameSignUpController.text.trim().length < 3) {
-      errorMessage.value = 'Username must be at least 3 characters long';
-      return;
-    }
-
-    if (emailSignUpController.text.trim().isEmpty) {
-      errorMessage.value = 'Please enter an email address';
-      return;
-    }
-
-    if (!_isValidEmail(emailSignUpController.text.trim())) {
-      errorMessage.value = 'Please enter a valid email address';
-      return;
-    }
-
-    if (passwordSignUpController.text.isEmpty) {
-      errorMessage.value = 'Please enter a password';
-      return;
-    }
-
-    if (passwordSignUpController.text.length < 6) {
-      errorMessage.value = 'Password must be at least 6 characters long';
-      return;
-    }
-
-    if (passwordSignUpController.text != confirmSignUpPasswordController.text) {
-      errorMessage.value = 'Passwords do not match';
-      return;
-    }
+    if (!_validateSignupForm()) return;
 
     isLoading.value = true;
+    errorMessage.value = '';
 
     try {
-      final userData = await _authService.signup(
+      print('AuthController: Starting signup process...');
+
+      final response = await _authService.signup(
         usernameSignUpController.text.trim(),
-        passwordSignUpController.text,
+        passwordSignUpController.text.trim(),
         emailSignUpController.text.trim(),
       );
 
-      print('Signup successful: ${userData['access_token'] != null}');
+      print('AuthController: Signup response received');
 
-      if (userData['access_token'] != null) {
-        // 🔧 FIX: Don't call /user/me after signup, create user object directly
-        user.value = User(
-          id: -1, // temporary ID - this is fine for the app to work
-          username: usernameSignUpController.text.trim(),
-          email: emailSignUpController.text.trim(),
-          token: userData['access_token'],
-        );
+      // Handle successful signup
+      if (response['access_token'] != null || response['user'] != null) {
+        print('AuthController: Signup successful');
 
-        await _authService.saveUserData(user.value!);
+        // Create AuthResponse to handle the response properly
+        final authResponse = AuthResponse.fromJson(response);
 
-        usernameSignUpController.clear();
-        emailSignUpController.clear();
-        passwordSignUpController.clear();
-        confirmSignUpPasswordController.clear();
+        // If tokens are provided, user is auto-logged in
+        if (authResponse.accessToken != null) {
+          if (authResponse.user != null) {
+            user.value = authResponse.user;
+            await _authService.saveUserData(authResponse.user!);
+          } else {
+            await refreshUserData();
+          }
 
-        // Show success message
-        CustomSnackbar.show(
-          context: Get.context!,
-          message:
-              'Account created successfully! Welcome, ${user.value?.username ?? 'User'}!',
-          type: SnackbarType.success,
-        );
+          // Clear form
+          _clearSignupForm();
 
-        Get.offAllNamed(MyRoutes.bottomNav);
+          // Navigate to main app
+          Get.offAllNamed(MyRoutes.bottomNav);
+
+          CustomSnackbar.show(
+              context: Get.context!,
+              message: 'Account created successfully',
+              type: SnackbarType.success);
+        } else {
+          // Account created but not logged in (email verification required)
+          _clearSignupForm();
+
+          CustomSnackbar.show(
+              context: Get.context!,
+              message: 'Please check your email to verify your account',
+              type: SnackbarType.success);
+
+          goToLogin();
+        }
       }
     } catch (e) {
-      // Extract clean error message
-      String message = e.toString();
-      if (message.startsWith('Exception: ')) {
-        message = message.substring(11);
-      }
+      print('AuthController: Signup error: $e');
+      errorMessage.value = e.toString().replaceFirst('Exception: ', '');
 
-      errorMessage.value = message;
-      print('Signup error: $message');
-
-      // Also show snackbar for better UX
       CustomSnackbar.show(
         context: Get.context!,
-        message: 'Registration Failed: $message',
+        message: 'Signup Failed',
         type: SnackbarType.error,
       );
     } finally {
@@ -356,57 +287,63 @@ class AuthController extends GetxController {
   }
 
   Future<void> logout() async {
-    await _executeLogout();
-  }
-
-  Future<void> _executeLogout() async {
     try {
       isLoading.value = true;
-      print('AuthController: Starting logout...');
+      print('AuthController: Starting logout process...');
 
       await _authService.logout();
+
       user.value = null;
       errorMessage.value = '';
 
-      final secureStorage = SecureStorageService();
-      await secureStorage.clearAllUserData();
+      emailLoginController.clear();
+      passwordLoginController.clear();
+      _clearSignupForm();
 
-      _showLogoutSuccess();
+      print('AuthController: Logout successful, clearing user data...');
+
       Get.offAllNamed(MyRoutes.login);
+
+      CustomSnackbar.show(
+        context: Get.context!,
+        message: 'You have been successfully logged out',
+        type: SnackbarType.success,
+      );
     } catch (e) {
-      await _handleLogoutError(e);
+      print('AuthController: Logout error: $e');
+
+      await _executeLogout();
+
+      CustomSnackbar.show(
+        context: Get.context!,
+        message: 'Logout Failed',
+        type: SnackbarType.error,
+      );
     } finally {
       isLoading.value = false;
     }
   }
 
-  void _showLogoutSuccess() {
-    CustomSnackbar.show(
-      context: Get.context!,
-      message: 'Berhasil keluar dari aplikasi',
-      type: SnackbarType.success,
-    );
-  }
-
-  Future<void> _handleLogoutError(dynamic error) async {
-    print('Logout error: $error');
-
-    // Force cleanup
+  Future<void> _executeLogout() async {
+   try{
+    await _authService.clearAllUserData();
     user.value = null;
     errorMessage.value = '';
-
-    try {
-      final secureStorage = SecureStorageService();
-      await secureStorage.clearAllUserData();
-    } catch (_) {}
-
-    CustomSnackbar.show(
-      context: Get.context!,
-      message: 'Logout completed with warnings',
-      type: SnackbarType.warning,
-    );
-
+    emailLoginController.clear();
+    passwordLoginController.clear();
+    _clearSignupForm();
     Get.offAllNamed(MyRoutes.login);
+   }catch (e) {
+     print('AuthController: Error during logout execution: $e');
+   }
+  }
+
+
+  void _clearSignupForm() {
+    usernameSignUpController.clear();
+    emailSignUpController.clear();
+    passwordSignUpController.clear();
+    confirmSignUpPasswordController.clear();
   }
 
   // username getter
@@ -419,24 +356,13 @@ class AuthController extends GetxController {
     return 'Guest';
   }
 
-  // Helper methods for better state management
-  bool get isAuthenticated => user.value != null;
-
-  bool get hasValidUser => user.value != null && user.value!.id > 0;
-
-  String? get userEmail => user.value?.email;
-
-  int? get userId => user.value?.id;
-
   // Method to refresh user data
   Future<void> refreshUserData() async {
     try {
-      if (!await _authService.isLoggedIn()) {
-        await logout();
-        return;
-      }
-
+     print('AuthController: Refreshing user data...');
+      
       final userData = await _authService.fetchUserInfo();
+
       if (userData != null) {
         final refreshedUser = User(
           id: userData['id'] ?? user.value?.id ?? 0,
@@ -450,35 +376,275 @@ class AuthController extends GetxController {
       }
     } catch (e) {
       print('AuthController: Error refreshing user data: $e');
-      // Don't logout on refresh error, just log it
+      
+      // If refresh fails due to auth issues, handle session expiry
+      if (e.toString().contains('session has expired') || 
+          e.toString().contains('Authentication required')) {
+        await _handleSessionExpired();
+      }
     }
   }
 
-  // Method to check if session is still valid
-  Future<bool> validateSession() async {
-    try {
-      final token = await _authService.getToken();
-      if (token == null) return false;
+   Future<void> _handleSessionExpired() async {
+    print('AuthController: Handling expired session...');
 
-      return await _authService.isTokenValid();
+    try {
+      await _authService.clearAllUserData();
+      user.value = null;
+      errorMessage.value = '';
+
+      Get.offAllNamed(MyRoutes.login);
+
+      CustomSnackbar.show(
+          context: Get.context!,
+          message: 'Please login again to continue',
+          type: SnackbarType.warning);
     } catch (e) {
-      print('AuthController: Session validation error: $e');
+      print('AuthController: Error handling session expiry: $e');
+    }
+  }
+
+   // Force refresh token (for testing or manual refresh)
+  Future<bool> forceRefreshToken() async {
+    try {
+      isRefreshingToken.value = true;
+      refreshTokenStatus.value = 'Refreshing...';
+      
+      final success = await _authService.forceRefreshToken();
+      
+      if (success) {
+        refreshTokenStatus.value = 'Token refreshed successfully';
+        
+        // Refresh user data after token refresh
+        await refreshUserData();
+        
+        return true;
+      } else {
+        refreshTokenStatus.value = 'Token refresh failed';
+        return false;
+      }
+    } catch (e) {
+      refreshTokenStatus.value = 'Token refresh error: $e';
+      return false;
+    } finally {
+      isRefreshingToken.value = false;
+      
+      // Clear status after delay
+      Future.delayed(const Duration(seconds: 3), () {
+        refreshTokenStatus.value = '';
+      });
+    }
+  }
+
+  Future<Map<String, dynamic>> getTokenInfo() async {
+    return await _authService.getTokenInfo();
+  }
+
+    bool _validateLoginForm() {
+    final email = emailLoginController.text.trim();
+    final password = passwordLoginController.text.trim();
+
+    if (email.isEmpty) {
+      errorMessage.value = 'Please enter your email';
+      return false;
+    }
+
+    if (!_isValidEmail(email)) {
+      errorMessage.value = 'Please enter a valid email address';
+      return false;
+    }
+
+    if (password.isEmpty) {
+      errorMessage.value = 'Please enter your password';
+      return false;
+    }
+
+    if (password.length < 6) {
+      errorMessage.value = 'Password must be at least 6 characters';
+      return false;
+    }
+
+    return true;
+  }
+
+  bool _validateSignupForm() {
+    final username = usernameSignUpController.text.trim();
+    final email = emailSignUpController.text.trim();
+    final password = passwordSignUpController.text.trim();
+    final confirmPassword = confirmSignUpPasswordController.text.trim();
+
+    if (username.isEmpty) {
+      errorMessage.value = 'Please enter a username';
+      return false;
+    }
+
+    if (username.length < 3) {
+      errorMessage.value = 'Username must be at least 3 characters';
+      return false;
+    }
+
+    if (email.isEmpty) {
+      errorMessage.value = 'Please enter your email';
+      return false;
+    }
+
+    if (!_isValidEmail(email)) {
+      errorMessage.value = 'Please enter a valid email address';
+      return false;
+    }
+
+    if (password.isEmpty) {
+      errorMessage.value = 'Please enter a password';
+      return false;
+    }
+
+    if (password.length < 6) {
+      errorMessage.value = 'Password must be at least 6 characters';
+      return false;
+    }
+
+    if (confirmPassword.isEmpty) {
+      errorMessage.value = 'Please confirm your password';
+      return false;
+    }
+
+    if (password != confirmPassword) {
+      errorMessage.value = 'Passwords do not match';
+      return false;
+    }
+
+    return true;
+  }
+
+  bool _isValidEmail(String email) {
+    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+  }
+
+  
+ bool get isAuthenticated => user.value != null;
+  bool get hasValidUser => user.value != null && user.value!.id > 0;
+  int? get userId => user.value?.id;
+  String? get userEmail => user.value?.email;
+
+  Future<bool> testApiConnection() async {
+    try {
+      print('🧪 Testing API connection...');
+      final userData = await _authService.fetchProtectedData('/user/me');
+      print('✅ API Test Success: $userData');
+      return true;
+    } catch (e) {
+      print('❌ API Test Failed: $e');
       return false;
     }
   }
 
-  // Debug method to show current auth state
-  void debugAuthState() {
-    print('=== AUTH CONTROLLER DEBUG ===');
-    print('Is Loading: ${isLoading.value}');
-    print('Has Error: ${errorMessage.value.isNotEmpty}');
-    print('Error Message: ${errorMessage.value}');
-    print('User: ${user.value?.toJson()}');
-    print('Is Authenticated: $isAuthenticated');
-    print('Has Valid User: $hasValidUser');
-    print('============================');
+  Future<bool> validateCurrentSession() async {
+    try {
+      final tokenInfo = await getTokenInfo();
+      if (tokenInfo['hasTokens'] != true) {
+        print('❌ No tokens found');
+        return false;
+      }
+
+      if (tokenInfo['requiresReauth'] == true) {
+        print('❌ Tokens expired, requires re-authentication');
+        return false;
+      }
+
+      print('🔍 Tokens found, testing API connectivity...');
+      return await testApiConnection();
+    } catch (e) {
+      print('❌ Session validation error: $e');
+      return false;
+    }
+  }
+
+  Map<String, dynamic> getAuthState() {
+    return {
+      'isLoading': isLoading.value,
+      'isAuthenticated': isAuthenticated,
+      'hasValidUser': hasValidUser,
+      'userId': userId,
+      'username': username,
+      'userEmail': userEmail,
+      'hasError': errorMessage.value.isNotEmpty,
+      'errorMessage': errorMessage.value,
+      'isRefreshingToken': isRefreshingToken.value,
+      'refreshTokenStatus': refreshTokenStatus.value,
+    };
+  }
+
+  Future<bool> forceRefreshUserData() async {
+    try {
+      print('🔄 Force refreshing user data...');
+      await refreshUserData();
+      print('✅ User data refreshed successfully');
+      return true;
+    } catch (e) {
+      print('❌ Force refresh failed: $e');
+      return false;
+    }
+  }
+
+  void clearErrorState() {
+    errorMessage.value = '';
+    refreshTokenStatus.value = '';
+    print('🧹 Error state cleared');
+  }
+
+  // Enhanced diagnostics with refresh token info
+  Future<Map<String, bool>> runAuthDiagnostics() async {
+    final diagnostics = <String, bool>{};
+
+    print('🔬 Running Enhanced Auth Diagnostics...');
+
+    // Test 1: Token existence
+    final tokenInfo = await getTokenInfo();
+    diagnostics['hasTokens'] = tokenInfo['hasTokens'] == true;
+    diagnostics['hasAccessToken'] = tokenInfo['accessTokenValid'] == true;
+    diagnostics['hasRefreshToken'] = tokenInfo['refreshTokenValid'] == true;
+    print('Has Tokens: ${diagnostics['hasTokens']}');
+    print('Access Token Valid: ${diagnostics['hasAccessToken']}');
+    print('Refresh Token Valid: ${diagnostics['hasRefreshToken']}');
+
+    // Test 2: User data existence
+    final userData = await _authService.getUserData();
+    diagnostics['hasUserData'] = userData != null;
+    print('User data exists: ${diagnostics['hasUserData']}');
+
+    // Test 3: API connectivity (if tokens exist)
+    if (diagnostics['hasTokens'] == true) {
+      diagnostics['apiConnectivity'] = await testApiConnection();
+      print('API connectivity: ${diagnostics['apiConnectivity']}');
+    } else {
+      diagnostics['apiConnectivity'] = false;
+      print('API connectivity: SKIPPED (no tokens)');
+    }
+
+    // Test 4: Session validity
+    diagnostics['sessionValid'] = await validateCurrentSession();
+    print('Session valid: ${diagnostics['sessionValid']}');
+
+    // Test 5: Token refresh capability
+    if (tokenInfo['needsRefresh'] == true) {
+      diagnostics['canRefresh'] = await forceRefreshToken();
+      print('Can refresh: ${diagnostics['canRefresh']}');
+    } else {
+      diagnostics['canRefresh'] = diagnostics['hasRefreshToken'] == true;
+      print('Can refresh: ${diagnostics['canRefresh']} (refresh not needed)');
+    }
+
+    print('🔬 Enhanced diagnostics complete: $diagnostics');
+    return diagnostics;
+  }
+
+  // NEW: Debug token information
+  Future<void> debugPrintTokenInfo() async {
+    await _authService.debugPrintTokenInfo();
   }
 }
+
+
 
 extension AuthControllerLogout on AuthController {
   Future<void> showLogoutConfirmation() async {
