@@ -107,10 +107,10 @@ class BookingListController extends GetxController
   void _sortBookings() {
     switch (selectedSort.value) {
       case 'date_desc':
-        filteredBookings.sort((a, b) => b.date.compareTo(a.date));
+        filteredBookings.sort((a, b) => b.startDateTime.compareTo(a.startDateTime));
         break;
       case 'date_asc':
-        filteredBookings.sort((a, b) => a.date.compareTo(b.date));
+        filteredBookings.sort((a, b) => a.startDateTime.compareTo(b.startDateTime));
         break;
       case 'venue_name':
         filteredBookings.sort(
@@ -173,9 +173,6 @@ class BookingListController extends GetxController
     final now = DateTime.now();
     return bookings.where((booking) {
       final bookingDateTime = DateTime(
-        booking.date.year,
-        booking.date.month,
-        booking.date.day,
         int.parse(booking.startTime.split(':')[0]),
         int.parse(booking.startTime.split(':')[1]),
       );
@@ -189,9 +186,6 @@ class BookingListController extends GetxController
     final now = DateTime.now();
     return bookings.where((booking) {
       final bookingDateTime = DateTime(
-        booking.date.year,
-        booking.date.month,
-        booking.date.day,
         int.parse(booking.endTime.split(':')[0]),
         int.parse(booking.endTime.split(':')[1]),
       );
@@ -201,10 +195,9 @@ class BookingListController extends GetxController
 
   List<BookingModel> getBookingsForDate(DateTime date) {
     return bookings
-        .where((booking) =>
-            booking.date.year == date.year &&
-            booking.date.month == date.month &&
-            booking.date.day == date.day)
+        .where((booking) => booking.startDateTime.year == date.year &&
+            booking.startDateTime.month == date.month &&
+            booking.startDateTime.day == date.day)
         .toList();
   }
 
