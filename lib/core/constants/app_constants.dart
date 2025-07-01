@@ -48,8 +48,10 @@ class AppConstants {
   static const String tokenKey = 'auth_token';
   static const String userKey = 'user_data';
   static const String refreshTokenKey = 'refresh_token';
-   static const Duration tokenRefreshThreshold = Duration(minutes: 5); // Refresh when token expires in 5 minutes
-  static const Duration refreshTokenRetryDelay = Duration(seconds: 2); // Delay between refresh attempts
+  static const Duration tokenRefreshThreshold =
+      Duration(minutes: 5); // Refresh when token expires in 5 minutes
+  static const Duration refreshTokenRetryDelay =
+      Duration(seconds: 2); // Delay between refresh attempts
   static const int maxRefreshRetries = 3;
 
   // ==================== DEBUG HELPER ====================
@@ -76,7 +78,6 @@ class AppConstants {
   }
 
   // ==================== NETWORK TESTING ====================
-
 
   static void printNetworkTest() {
     print("\n" + "=" * 50);
