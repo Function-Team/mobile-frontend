@@ -213,8 +213,6 @@ class BookingController extends GetxController {
           : null,
     );
 
-    print('Sending booking request to FastAPI:');
-    print('Data: ${bookingRequest.toJson()}');
 
     // Create booking via existing service method
     final createdBooking = await _bookingService.createBooking(bookingRequest);
