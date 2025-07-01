@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/core/constants/app_constants.dart';
@@ -197,20 +196,28 @@ class BookingController extends GetxController {
     // Debug info
     debugBookingRequest(venue);
 
-    // Create booking request untuk FastAPI
-    // final bookingRequest = BookingCreateRequest(
-    //   placeId: venue.id!,
-    //   startTime: BookingService.formatTimeForAPI(startTime.value!),
-    //   endTime: BookingService.formatTimeForAPI(endTime.value!),
-    //   date: selectedDateRange.value!.start,
-    // );
+    // Create the booking request using the existing model from booking_model.dart
+    final bookingRequest = BookingCreateRequest.fromVenueAndForm(
+      venue: venue,
+      date: selectedDateRange.value!.start,
+      startTime: startTime.value!,
+      endTime: endTime.value!,
+      capacity: int.parse(selectedCapacity.value),
+      specialRequests: specialRequestsController.text.trim().isNotEmpty 
+          ? specialRequestsController.text.trim() 
+          : null,
+      userName: guestNameController.text.trim(),
+      userEmail: guestEmailController.text.trim(),
+      userPhone: guestPhoneController.text.trim().isNotEmpty 
+          ? guestPhoneController.text.trim() 
+          : null,
+    );
 
-    // print('Sending booking request to FastAPI:');
-    // print('URL: ${AppConstants.baseUrl}/booking');
-    // print('Data: ${bookingRequest.toJson()}');
+    print('Sending booking request to FastAPI:');
+    print('Data: ${bookingRequest.toJson()}');
 
-    // // Create booking via FastAPI
-    // final createdBooking = await _bookingService.createBooking(bookingRequest);
+    // Create booking via existing service method
+    final createdBooking = await _bookingService.createBooking(bookingRequest);
     
     bookingStatus.value = 'success';
     
@@ -233,6 +240,8 @@ class BookingController extends GetxController {
     } else if (e.toString().contains('Validation failed') || 
                e.toString().contains('422')) {
       errorMessage = 'Please check your booking details and try again.';
+    } else if (e.toString().contains('409')) {
+      errorMessage = 'Time slot is already booked. Please choose a different time.';
     }
     
     _showError(errorMessage);
@@ -300,12 +309,8 @@ class BookingController extends GetxController {
       'venue_price_per_day': pricePerDay,
       'booking_date':
           selectedDateRange.value?.start.toIso8601String().split('T')[0] ?? '',
-      'start_time': startTime.value != null
-          ? BookingService.formatTimeForAPI(startTime.value!)
-          : '',
-      'end_time': endTime.value != null
-          ? BookingService.formatTimeForAPI(endTime.value!)
-          : '',
+      'start_datetime': startTime.value?.format(Get.context!) ?? '',
+      'end_datetime': endTime.value?.format(Get.context!) ?? '',
     };
   }
 
@@ -325,39 +330,14 @@ class BookingController extends GetxController {
 
   // Validation for booking date and time
   String? validateBookingDateTime() {
-    if (selectedDateRange.value == null) {
-      return 'Please select a booking date';
-    }
-
-    final selectedDate = selectedDateRange.value!.start;
-    final now = DateTime.now();
-
-    // Check if date is in the past
-    if (selectedDate.isBefore(DateTime(now.year, now.month, now.day))) {
-      return 'Cannot book for past dates';
-    }
-
-    // Check if booking is for today but time has passed
-    if (selectedDate.year == now.year &&
-        selectedDate.month == now.month &&
-        selectedDate.day == now.day) {
-      if (startTime.value != null) {
-        final bookingDateTime = DateTime(
-          selectedDate.year,
-          selectedDate.month,
-          selectedDate.day,
-          startTime.value!.hour,
-          startTime.value!.minute,
-        );
-
-        if (bookingDateTime.isBefore(now.add(const Duration(hours: 1)))) {
-          return 'Booking must be at least 1 hour from now';
-        }
-      }
-    }
-
-    return null;
+  if (selectedDateRange.value == null) {
+    return 'Please select a booking date';
   }
+  if (startTime.value == null || endTime.value == null) {
+    return 'Please select start and end times';
+  }
+  return null; // Let backend handle advanced validation
+}
 
   // Clear form data
   void clearForm() {
@@ -388,20 +368,5 @@ class BookingController extends GetxController {
     return slots;
   }
 
-  // Check if a time slot is available (menggunakan FastAPI backend untuk check conflict)
-  Future<bool> isTimeSlotAvailable(
-      VenueModel venue, DateTime date, TimeOfDay time) async {
-    try {
-      final endTime = TimeOfDay(hour: time.hour + 1, minute: time.minute);
-      return !(await _bookingService.checkTimeConflict(
-        placeId: venue.id!,
-        date: date,
-        startTime: BookingService.formatTimeForAPI(time),
-        endTime: BookingService.formatTimeForAPI(endTime),
-      ));
-    } catch (e) {
-      print('Error checking time slot availability: $e');
-      return true; // Assume available if check fails
-    }
-  }
+  
 }

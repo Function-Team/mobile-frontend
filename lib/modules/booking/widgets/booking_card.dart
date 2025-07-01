@@ -95,9 +95,9 @@ class BookingCard extends StatelessWidget {
 
     final now = DateTime.now();
     final bookingDateTime = DateTime(
-      booking.date.year,
-      booking.date.month,
-      booking.date.day,
+      booking.startDateTime.year,
+      booking.startDateTime.month,
+      booking.startDateTime.day,
       int.parse(booking.startTime.split(':')[0]),
       int.parse(booking.startTime.split(':')[1]),
     );

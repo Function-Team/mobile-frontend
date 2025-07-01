@@ -254,9 +254,6 @@ Booking ID: #${booking.value!.id}
 
     final now = DateTime.now();
     final bookingDateTime = DateTime(
-      booking.value!.date.year,
-      booking.value!.date.month,
-      booking.value!.date.day,
       int.parse(booking.value!.startTime.split(':')[0]),
       int.parse(booking.value!.startTime.split(':')[1]),
     );
@@ -273,9 +270,6 @@ Booking ID: #${booking.value!.id}
 
     final now = DateTime.now();
     final bookingDateTime = DateTime(
-      booking.value!.date.year,
-      booking.value!.date.month,
-      booking.value!.date.day,
       int.parse(booking.value!.startTime.split(':')[0]),
       int.parse(booking.value!.startTime.split(':')[1]),
     );
@@ -293,9 +287,6 @@ Booking ID: #${booking.value!.id}
 
     final now = DateTime.now();
     final bookingEndDateTime = DateTime(
-      booking.value!.date.year,
-      booking.value!.date.month,
-      booking.value!.date.day,
       int.parse(booking.value!.endTime.split(':')[0]),
       int.parse(booking.value!.endTime.split(':')[1]),
     );
@@ -308,9 +299,6 @@ Booking ID: #${booking.value!.id}
 
     final now = DateTime.now();
     final bookingDateTime = DateTime(
-      booking.value!.date.year,
-      booking.value!.date.month,
-      booking.value!.date.day,
       int.parse(booking.value!.startTime.split(':')[0]),
       int.parse(booking.value!.startTime.split(':')[1]),
     );

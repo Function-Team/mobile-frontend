@@ -19,16 +19,13 @@ class AppConstants {
   static const String _laravelPort = '';
   static const String _fastApiPort = '';
 
-  // Choose which backend to use
-  static const bool _useDirectFastApi = true; // true = FastAPI, false = Laravel
 
   // ==================== AUTO-GENERATED URLs ====================
   static String get baseUrl {
-    final port = _useDirectFastApi ? _fastApiPort : _laravelPort;
     final scheme = _isHttps ? 'https' : 'http';
-    return port.isEmpty
+    return _fastApiPort.isEmpty
         ? '$scheme://$_deviceIP/api'
-        : '$scheme://$_deviceIP:$port/api';
+        : '$scheme://$_deviceIP:$_fastApiPort/api';
   }
 
   // Alternative URLs for reference
@@ -36,11 +33,10 @@ class AppConstants {
   static String get laravelUrl => 'http://$_deviceIP:$_laravelPort/api';
 
   static String get testUrl {
-    final port = _useDirectFastApi ? _fastApiPort : _laravelPort;
     final scheme = _isHttps ? 'https' : 'http';
-    return port.isEmpty
+    return _fastApiPort.isEmpty
         ? '$scheme://$_deviceIP/docs'
-        : '$scheme://$_deviceIP:$port/docs';
+        : '$scheme://$_deviceIP:$_fastApiPort/docs';
   }
 
   // ==================== STORAGE & ASSETS ====================
@@ -62,8 +58,6 @@ class AppConstants {
     print(
         "📱 Device Type: ${_isEmulator ? 'Android Studio Emulator' : 'Real Android Device'}");
     print("🌐 Target IP: $_deviceIP");
-    print(
-        "🔧 Backend: ${_useDirectFastApi ? 'Direct FastAPI' : 'Via Laravel'}");
     print("🎯 Active URL: $baseUrl");
     print("-" * 50);
     print("📋 Available URLs:");
@@ -92,10 +86,10 @@ class AppConstants {
     print("3. Check if server is running on computer:");
     if (_isEmulator) {
       print(
-          "   http://localhost:${_useDirectFastApi ? _fastApiPort : _laravelPort}/docs");
+          "   http://localhost:$_fastApiPort/docs");
     } else {
       print(
-          "   http://$_deviceIP:${_useDirectFastApi ? _fastApiPort : _laravelPort}/docs");
+          "   http://$_deviceIP:$_fastApiPort/docs");
     }
     print("=" * 50 + "\n");
   }

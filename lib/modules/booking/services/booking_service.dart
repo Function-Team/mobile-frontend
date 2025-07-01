@@ -8,22 +8,6 @@ import 'package:get/get.dart';
 class BookingService extends GetxService {
   final ApiService _apiService = Get.find<ApiService>();
 
-  // Method untuk membuat booking langsung ke FastAPI
-  Future<BookingModel> createBooking(BookingCreateRequest request) async {
-    try {
-      print('Creating booking with data: ${request.toJson()}');
-      
-      // Kirim langsung ke FastAPI
-      final response = await _apiService.postRequest('/booking', request.toJson());
-      
-      print('Booking created successfully: $response');
-      return BookingModel.fromJson(response);
-    } catch (e) {
-      print('Error creating booking via FastAPI: $e');
-      throw Exception('Failed to create booking: $e');
-    }
-  }
-
   // Get booking by ID dari FastAPI
   Future<BookingModel?> getBookingById(int bookingId) async {
     try {
@@ -45,28 +29,7 @@ class BookingService extends GetxService {
 
         for (final bookingData in response) {
           try {
-            // Fetch venue data for each booking
-            VenueModel? venue;
-            if (bookingData['place_id'] != null) {
-              final venueRepository = VenueRepository();
-              venue = await venueRepository.getVenueById(bookingData['place_id']);
-            }
-
-            // Create booking model with venue data
-            final booking = BookingModel(
-              id: bookingData['id'],
-              placeId: bookingData['place_id'],
-              userId: bookingData['user_id'],
-              startTime: bookingData['start_time'],
-              endTime: bookingData['end_time'],
-              date: DateTime.parse(bookingData['date']),
-              isConfirmed: bookingData['is_confirmed'] ?? false,
-              createdAt: bookingData['created_at'] != null
-                  ? DateTime.parse(bookingData['created_at'])
-                  : null,
-              place: venue, // Include venue data
-            );
-
+            final booking = BookingModel.fromJson(bookingData);
             bookings.add(booking);
           } catch (e) {
             print('Error processing booking ${bookingData['id']}: $e');
@@ -83,6 +46,23 @@ class BookingService extends GetxService {
     }
   }
 
+  Future<BookingModel> createBooking(BookingCreateRequest request) async {
+    try {
+      print('Creating booking with data: ${request.toJson()}');
+
+      // Send directly to FastAPI
+      final response =
+          await _apiService.postRequest('/booking', request.toJson());
+      print('Full booking response: $response');
+
+      print('Booking created successfully: $response');
+      return BookingModel.fromJson(response);
+    } catch (e) {
+      print('Error creating booking via FastAPI: $e');
+      throw Exception('Failed to create booking: $e');
+    }
+  }
+
   // Cancel booking di FastAPI
   Future<void> cancelBooking(int bookingId) async {
     try {
@@ -92,6 +72,7 @@ class BookingService extends GetxService {
       throw Exception('Failed to cancel booking: $e');
     }
   }
+
   // Helper method to check time conflicts
   Future<bool> checkTimeConflict({
     required int placeId,
@@ -113,9 +94,8 @@ class BookingService extends GetxService {
             id: bookingData['id'],
             placeId: bookingData['place_id'],
             userId: bookingData['user_id'],
-            startTime: bookingData['start_time'],
-            endTime: bookingData['end_time'],
-            date: DateTime.parse(bookingData['date']),
+            startDateTime: bookingData['start_datetime'],
+            endDateTime: bookingData['end_datetime'],
             isConfirmed: bookingData['is_confirmed'] ?? false,
             createdAt: bookingData['created_at'] != null
                 ? DateTime.parse(bookingData['created_at'])
@@ -127,12 +107,8 @@ class BookingService extends GetxService {
 
       // Filter bookings for the same date
       final conflictingBookings = bookings
-          .where((booking) =>
-              booking.date.year == date.year &&
-              booking.date.month == date.month &&
-              booking.date.day == date.day &&
-              (booking.status == BookingStatus.confirmed ||
-                  booking.status == BookingStatus.pending))
+          .where((booking) => (booking.status == BookingStatus.confirmed ||
+              booking.status == BookingStatus.pending))
           .toList();
 
       // Check for time overlaps
