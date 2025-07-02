@@ -1,3 +1,4 @@
+import 'package:function_mobile/modules/auth/services/auth_service.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_list_controller.dart';
 import 'package:function_mobile/modules/favorite/controllers/favorites_controller.dart';
 import 'package:get/get.dart';
@@ -15,6 +16,7 @@ class AppBinding extends Bindings {
     Get.put(BottomNavController(), permanent: true);
     Get.put(FavoritesController(), permanent: true);
     Get.put(BookingListController(), permanent: true);
+    Get.put(AuthService(), permanent: true);
     // Non-permanent controllers that can be lazy-loaded
     Get.lazyPut<HomeController>(() => HomeController(), fenix: true);
 

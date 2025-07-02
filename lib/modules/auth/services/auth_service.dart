@@ -61,24 +61,26 @@ class AuthService extends GetxService {
     try {
       final token = await getToken();
       if (token == null) return false;
-      
+
       // Check if token is expired
       if (JwtDecoder.isExpired(token)) {
         print('AuthService: Access token is expired, attempting refresh...');
         return await _attemptTokenRefresh();
       }
-      
+
       // Check if token is about to expire (within threshold)
       final timeToExpiry = JwtDecoder.getRemainingTime(token);
-      if (timeToExpiry.inMinutes <= AppConstants.tokenRefreshThreshold.inMinutes) {
-        print('AuthService: Access token expires soon, refreshing proactively...');
+      if (timeToExpiry.inMinutes <=
+          AppConstants.tokenRefreshThreshold.inMinutes) {
+        print(
+            'AuthService: Access token expires soon, refreshing proactively...');
         // Attempt refresh but don't block if it fails
         _attemptTokenRefresh().catchError((e) {
           print('AuthService: Proactive refresh failed: $e');
           return false;
         });
       }
-      
+
       return true;
     } catch (e) {
       print('AuthService: Token validation failed: $e');
@@ -94,7 +96,7 @@ class AuthService extends GetxService {
     }
 
     _isRefreshingToken = true;
-    
+
     try {
       final refreshToken = await getRefreshToken();
       if (refreshToken == null) {
@@ -104,48 +106,48 @@ class AuthService extends GetxService {
 
       // Check if refresh token is expired
       if (JwtDecoder.isExpired(refreshToken)) {
-        print('AuthService: Refresh token is expired, requiring re-authentication');
+        print(
+            'AuthService: Refresh token is expired, requiring re-authentication');
         await _handleExpiredRefreshToken();
         return false;
       }
 
       print('AuthService: Attempting to refresh access token...');
-      
+
       // Call refresh endpoint
-      final response = await _apiService.getRequest('/refresh?refresh_token=$refreshToken');
-      
-      if (response != null && 
-          response['access_token'] != null && 
+      final response =
+          await _apiService.getRequest('/refresh?refresh_token=$refreshToken');
+
+      if (response != null &&
+          response['access_token'] != null &&
           response['refresh_token'] != null) {
-        
         await saveTokens(
           accessToken: response['access_token'],
           refreshToken: response['refresh_token'],
         );
-        
+
         print('AuthService: Token refresh successful');
 
-        try{
+        try {
           await createUserFromToken();
           print('AuthService: User created from token successfully');
         } catch (e) {
           print('AuthService: Error creating user from token: $e');
         }
-        
+
         // Execute pending requests
         _executePendingRequests();
-        
+
         return true;
       } else {
         throw Exception('Invalid refresh response');
       }
-      
     } catch (e) {
       print('AuthService: Token refresh failed: $e');
-      
+
       // If refresh fails, handle as expired session
       await _handleExpiredRefreshToken();
-      
+
       return false;
     } finally {
       _isRefreshingToken = false;
@@ -158,16 +160,16 @@ class AuthService extends GetxService {
       await Future.delayed(AppConstants.refreshTokenRetryDelay);
       attempts++;
     }
-    
+
     // Check if refresh was successful
     final token = await getToken();
     return token != null && !JwtDecoder.isExpired(token);
   }
 
-   Future<void> _handleExpiredRefreshToken() async {
+  Future<void> _handleExpiredRefreshToken() async {
     print('AuthService: Refresh token expired, clearing all auth data');
     await clearAllUserData();
-    
+
     // Call the callback if set
     if (onSessionExpired != null) {
       try {
@@ -191,7 +193,7 @@ class AuthService extends GetxService {
     }
   }
 
-   void _executePendingRequests() {
+  void _executePendingRequests() {
     for (final request in _pendingRequests) {
       try {
         request();
@@ -244,10 +246,10 @@ class AuthService extends GetxService {
           await saveToken(response['access_token']);
         }
 
-        try{
+        try {
           await createUserFromToken();
           print('AuthService: User created from token successfully');
-        }catch (e) {
+        } catch (e) {
           print('AuthService: Error creating user from token: $e');
         }
         return Map<String, dynamic>.from(response);
@@ -328,12 +330,13 @@ class AuthService extends GetxService {
 
       if (response != null &&
           (response['access_token'] != null || response['user'] != null)) {
-        if (response['access_token'] != null && response['refresh_token'] != null) {
+        if (response['access_token'] != null &&
+            response['refresh_token'] != null) {
           await saveTokens(
             accessToken: response['access_token'],
             refreshToken: response['refresh_token'],
           );
-          try{
+          try {
             await createUserFromToken();
             print('AuthService: User created from token successfully');
           } catch (e) {
@@ -429,16 +432,17 @@ class AuthService extends GetxService {
   }
 
   // Fix user/me endpoint call with proper user ID
- Future<dynamic> fetchUserInfo() async {
+  Future<dynamic> fetchUserInfo() async {
     try {
       // try to get user from stored data
       final userData = await getUserData();
-      
+
       if (userData?.id != null) {
         print('AuthService: Calling /user/me with ID: ${userData!.id}');
-        
+
         try {
-          final response = await _apiService.getRequest('/user/me?id=${userData.id}');
+          final response =
+              await _apiService.getRequest('/user/me?id=${userData.id}');
           return response;
         } catch (e) {
           print('AuthService: API call failed, using stored data: $e');
@@ -446,13 +450,14 @@ class AuthService extends GetxService {
         }
       } else {
         print('AuthService: No stored user data, creating from token...');
-        
+
         // Create user from token if no stored data
         final userFromToken = await createUserFromToken();
         if (userFromToken != null) {
           try {
             // Try API call with new user ID
-            final response = await _apiService.getRequest('/user/me?id=${userFromToken.id}');
+            final response =
+                await _apiService.getRequest('/user/me?id=${userFromToken.id}');
             return response;
           } catch (e) {
             print('AuthService: API call failed, returning token data: $e');
@@ -506,6 +511,7 @@ class AuthService extends GetxService {
 
   // login status check
   Future<bool> isLoggedIn() async {
+    await Future.delayed(const Duration(milliseconds: 100));
     final token = await getToken();
     final user = await getUserData();
 
@@ -594,8 +600,8 @@ class AuthService extends GetxService {
       final user = User(
         id: userId,
         email: email,
-        username: email.split('@')[0], 
-        isVerified: true, 
+        username: email.split('@')[0],
+        isVerified: true,
         createdAt: DateTime.now(),
       );
 
@@ -614,7 +620,7 @@ class AuthService extends GetxService {
     try {
       final accessToken = await getToken();
       final refreshToken = await getRefreshToken();
-      
+
       if (accessToken == null || refreshToken == null) {
         return {
           'hasTokens': false,
@@ -622,21 +628,21 @@ class AuthService extends GetxService {
           'refreshTokenValid': false,
         };
       }
-      
+
       final accessTokenExpired = JwtDecoder.isExpired(accessToken);
       final refreshTokenExpired = JwtDecoder.isExpired(refreshToken);
-      
+
       Duration? accessTokenTimeToExpiry;
       Duration? refreshTokenTimeToExpiry;
-      
+
       if (!accessTokenExpired) {
         accessTokenTimeToExpiry = JwtDecoder.getRemainingTime(accessToken);
       }
-      
+
       if (!refreshTokenExpired) {
         refreshTokenTimeToExpiry = JwtDecoder.getRemainingTime(refreshToken);
       }
-      
+
       return {
         'hasTokens': true,
         'accessTokenValid': !accessTokenExpired,
@@ -654,13 +660,14 @@ class AuthService extends GetxService {
       };
     }
   }
+
 // Force refresh token (for testing)
   Future<bool> forceRefreshToken() async {
     return await _attemptTokenRefresh();
   }
 
   // Debug method for token information testing
-    Future<void> debugPrintTokenInfo() async {
+  Future<void> debugPrintTokenInfo() async {
     final tokenInfo = await getTokenInfo();
     print('=== TOKEN DEBUG INFO ===');
     print('Has Tokens: ${tokenInfo['hasTokens']}');

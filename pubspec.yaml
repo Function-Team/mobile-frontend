@@ -39,6 +39,7 @@ flutter:
   assets:
     - .env
     - assets/images/
+    - assets/animations/
 
 flutter_launcher_icons:
   android: true

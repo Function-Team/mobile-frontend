@@ -17,6 +17,7 @@ import 'package:function_mobile/modules/auth/views/login_page.dart';
 import 'package:function_mobile/modules/legal/terms_of_service_page.dart';
 import 'package:function_mobile/common/widgets/views/widgets_view.dart';
 import 'package:function_mobile/modules/profile/views/edit_profile_page.dart';
+import 'package:function_mobile/modules/splash/views/splash_screen.dart';
 import 'package:function_mobile/modules/venue/views/venue_detail_page.dart';
 import 'package:function_mobile/modules/navigation/views/bottom_nav_view.dart';
 import 'package:function_mobile/modules/venue/views/venue_list_page.dart';
@@ -30,6 +31,9 @@ import 'package:function_mobile/modules/profile/bindings/edit_profile_binding.da
 
 class MyRoutes {
   static const String componentView = '/componentView';
+
+  // Splash Screen
+  static const String splash = '/splash';
 
   // Auth
   static const String login = '/login';
@@ -82,6 +86,9 @@ class MyRoutes {
   static final List<GetPage> pages = [
     // Components
     GetPage(name: componentView, page: () => ComponentsView()),
+
+    // Splash Screen
+    GetPage(name: splash, page: () => const SplashScreen()),
 
     // Auth (no AuthBinding needed - controllers are in AppBinding)
     GetPage(name: login, page: () => LoginPage()),

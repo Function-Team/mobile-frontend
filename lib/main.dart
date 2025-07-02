@@ -8,6 +8,10 @@ import 'package:function_mobile/core/services/api_service.dart';
 import 'package:get/get.dart';
 
 Future main() async {
+  FlutterError.onError = (FlutterErrorDetails details) {
+    print('Flutter Error: ${details.exception}');
+    print('Stack: ${details.stack}');
+  };
   await dotenv.load(fileName: '.env');
   // Disable debug paint
   debugPaintSizeEnabled = false;
@@ -26,7 +30,7 @@ class MainApp extends StatelessWidget {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       theme: AppTheme.themeData,
-      initialRoute: MyRoutes.login,
+      initialRoute: MyRoutes.splash,
       initialBinding: AppBinding(),
       getPages: MyRoutes.pages,
     );
