@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
-// import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:function_mobile/modules/venue/data/repositories/venue_repository.dart';
 import 'package:function_mobile/modules/favorite/controllers/favorites_controller.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class VenueDetailController extends GetxController {
   final VenueRepository _venueRepository = VenueRepository();
