@@ -35,7 +35,7 @@ class AuthController extends GetxController {
   void onInit() {
     super.onInit();
     _authService.onSessionExpired = _handleSessionExpired;
-    checkLoginStatus();
+    checkLoginStatus(autoNavigate: false);
   }
 
   @override
@@ -76,7 +76,7 @@ class AuthController extends GetxController {
   }
 
 // login status check
-  Future<void> checkLoginStatus() async {
+  Future<bool> checkLoginStatus({bool autoNavigate = true}) async {
     try {
       print('AuthController: Checking login status...');
 
@@ -93,7 +93,7 @@ class AuthController extends GetxController {
               "AuthController: User loaded from storage: ${user.value?.username}");
         }
 
-        // Try to refresh user data with better error handling
+        // Refresh from API
         try {
           print('AuthController: Attempting to refresh user data from API...');
           await refreshUserData();
@@ -104,16 +104,22 @@ class AuthController extends GetxController {
             await _createUserFromToken();
           }
         }
-
-        Get.offAllNamed(MyRoutes.bottomNav);
+        if (autoNavigate) {
+          Get.offAllNamed(MyRoutes.bottomNav);
+        } else {
+          print('AuthController: User logged in, but not auto-navigating');
+        }
+        return true;
       } else {
         print('AuthController: User not logged in, staying on current page');
 
-        // NEW: Check if we have expired tokens that need cleanup
+        // Check if we have expired tokens that need cleanup
         await _cleanupExpiredTokens();
+        return false;
       }
     } catch (e) {
       print('AuthController: Error checking login status: $e');
+      return false;
     }
   }
 
@@ -187,6 +193,7 @@ class AuthController extends GetxController {
         } else {
           // Try to fetch user data from API
           await refreshUserData();
+          Get.offAllNamed(MyRoutes.bottomNav);
         }
 
         // Clear form
@@ -248,6 +255,7 @@ class AuthController extends GetxController {
             await _authService.saveUserData(authResponse.user!);
           } else {
             await refreshUserData();
+            Get.offAllNamed(MyRoutes.bottomNav);
           }
 
           // Clear form
@@ -325,19 +333,18 @@ class AuthController extends GetxController {
   }
 
   Future<void> _executeLogout() async {
-   try{
-    await _authService.clearAllUserData();
-    user.value = null;
-    errorMessage.value = '';
-    emailLoginController.clear();
-    passwordLoginController.clear();
-    _clearSignupForm();
-    Get.offAllNamed(MyRoutes.login);
-   }catch (e) {
-     print('AuthController: Error during logout execution: $e');
-   }
+    try {
+      await _authService.clearAllUserData();
+      user.value = null;
+      errorMessage.value = '';
+      emailLoginController.clear();
+      passwordLoginController.clear();
+      _clearSignupForm();
+      Get.offAllNamed(MyRoutes.login);
+    } catch (e) {
+      print('AuthController: Error during logout execution: $e');
+    }
   }
-
 
   void _clearSignupForm() {
     usernameSignUpController.clear();
@@ -359,8 +366,8 @@ class AuthController extends GetxController {
   // Method to refresh user data
   Future<void> refreshUserData() async {
     try {
-     print('AuthController: Refreshing user data...');
-      
+      print('AuthController: Refreshing user data...');
+
       final userData = await _authService.fetchUserInfo();
 
       if (userData != null) {
@@ -376,16 +383,16 @@ class AuthController extends GetxController {
       }
     } catch (e) {
       print('AuthController: Error refreshing user data: $e');
-      
+
       // If refresh fails due to auth issues, handle session expiry
-      if (e.toString().contains('session has expired') || 
+      if (e.toString().contains('session has expired') ||
           e.toString().contains('Authentication required')) {
         await _handleSessionExpired();
       }
     }
   }
 
-   Future<void> _handleSessionExpired() async {
+  Future<void> _handleSessionExpired() async {
     print('AuthController: Handling expired session...');
 
     try {
@@ -404,20 +411,20 @@ class AuthController extends GetxController {
     }
   }
 
-   // Force refresh token (for testing or manual refresh)
+  // Force refresh token (for testing or manual refresh)
   Future<bool> forceRefreshToken() async {
     try {
       isRefreshingToken.value = true;
       refreshTokenStatus.value = 'Refreshing...';
-      
+
       final success = await _authService.forceRefreshToken();
-      
+
       if (success) {
         refreshTokenStatus.value = 'Token refreshed successfully';
-        
+
         // Refresh user data after token refresh
         await refreshUserData();
-        
+
         return true;
       } else {
         refreshTokenStatus.value = 'Token refresh failed';
@@ -428,7 +435,7 @@ class AuthController extends GetxController {
       return false;
     } finally {
       isRefreshingToken.value = false;
-      
+
       // Clear status after delay
       Future.delayed(const Duration(seconds: 3), () {
         refreshTokenStatus.value = '';
@@ -440,7 +447,7 @@ class AuthController extends GetxController {
     return await _authService.getTokenInfo();
   }
 
-    bool _validateLoginForm() {
+  bool _validateLoginForm() {
     final email = emailLoginController.text.trim();
     final password = passwordLoginController.text.trim();
 
@@ -520,8 +527,7 @@ class AuthController extends GetxController {
     return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
   }
 
-  
- bool get isAuthenticated => user.value != null;
+  bool get isAuthenticated => user.value != null;
   bool get hasValidUser => user.value != null && user.value!.id > 0;
   int? get userId => user.value?.id;
   String? get userEmail => user.value?.email;
@@ -591,60 +597,7 @@ class AuthController extends GetxController {
     refreshTokenStatus.value = '';
     print('🧹 Error state cleared');
   }
-
-  // Enhanced diagnostics with refresh token info
-  Future<Map<String, bool>> runAuthDiagnostics() async {
-    final diagnostics = <String, bool>{};
-
-    print('🔬 Running Enhanced Auth Diagnostics...');
-
-    // Test 1: Token existence
-    final tokenInfo = await getTokenInfo();
-    diagnostics['hasTokens'] = tokenInfo['hasTokens'] == true;
-    diagnostics['hasAccessToken'] = tokenInfo['accessTokenValid'] == true;
-    diagnostics['hasRefreshToken'] = tokenInfo['refreshTokenValid'] == true;
-    print('Has Tokens: ${diagnostics['hasTokens']}');
-    print('Access Token Valid: ${diagnostics['hasAccessToken']}');
-    print('Refresh Token Valid: ${diagnostics['hasRefreshToken']}');
-
-    // Test 2: User data existence
-    final userData = await _authService.getUserData();
-    diagnostics['hasUserData'] = userData != null;
-    print('User data exists: ${diagnostics['hasUserData']}');
-
-    // Test 3: API connectivity (if tokens exist)
-    if (diagnostics['hasTokens'] == true) {
-      diagnostics['apiConnectivity'] = await testApiConnection();
-      print('API connectivity: ${diagnostics['apiConnectivity']}');
-    } else {
-      diagnostics['apiConnectivity'] = false;
-      print('API connectivity: SKIPPED (no tokens)');
-    }
-
-    // Test 4: Session validity
-    diagnostics['sessionValid'] = await validateCurrentSession();
-    print('Session valid: ${diagnostics['sessionValid']}');
-
-    // Test 5: Token refresh capability
-    if (tokenInfo['needsRefresh'] == true) {
-      diagnostics['canRefresh'] = await forceRefreshToken();
-      print('Can refresh: ${diagnostics['canRefresh']}');
-    } else {
-      diagnostics['canRefresh'] = diagnostics['hasRefreshToken'] == true;
-      print('Can refresh: ${diagnostics['canRefresh']} (refresh not needed)');
-    }
-
-    print('🔬 Enhanced diagnostics complete: $diagnostics');
-    return diagnostics;
-  }
-
-  // NEW: Debug token information
-  Future<void> debugPrintTokenInfo() async {
-    await _authService.debugPrintTokenInfo();
-  }
 }
-
-
 
 extension AuthControllerLogout on AuthController {
   Future<void> showLogoutConfirmation() async {
@@ -720,38 +673,5 @@ extension AuthControllerLogout on AuthController {
   void clearErrorState() {
     errorMessage.value = '';
     print('🧹 Error state cleared');
-  }
-
-  /// Test specific auth flow (for comprehensive testing)
-  Future<Map<String, bool>> runAuthDiagnostics() async {
-    final diagnostics = <String, bool>{};
-
-    print('🔬 Running Auth Diagnostics...');
-
-    // Test 1: Token existence
-    final token = await _authService.getToken();
-    diagnostics['hasToken'] = token != null && token.isNotEmpty;
-    print('Token exists: ${diagnostics['hasToken']}');
-
-    // Test 2: User data existence
-    final userData = await _authService.getUserData();
-    diagnostics['hasUserData'] = userData != null;
-    print('User data exists: ${diagnostics['hasUserData']}');
-
-    // Test 3: API connectivity (if token exists)
-    if (diagnostics['hasToken'] == true) {
-      diagnostics['apiConnectivity'] = await testApiConnection();
-      print('API connectivity: ${diagnostics['apiConnectivity']}');
-    } else {
-      diagnostics['apiConnectivity'] = false;
-      print('API connectivity: SKIPPED (no token)');
-    }
-
-    // Test 4: Session validity
-    diagnostics['sessionValid'] = await validateCurrentSession();
-    print('Session valid: ${diagnostics['sessionValid']}');
-
-    print('🔬 Diagnostics complete: $diagnostics');
-    return diagnostics;
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/core/services/api_service.dart';
+import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 import 'package:function_mobile/modules/auth/services/auth_service.dart';
 import 'package:get/get.dart';
 
@@ -8,16 +9,20 @@ class SplashController extends GetxController {
   final _isLoading = true.obs;
   final _hasNavigated = false.obs;
   final _animationCompleted = false.obs;
-  final _initializationCompleted = false.obs;
+  final _autoCheckCompleted = false.obs;
+  final _isUserLoggedIn = false.obs;
 
   late final AuthService _authService;
   late final ApiService _apiService;
+  late final AuthController _authController;
 
   bool get isLoading => _isLoading.value;
   bool get hasNavigated => _hasNavigated.value;
   bool get animationCompleted => _animationCompleted.value;
-  bool get initializationCompleted => _initializationCompleted.value;
+  bool get autoCheckCompleted => _autoCheckCompleted.value;
+  bool get isUserLoggedIn => _isUserLoggedIn.value;
 
+  static const int _minSplashDuration = 3500;
   static const int _maxSplashDuration = 8000;
 
   @override
@@ -41,6 +46,12 @@ class SplashController extends GetxController {
     } catch (e) {
       _apiService = Get.put(ApiService());
     }
+
+    try {
+      _authController = Get.find<AuthController>();
+    } catch (e) {
+      _authController = Get.put(AuthController());
+    }
   }
 
   void _startSplashSequence() {
@@ -48,7 +59,7 @@ class SplashController extends GetxController {
 
     _performAppInitialization();
     Future.delayed(const Duration(milliseconds: _maxSplashDuration), () {
-      if (_isLoading.value && !_hasNavigated.value) {
+      if (!_hasNavigated.value) {
         print('SplashController: Timeout reached');
         _handleTimeout();
       }
@@ -57,12 +68,19 @@ class SplashController extends GetxController {
 
   Future<void> _performAppInitialization() async {
     try {
-      await Future.delayed(const Duration(milliseconds: 100));
-      await _checkAuthenticationStatus();
-      await _loadEssentialData();
+      final startTime = DateTime.now();
 
-      _initializationCompleted.value = true;
+      await _checkAuthenticationStatus();
+
       _isLoading.value = false;
+
+      final elapsedMs = DateTime.now().difference(startTime).inMilliseconds;
+      final remainingTimeMs = _minSplashDuration - elapsedMs;
+
+      if (remainingTimeMs > 0) {
+        await Future.delayed(Duration(milliseconds: remainingTimeMs));
+      }
+
       _checkReadyToNavigate();
     } catch (e) {
       print('Initialization failed: $e');
@@ -72,24 +90,10 @@ class SplashController extends GetxController {
 
   Future<void> _checkAuthenticationStatus() async {
     try {
-      final isLoggedIn = await _authService.isLoggedIn();
-
-      if (isLoggedIn) {
-        final isTokenValid = await _authService.isTokenValid();
-
-        if (!isTokenValid) {
-          await _authService.clearAllUserData();
-        } else {
-          try {
-            await _authService.fetchUserInfo();
-          } catch (e) {
-            print('SplashController: Failed to refresh user info: $e');
-          }
-        }
-      } else {
-        final tokenInfo = await _authService.getTokenInfo();
-        print('SplashController: Token info despite not logged in: $tokenInfo');
-      }
+      final isLoggedIn =
+          await _authController.checkLoginStatus(autoNavigate: false);
+      _isUserLoggedIn.value = isLoggedIn;
+      _autoCheckCompleted.value = true;
     } catch (e) {
       print('SplashController: Error checking authentication: $e');
       try {
@@ -97,14 +101,7 @@ class SplashController extends GetxController {
       } catch (clearError) {
         print('SplashController: Error clearing user data: $clearError');
       }
-    }
-  }
-
-  Future<void> _loadEssentialData() async {
-    try {
-      await Future.delayed(const Duration(milliseconds: 300));
-    } catch (e) {
-      print('SplashController: Essential data loading failed: $e');
+      _autoCheckCompleted.value = true;
     }
   }
 
@@ -115,12 +112,13 @@ class SplashController extends GetxController {
 
   void _checkReadyToNavigate() {
     if (_animationCompleted.value &&
-        _initializationCompleted.value &&
+        _autoCheckCompleted.value &&
         !_hasNavigated.value) {
+;
       _safeNavigateToNextScreen();
     } else {
       print(
-          'SplashController: Waiting... Animation: ${_animationCompleted.value}, Init: ${_initializationCompleted.value}');
+          'SplashController: Waiting... Animation: ${_animationCompleted.value}}');
     }
   }
 
@@ -137,13 +135,8 @@ class SplashController extends GetxController {
 
     Future.microtask(() async {
       try {
-        // Re-check authentication one more time before navigation
-        final isLoggedIn = await _authService.isLoggedIn();
-        print(
-            'SplashController: Final auth check - User logged in: $isLoggedIn');
-
         String nextRoute;
-        if (isLoggedIn) {
+        if (_isUserLoggedIn.value) {
           nextRoute = MyRoutes.bottomNav; //user is logged in
         } else {
           nextRoute = MyRoutes.login; // user is not logged in
@@ -206,7 +199,8 @@ class SplashController extends GetxController {
     _isLoading.value = false;
 
     if (_hasNavigated.value) return;
-
+    _animationCompleted.value = true;
+    _autoCheckCompleted.value = true;
     _fallbackNavigation();
 
     Future.delayed(const Duration(seconds: 1), () {
@@ -230,16 +224,8 @@ class SplashController extends GetxController {
   // Manual navigation trigger (for debugging)
   void forceNavigation() {
     print('SplashController: Force navigation triggered');
-    _hasNavigated.value = false;
+    _animationCompleted.value = true;
+    _autoCheckCompleted.value = true;
     _safeNavigateToNextScreen();
-  }
-
-  // Enhanced debug method
-  Future<void> debugAuthStatus() async {
-    try {
-      await _authService.debugPrintTokenInfo();
-    } catch (e) {
-      print('SplashController: Error in debug auth status: $e');
-    }
   }
 }

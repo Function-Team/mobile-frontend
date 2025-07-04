@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/modules/venue/controllers/venue_list_controller.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:function_mobile/modules/venue/widgets/venue_card.dart';
