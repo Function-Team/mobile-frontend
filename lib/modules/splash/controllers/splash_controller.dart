@@ -114,12 +114,12 @@ class SplashController extends GetxController {
     if (_animationCompleted.value &&
         _autoCheckCompleted.value &&
         !_hasNavigated.value) {
-;
+
       _safeNavigateToNextScreen();
     } else {
       print(
           'SplashController: Waiting... Animation: ${_animationCompleted.value}}');
-    }
+    } 
   }
 
   void _safeNavigateToNextScreen() {

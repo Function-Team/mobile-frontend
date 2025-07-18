@@ -1,4 +1,4 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter/material.dart';
 
 class AppConstants {
   // ==================== DEVICE CONFIGURATION ====================
@@ -19,6 +19,23 @@ class AppConstants {
   static const String _laravelPort = '';
   static const String _fastApiPort = '';
 
+  // Supported Language
+  static const List<Locale> supportedLocales = [
+    Locale('en', 'US'),
+    Locale('id', 'ID'),
+  ];
+
+  // Language Names
+  static const Map<String, String> languageNames = {
+    'en': 'English',
+    'id': 'Bahasa Indonesia',
+  };
+
+  // Language Flags
+  static const Map<String, String> languageFlags = {
+    'en': '🇺🇸',
+    'id': '🇮🇩',
+  };
 
   // ==================== AUTO-GENERATED URLs ====================
   static String get baseUrl {
@@ -50,47 +67,17 @@ class AppConstants {
       Duration(seconds: 2); // Delay between refresh attempts
   static const int maxRefreshRetries = 3;
 
-  // ==================== DEBUG HELPER ====================
-  static void printConfig() {
+
+ static void printLanguageDebug(Locale currentLocale) {
     print("\n" + "=" * 50);
-    print("🚀 API CONFIGURATION");
+    print("🌍 LANGUAGE DEBUG INFO");
     print("=" * 50);
-    print(
-        "📱 Device Type: ${_isEmulator ? 'Android Studio Emulator' : 'Real Android Device'}");
-    print("🌐 Target IP: $_deviceIP");
-    print("🎯 Active URL: $baseUrl");
-    print("-" * 50);
-    print("📋 Available URLs:");
-    print("   FastAPI: $fastApiUrl");
-    print("   Laravel: $laravelUrl");
-    print("-" * 50);
-    print("💡 To switch device:");
-    print("   - Comment current device section");
-    print("   - Uncomment desired device section");
-    print("   - Hot reload or restart app");
+    print("Current Locale: ${currentLocale.toString()}");
+    print("Language Code: ${currentLocale.languageCode}");
+    print("Country Code: ${currentLocale.countryCode}");
+    print("Language Name: ${languageNames[currentLocale.languageCode]}");
+    print("Language Flag: ${languageFlags[currentLocale.languageCode]}");
     print("=" * 50 + "\n");
   }
 
-  // ==================== NETWORK TESTING ====================
-
-  static void printNetworkTest() {
-    print("\n" + "=" * 50);
-    print("🧪 NETWORK TESTING");
-    print("=" * 50);
-    print("1. Test server in browser:");
-    print("   ${testUrl}");
-    print("");
-    print("2. Test API endpoint:");
-    print("   $baseUrl/health");
-    print("");
-    print("3. Check if server is running on computer:");
-    if (_isEmulator) {
-      print(
-          "   http://localhost:$_fastApiPort/docs");
-    } else {
-      print(
-          "   http://$_deviceIP:$_fastApiPort/docs");
-    }
-    print("=" * 50 + "\n");
-  }
 }

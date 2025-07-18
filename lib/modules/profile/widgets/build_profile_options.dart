@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/common/widgets/texts/localized_text.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/modules/profile/views/faq_page.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/profile/controllers/profile_options_controller.dart';
 
@@ -11,17 +14,17 @@ Widget buildProfileOptions(BuildContext context) {
       _buildOptionTile(
         context: context,
         icon: Icons.account_balance_wallet_outlined,
-        title: 'Payment Methods',
+        title: LocalizationHelper.t('profile.payment_methods'),
         subtitle: 'Add or remove payment methods',
         onTap: () {
           // Handle PAYMENT METHODS
         },
       ),
-      SizedBox(height: 16),
+      const SizedBox(height: 16),
       _buildOptionTile(
         context: context,
         icon: Icons.person_outline,
-        title: 'Your Details',
+        title: LocalizationHelper.t('profile.your_details'),
         subtitle: 'Update your personal details',
         onTap: () {
           // Handle your details
@@ -30,7 +33,7 @@ Widget buildProfileOptions(BuildContext context) {
       _buildOptionTile(
         context: context,
         icon: Icons.money_off,
-        title: 'Refunds',
+        title: LocalizationHelper.t('profile.refunds'),
         subtitle: 'Request a refund',
         onTap: () {
           // Handle refunds
@@ -39,38 +42,66 @@ Widget buildProfileOptions(BuildContext context) {
       _buildOptionTile(
         context: context,
         icon: Icons.help_outline,
-        title: 'Help & Support',
-        subtitle: 'Get help with your account',
-        onTap: () {
-          // Handle help & support
-        },
+        title: LocalizationHelper.t('faq.title'),
+        subtitle: 'Frequently asked questions',
+        onTap: () => Get.to(() => const FaqPage()),
       ),
       _buildOptionTile(
         context: context,
         icon: Icons.headset_mic_outlined,
-        title: 'Contact Us',
-        subtitle: 'Get in touch with us',
+        title: LocalizationHelper.t('contact_support.title'),
+        subtitle: 'Get help with your account',
         onTap: () {
-          // Handle contact us
+          // TODO: Navigate to contact support page
+        },
+      ),
+      _buildOptionTile(
+        context: context,
+        icon: Icons.share,
+        title: LocalizationHelper.t('follow_us.title'),
+        subtitle: 'Connect with us on social media',
+        onTap: () {
+          // TODO: Navigate to follow us page
         },
       ),
       _buildOptionTile(
         context: context,
         icon: Icons.info_outline,
-        title: 'About Us',
+        title: LocalizationHelper.t('settings.about_us'),
         subtitle: 'Learn more about us',
         onTap: () {
           // Handle about us
         },
       ),
-      _buildOptionTile(
+      _buildOptionTiles(
         context: context,
         icon: Icons.settings_outlined,
-        title: 'Settings',
-        subtitle: 'Manage your account settings',
-        onTap: () {
-          controller.goToSettings();
-        },
+        titleWidget: const LocalizedText('settings.title'),
+        subtitleWidget: const LocalizedText('settings.description'),
+        onTap: () => controller.goToSettings(),
+      ),
+    ],
+  );
+}
+
+Widget _buildOptionTiles({
+  required BuildContext context,
+  required IconData icon,
+  required Widget titleWidget,
+  required Widget subtitleWidget,
+  required VoidCallback onTap,
+}) {
+  return Column(
+    children: [
+      ListTile(
+        leading: Icon(icon),
+        title: titleWidget,
+        subtitle: subtitleWidget,
+        onTap: onTap,
+      ),
+      const Divider(
+        height: 0,
+        thickness: 0.25,
       ),
     ],
   );
@@ -91,7 +122,7 @@ Widget _buildOptionTile({
         subtitle: Text(subtitle),
         onTap: onTap,
       ),
-      Divider(
+      const Divider(
         height: 0,
         thickness: 0.25,
       ),
