@@ -19,23 +19,10 @@ class AppConstants {
   static const String _laravelPort = '';
   static const String _fastApiPort = '';
 
-  // Supported Language
   static const List<Locale> supportedLocales = [
-    Locale('en', 'US'),
-    Locale('id', 'ID'),
+    Locale('en'),
+    Locale('id'),
   ];
-
-  // Language Names
-  static const Map<String, String> languageNames = {
-    'en': 'English',
-    'id': 'Bahasa Indonesia',
-  };
-
-  // Language Flags
-  static const Map<String, String> languageFlags = {
-    'en': '🇺🇸',
-    'id': '🇮🇩',
-  };
 
   // ==================== AUTO-GENERATED URLs ====================
   static String get baseUrl {
@@ -75,8 +62,6 @@ class AppConstants {
     print("Current Locale: ${currentLocale.toString()}");
     print("Language Code: ${currentLocale.languageCode}");
     print("Country Code: ${currentLocale.countryCode}");
-    print("Language Name: ${languageNames[currentLocale.languageCode]}");
-    print("Language Flag: ${languageFlags[currentLocale.languageCode]}");
     print("=" * 50 + "\n");
   }
 

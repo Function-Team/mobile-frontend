@@ -9,7 +9,7 @@ class FaqPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(LocalizationHelper.tr(context, 'faq.title')),
+        title: Text(LocalizationHelper.tr('faq.title')), 
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Get.back(),
@@ -21,50 +21,38 @@ class FaqPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              LocalizationHelper.tr(context, 'faq.title'),
+              LocalizationHelper.tr('faq.title'),
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
             ),
             const SizedBox(height: 8),
             Text(
-              LocalizationHelper.tr(context, 'faq.subtitle'),
+              LocalizationHelper.tr('faq.subtitle'), 
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Colors.grey[600],
                   ),
             ),
 
-            // Example with arguments
             const SizedBox(height: 16),
             Text(
-              LocalizationHelper.trArgs(
-                  context, 'welcome_user', {'name': 'John'}),
+              LocalizationHelper.trArgs('welcome_user', {'name': 'John'}), 
               style: Theme.of(context).textTheme.titleMedium,
             ),
 
-            // Example with plural
-            const SizedBox(height: 8),
-            Text(
-              LocalizationHelper.trPlural(context, 'item_count', 5),
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
 
             const SizedBox(height: 24),
             _buildFaqSection(
               context,
-              LocalizationHelper.tr(context, 'faq.general_title'),
+              LocalizationHelper.tr('faq.general_title'),
               [
                 _FaqItem(
-                  question: LocalizationHelper.tr(
-                      context, 'faq.how_to_book_question'),
-                  answer:
-                      LocalizationHelper.tr(context, 'faq.how_to_book_answer'),
+                  question: LocalizationHelper.tr('faq.how_to_book_question'), 
+                  answer: LocalizationHelper.tr('faq.how_to_book_answer'), 
                 ),
                 _FaqItem(
-                  question: LocalizationHelper.tr(
-                      context, 'faq.cancel_booking_question'),
-                  answer: LocalizationHelper.tr(
-                      context, 'faq.cancel_booking_answer'),
+                  question: LocalizationHelper.tr('faq.cancel_booking_question'), 
+                  answer: LocalizationHelper.tr('faq.cancel_booking_answer'),
                 ),
               ],
             ),

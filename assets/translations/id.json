@@ -10,7 +10,8 @@
     "delete": "Hapus",
     "edit": "Edit",
     "search": "Cari",
-    "loading": "Memuat..."
+    "loading": "Memuat...",
+    "change": "Ubah"
   },
   "settings": {
     "title": "Pengaturan",
@@ -20,7 +21,10 @@
     "change_password": "Ubah Kata Sandi",
     "preferences": "Preferensi",
     "language": "Bahasa",
-    "language_description": "Pilih bahasa yang Anda inginkan untuk aplikasi",
+    "choose_language": "Pilih Bahasa",
+    "language_description": "Pilih bahasa yang Anda inginkan. Aplikasi akan restart untuk menerapkan perubahan.",
+    "change_language": "Ubah Bahasa",
+    "change_language_confirm": "Ubah bahasa ke {language}? Aplikasi akan restart.",
     "notification": "Notifikasi",
     "about": "Tentang",
     "app_version": "Versi Aplikasi",

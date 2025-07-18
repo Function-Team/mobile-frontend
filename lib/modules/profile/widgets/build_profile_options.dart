@@ -14,7 +14,7 @@ Widget buildProfileOptions(BuildContext context) {
       _buildOptionTile(
         context: context,
         icon: Icons.account_balance_wallet_outlined,
-        title: LocalizationHelper.t('profile.payment_methods'),
+        title: LocalizationHelper.tr('profile.payment_methods'),
         subtitle: 'Add or remove payment methods',
         onTap: () {
           // Handle PAYMENT METHODS
@@ -24,7 +24,7 @@ Widget buildProfileOptions(BuildContext context) {
       _buildOptionTile(
         context: context,
         icon: Icons.person_outline,
-        title: LocalizationHelper.t('profile.your_details'),
+        title: LocalizationHelper.tr('profile.your_details'),
         subtitle: 'Update your personal details',
         onTap: () {
           // Handle your details
@@ -33,7 +33,7 @@ Widget buildProfileOptions(BuildContext context) {
       _buildOptionTile(
         context: context,
         icon: Icons.money_off,
-        title: LocalizationHelper.t('profile.refunds'),
+        title: LocalizationHelper.tr('profile.refunds'),
         subtitle: 'Request a refund',
         onTap: () {
           // Handle refunds
@@ -42,14 +42,14 @@ Widget buildProfileOptions(BuildContext context) {
       _buildOptionTile(
         context: context,
         icon: Icons.help_outline,
-        title: LocalizationHelper.t('faq.title'),
+        title: LocalizationHelper.tr('faq.title'),
         subtitle: 'Frequently asked questions',
         onTap: () => Get.to(() => const FaqPage()),
       ),
       _buildOptionTile(
         context: context,
         icon: Icons.headset_mic_outlined,
-        title: LocalizationHelper.t('contact_support.title'),
+        title: LocalizationHelper.tr('contact_support.title'),
         subtitle: 'Get help with your account',
         onTap: () {
           // TODO: Navigate to contact support page
@@ -58,7 +58,7 @@ Widget buildProfileOptions(BuildContext context) {
       _buildOptionTile(
         context: context,
         icon: Icons.share,
-        title: LocalizationHelper.t('follow_us.title'),
+        title: LocalizationHelper.tr('follow_us.title'),
         subtitle: 'Connect with us on social media',
         onTap: () {
           // TODO: Navigate to follow us page
@@ -67,7 +67,7 @@ Widget buildProfileOptions(BuildContext context) {
       _buildOptionTile(
         context: context,
         icon: Icons.info_outline,
-        title: LocalizationHelper.t('settings.about_us'),
+        title: LocalizationHelper.tr('settings.about_us'),
         subtitle: 'Learn more about us',
         onTap: () {
           // Handle about us

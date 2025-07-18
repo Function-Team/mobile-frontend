@@ -18,7 +18,7 @@ class SettingsPage extends StatelessWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(LocalizationHelper.tr(context, 'settings.title')),
+        title: Text(LocalizationHelper.tr('settings.title')), 
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -26,59 +26,59 @@ class SettingsPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(LocalizationHelper.tr(context, 'settings.account_settings')),
+              Text(LocalizationHelper.tr('settings.account_settings')), 
               _buildSettingsItem(
                 context: context,
-                title: LocalizationHelper.tr(context, 'settings.edit_profile'),
+                title: LocalizationHelper.tr('settings.edit_profile'),
                 onTap: () => Get.toNamed(MyRoutes.editProfile),
                 trailing: const Icon(Icons.keyboard_arrow_right),
               ),
               _buildSettingsItem(
                 context: context,
-                title: LocalizationHelper.tr(context, 'settings.change_password'),
+                title: LocalizationHelper.tr('settings.change_password'), 
                 onTap: () {
                   // Navigate to Change Password Page
                 },
                 trailing: const Icon(Icons.keyboard_arrow_right),
               ),
               const SizedBox(height: 16),
-              Text(LocalizationHelper.tr(context, 'settings.preferences')),
+              Text(LocalizationHelper.tr('settings.preferences')),
               _buildSettingsItem(
                 context: context,
-                title: LocalizationHelper.tr(context, 'settings.language'),
+                title: LocalizationHelper.tr('settings.language'),
                 onTap: () => Get.to(() => const LanguageSettingsPage()),
                 trailing: const Icon(Icons.keyboard_arrow_right),
               ),
               _buildSettingsItem(
                 context: context,
-                title: LocalizationHelper.tr(context, 'settings.notification'),
+                title: LocalizationHelper.tr('settings.notification'),
                 onTap: () {
                   // Navigate to Notification Page
                 },
                 trailing: const Icon(Icons.keyboard_arrow_right),
               ),
               const SizedBox(height: 16),
-              Text(LocalizationHelper.tr(context, 'settings.about')),
+              Text(LocalizationHelper.tr('settings.about')),
               _buildSettingsItem(
                 context: context,
-                title: LocalizationHelper.tr(context, 'settings.app_version'),
+                title: LocalizationHelper.tr('settings.app_version'),
                 trailing: const Text('1.0.0'),
               ),
               _buildSettingsItem(
                 context: context,
-                title: LocalizationHelper.tr(context, 'settings.privacy_policy'),
+                title: LocalizationHelper.tr('settings.privacy_policy'), 
                 onTap: () => Get.toNamed(MyRoutes.privacyPolicy),
                 trailing: const Icon(Icons.keyboard_arrow_right),
               ),
               _buildSettingsItem(
                 context: context,
-                title: LocalizationHelper.tr(context, 'settings.terms_of_service'),
+                title: LocalizationHelper.tr('settings.terms_of_service'), 
                 onTap: () => Get.toNamed(MyRoutes.termsOfService),
                 trailing: const Icon(Icons.keyboard_arrow_right),
               ),
               _buildSettingsItem(
                 context: context,
-                title: LocalizationHelper.tr(context, 'settings.about_us'),
+                title: LocalizationHelper.tr('settings.about_us'),
                 onTap: () {
                   // Navigate to About Us Page
                 },
@@ -87,7 +87,7 @@ class SettingsPage extends StatelessWidget {
               const SizedBox(height: 16),
               _buildSettingsItem(
                 context: context,
-                title: LocalizationHelper.tr(context, 'logout'),
+                title: LocalizationHelper.tr('logout'), 
                 onTap: () => authController.showLogoutConfirmation(),
                 textColor: Theme.of(context).colorScheme.error,
                 trailing: Icon(

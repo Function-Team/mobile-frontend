@@ -1,241 +1,55 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:function_mobile/common/bindings/localization_binding.dart';
-import 'package:function_mobile/common/widgets/texts/localized_text.dart';
-import 'package:function_mobile/core/constants/app_constants.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
-import 'package:get/get.dart';
 
-class LanguageSettingsPage extends StatefulWidget {
+class LanguageSettingsPage extends StatelessWidget {
   const LanguageSettingsPage({super.key});
 
   @override
-  State<LanguageSettingsPage> createState() => _LanguageSettingsPageState();
-}
-
-class _LanguageSettingsPageState extends State<LanguageSettingsPage> {
-  bool _isLoading = false;
-  String? _errorMessage;
-
-  @override
-  void initState() {
-    super.initState();
-    // Debug current locale on init
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      LocalizationHelper.debugCurrentLocale(context);
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        // Prevent back navigation during loading
-        return !_isLoading;
-      },
-      child: Stack(
-        children: [
-          Scaffold(
-            appBar: AppBar(
-              title: LocalizedText('settings.language'),
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: _isLoading ? null : () => Get.back(),
-              ),
-            ),
-            body: _errorMessage != null
-                ? _buildErrorView()
-                : SingleChildScrollView(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        LocalizedText(
-                          'settings.language',
-                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        LocalizedText(
-                          'settings.language_description',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        
-                        // Current Language Display
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primaryContainer,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  Icons.language,
-                                  color: Colors.white,
-                                  size: 24,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    LocalizedText(
-                                      'settings.current_language',
-                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                                      ),
-                                    ),
-                                    Text(
-                                      '${LocalizationHelper.getLanguageFlag(context.locale.languageCode)} ${LocalizationHelper.getLanguageName(context.locale.languageCode)}',
-                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        
-                        const SizedBox(height: 24),
-                        
-                        LocalizedText(
-                          'settings.available_languages',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        
-                        // Language Options - Simplified!
-                        ...AppConstants.supportedLocales.map((locale) {
-                          final isSelected = context.locale.languageCode == locale.languageCode;
-                          final languageName = LocalizationHelper.getLanguageName(locale.languageCode);
-                          final languageFlag = LocalizationHelper.getLanguageFlag(locale.languageCode);
-                          
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            child: ListTile(
-                              leading: Container(
-                                width: 48,
-                                height: 48,
-                                decoration: BoxDecoration(
-                                  color: isSelected 
-                                      ? Theme.of(context).colorScheme.primary
-                                      : Colors.grey[200],
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    languageFlag,
-                                    style: const TextStyle(fontSize: 24),
-                                  ),
-                                ),
-                              ),
-                              title: Text(
-                                languageName,
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                  color: isSelected 
-                                      ? Theme.of(context).colorScheme.primary
-                                      : null,
-                                ),
-                              ),
-                              subtitle: Text(
-                                '${locale.languageCode.toUpperCase()}-${locale.countryCode}',
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                              trailing: isSelected
-                                  ? Icon(
-                                      Icons.check_circle,
-                                      color: Theme.of(context).colorScheme.primary,
-                                    )
-                                  : const Icon(Icons.radio_button_unchecked),
-                              enabled: !_isLoading && !isSelected,
-                              onTap: () {
-                                if (!isSelected && !_isLoading) {
-                                  _safeChangeLanguage(context, locale);
-                                }
-                              },
-                            ),
-                          );
-                        }).toList(),
-                      ],
-                    ),
-                  ),
-          ),
-          
-          // Loading overlay (inside the Stack)
-          if (_isLoading)
-            Container(
-              color: Colors.black.withOpacity(0.5),
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const CircularProgressIndicator(),
-                      const SizedBox(height: 16),
-                      Text(
-                        LocalizationHelper.t('common.loading'),
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-        ],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(LocalizationHelper.tr('settings.language')),
+        elevation: 0,
       ),
-    );
-  }
-  
-  // Error view if translation files can't be loaded
-  Widget _buildErrorView() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.error_outline, color: Colors.red, size: 64),
-            const SizedBox(height: 16),
             Text(
-              'Error Loading Languages',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              LocalizationHelper.tr('settings.choose_language'),
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
-              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
-              _errorMessage ?? 'An unknown error occurred',
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
+              LocalizationHelper.tr('settings.language_description'),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.grey[600],
+              ),
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () => Get.back(),
-              child: const Text('Go Back'),
+            
+            // English Option
+            _buildLanguageOption(
+              context: context,
+              languageCode: 'en',
+              languageName: 'English',
+              flag: '🇺🇸',
+              isSelected: context.locale.languageCode == 'en',
+            ),
+            
+            const SizedBox(height: 12),
+            
+            // Indonesian Option
+            _buildLanguageOption(
+              context: context,
+              languageCode: 'id',
+              languageName: 'Bahasa Indonesia',
+              flag: '🇮🇩',
+              isSelected: context.locale.languageCode == 'id',
             ),
           ],
         ),
@@ -243,73 +57,95 @@ class _LanguageSettingsPageState extends State<LanguageSettingsPage> {
     );
   }
 
-  // Safe method to change language that won't crash the app
-  void _safeChangeLanguage(BuildContext context, Locale locale) async {
-    print("🔄 Attempting to change language to: ${locale.toString()}");
-    print("🔄 Current locale: ${context.locale.toString()}");
-    
-    // Start with loading
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-    
-    try {
-      // Simple approach: just change the locale and return
-      await context.setLocale(locale);
-      
-      // Update controller if available
-      try {
-        final localizationController = Get.find<LocalizationController>();
-        localizationController.updateLocale(locale.toString());
-      } catch (e) {
-        print("⚠️ Controller update failed: $e");
-      }
-      
-      // Show success message and go back with a slight delay
-      await Future.delayed(const Duration(milliseconds: 500));
-      
-      // Safely check if widget is still mounted before accessing context
-      if (!mounted) return;
-      
-      // Show success message
-      Get.snackbar(
-        LocalizationHelper.tr(context, 'common.success'),
-        LocalizationHelper.trArgs(
-          context, 
-          'settings.language_changed', 
-          {'language': LocalizationHelper.getLanguageName(locale.languageCode)}
+  Widget _buildLanguageOption({
+    required BuildContext context,
+    required String languageCode,
+    required String languageName,
+    required String flag,
+    required bool isSelected,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: isSelected 
+              ? Theme.of(context).primaryColor 
+              : Colors.grey.shade300,
+          width: isSelected ? 2 : 1,
         ),
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 2),
-        backgroundColor: Colors.green.shade100,
-        colorText: Colors.green.shade800,
-        icon: const Icon(Icons.check_circle, color: Colors.green),
-      );
-      
-      // Go back to previous screen
-      Get.back();
-    } catch (e) {
-      print("❌ Error changing language: $e");
-      
-      // Only update state if widget is still mounted
-      if (!mounted) return;
-      
-      setState(() {
-        _isLoading = false;
-        _errorMessage = "Failed to change language: $e";
-      });
-      
-      // Show error message
-      Get.snackbar(
-        LocalizationHelper.tr(context, 'common.error'),
-        'Failed to change language. Please try again.',
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 3),
-        backgroundColor: Colors.red.shade100,
-        colorText: Colors.red.shade800,
-        icon: const Icon(Icons.error, color: Colors.red),
-      );
-    }
+        borderRadius: BorderRadius.circular(12),
+        color: isSelected 
+            ? Theme.of(context).primaryColor.withOpacity(0.1)
+            : null,
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Container(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            color: isSelected 
+                ? Theme.of(context).primaryColor
+                : Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(25),
+          ),
+          child: Center(
+            child: Text(
+              flag,
+              style: const TextStyle(fontSize: 24),
+            ),
+          ),
+        ),
+        title: Text(
+          languageName,
+          style: TextStyle(
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            color: isSelected ? Theme.of(context).primaryColor : null,
+          ),
+        ),
+        trailing: isSelected
+            ? Icon(
+                Icons.check_circle,
+                color: Theme.of(context).primaryColor,
+              )
+            : const Icon(
+                Icons.radio_button_unchecked,
+                color: Colors.grey,
+              ),
+        onTap: isSelected 
+            ? null 
+            : () => _showLanguageChangeDialog(context, languageCode, languageName),
+      ),
+    );
+  }
+
+  void _showLanguageChangeDialog(BuildContext context, String languageCode, String languageName) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(LocalizationHelper.tr('settings.change_language')),
+          content: Text(
+            LocalizationHelper.trArgs(
+              'settings.change_language_confirm',
+              {'language': languageName},
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(LocalizationHelper.tr('common.cancel')),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Call the language change
+                LocalizationHelper.changeLanguage(context, languageCode);
+              },
+              child: Text(LocalizationHelper.tr('common.change')), 
+            ),
+          ],
+        );
+      },
+    );
   }
 }
