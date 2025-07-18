@@ -16,6 +16,11 @@ import 'package:function_mobile/modules/legal/privacy_policy_page.dart';
 import 'package:function_mobile/modules/auth/views/login_page.dart';
 import 'package:function_mobile/modules/legal/terms_of_service_page.dart';
 import 'package:function_mobile/common/widgets/views/widgets_view.dart';
+// import 'package:function_mobile/modules/payment/bindings/payment_binding.dart';
+// import 'package:function_mobile/modules/payment/views/payment_failed_page.dart';
+// import 'package:function_mobile/modules/payment/views/payment_history_page.dart';
+// import 'package:function_mobile/modules/payment/views/payment_page.dart';
+// import 'package:function_mobile/modules/payment/views/payment_success_page.dart';
 import 'package:function_mobile/modules/profile/views/edit_profile_page.dart';
 import 'package:function_mobile/modules/splash/views/splash_screen.dart';
 import 'package:function_mobile/modules/venue/views/venue_detail_page.dart';
@@ -81,6 +86,12 @@ class MyRoutes {
   //ImageGallery
   static const String imageGallery = '/image-gallery';
 
+  // Payment
+  static const String paymentPage = '/payment';
+  static const String paymentHistory = '/payment-history';
+  static const String paymentSuccess = '/payment-success';
+  static const String paymentFailed = '/payment-failed';
+
   // Define the routes for the app
 
   static final List<GetPage> pages = [
@@ -102,9 +113,14 @@ class MyRoutes {
         name: bookingPage,
         page: () => const BookingPage(),
         binding: BookingBinding()),
-    GetPage(name: bookingList, page: () => BookingsListPage(),
+    GetPage(
+      name: bookingList,
+      page: () => BookingsListPage(),
     ),
-    GetPage(name: bookingDetail, page: () => BookingDetailPage(), binding: BookingBinding()),
+    GetPage(
+        name: bookingDetail,
+        page: () => BookingDetailPage(),
+        binding: BookingBinding()),
 
     // SearchFilter
     GetPage(name: searchActivity, page: () => SearchActivityPage()),
@@ -133,7 +149,7 @@ class MyRoutes {
         final args = Get.arguments as Map<String, dynamic>?;
         final images = args?['images'] as List<dynamic>? ?? [];
         final initialIndex = args?['initialIndex'] as int? ?? 0;
-        
+
         return FullscreenImageGallery(
           images: images,
           initialIndex: initialIndex,
@@ -167,6 +183,25 @@ class MyRoutes {
       page: () => FullscreenImageGallery(
           images: Get.arguments['images'] ?? [],
           initialIndex: Get.arguments['initialIndex'] ?? 0),
-    )
+    ),
+    // Payment
+    // GetPage(
+    //   name: paymentPage,
+    //   page: () => PaymentPage(),
+    //   binding: PaymentBinding(),
+    // ),
+    // GetPage(
+    //   name: paymentHistory,
+    //   page: () => PaymentHistoryPage(),
+    //   binding: PaymentBinding(),
+    // ),
+    // GetPage(
+    //   name: paymentSuccess,
+    //   page: () => PaymentSuccessPage(),
+    // ),
+    // GetPage(
+    //   name: paymentFailed,
+    //   page: () => PaymentFailedPage(),
+    // ),
   ];
 }

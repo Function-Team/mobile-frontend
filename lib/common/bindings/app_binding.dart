@@ -1,3 +1,4 @@
+import 'package:function_mobile/common/bindings/localization_binding.dart';
 import 'package:function_mobile/modules/auth/services/auth_service.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_list_controller.dart';
 import 'package:function_mobile/modules/favorite/controllers/favorites_controller.dart';
@@ -10,6 +11,9 @@ import 'package:function_mobile/modules/navigation/controllers/bottom_nav_contro
 class AppBinding extends Bindings {
   @override
   void dependencies() {
+    // Initialize localization controller first
+    LocalizationBinding().dependencies();
+    
     // Core controllers that are used across multiple screens
     Get.put(AuthController(), permanent: true);
     Get.put(SearchFilterController(), permanent: true);
@@ -17,10 +21,10 @@ class AppBinding extends Bindings {
     Get.put(FavoritesController(), permanent: true);
     Get.put(BookingListController(), permanent: true);
     Get.put(AuthService(), permanent: true);
+    
     // Non-permanent controllers that can be lazy-loaded
     Get.lazyPut<HomeController>(() => HomeController(), fenix: true);
 
     // Add other app-wide dependencies here
-    // For example: API services, shared utilities, etc.
   }
 }

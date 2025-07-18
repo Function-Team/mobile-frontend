@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
+import 'package:function_mobile/modules/profile/views/language_settings_page.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 
@@ -11,85 +13,82 @@ class SettingsPage extends StatelessWidget {
     final AuthController authController = Get.find();
 
     return Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          title: const Text('Settings'),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
         ),
-        body: SafeArea(
-            child: SingleChildScrollView(
-          padding: EdgeInsets.all(8),
+        title: Text(LocalizationHelper.tr(context, 'settings.title')),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Account Settings'),
+              Text(LocalizationHelper.tr(context, 'settings.account_settings')),
               _buildSettingsItem(
-                title: 'Edit Profile',
-                onTap: () {
-                  Get.toNamed(MyRoutes.editProfile);
-                },
-                trailing: Icon(Icons.keyboard_arrow_right),
+                context: context,
+                title: LocalizationHelper.tr(context, 'settings.edit_profile'),
+                onTap: () => Get.toNamed(MyRoutes.editProfile),
+                trailing: const Icon(Icons.keyboard_arrow_right),
               ),
               _buildSettingsItem(
-                title: 'Change Password',
+                context: context,
+                title: LocalizationHelper.tr(context, 'settings.change_password'),
                 onTap: () {
                   // Navigate to Change Password Page
                 },
-                trailing: Icon(Icons.keyboard_arrow_right),
+                trailing: const Icon(Icons.keyboard_arrow_right),
               ),
-              SizedBox(height: 16),
-              Text('Preferences'),
+              const SizedBox(height: 16),
+              Text(LocalizationHelper.tr(context, 'settings.preferences')),
               _buildSettingsItem(
-                title: 'Language',
-                onTap: () {
-                  // Navigate to Language Page
-                },
-                trailing: Icon(Icons.keyboard_arrow_right),
+                context: context,
+                title: LocalizationHelper.tr(context, 'settings.language'),
+                onTap: () => Get.to(() => const LanguageSettingsPage()),
+                trailing: const Icon(Icons.keyboard_arrow_right),
               ),
               _buildSettingsItem(
-                title: 'Notification',
+                context: context,
+                title: LocalizationHelper.tr(context, 'settings.notification'),
                 onTap: () {
                   // Navigate to Notification Page
                 },
-                trailing: Icon(Icons.keyboard_arrow_right),
+                trailing: const Icon(Icons.keyboard_arrow_right),
               ),
-              SizedBox(height: 16),
-              Text('About'),
+              const SizedBox(height: 16),
+              Text(LocalizationHelper.tr(context, 'settings.about')),
               _buildSettingsItem(
-                title: 'App Version',
-                trailing: Text('1.0.0'),
-              ),
-              _buildSettingsItem(
-                title: 'Privacy Policy',
-                onTap: () {
-                  Get.toNamed(MyRoutes.privacyPolicy);
-                },
-                trailing: Icon(Icons.keyboard_arrow_right),
+                context: context,
+                title: LocalizationHelper.tr(context, 'settings.app_version'),
+                trailing: const Text('1.0.0'),
               ),
               _buildSettingsItem(
-                title: 'Terms & Conditions',
-                onTap: () {
-                  Get.toNamed(MyRoutes.termsOfService);
-                },
-                trailing: Icon(Icons.keyboard_arrow_right),
+                context: context,
+                title: LocalizationHelper.tr(context, 'settings.privacy_policy'),
+                onTap: () => Get.toNamed(MyRoutes.privacyPolicy),
+                trailing: const Icon(Icons.keyboard_arrow_right),
               ),
               _buildSettingsItem(
-                title: 'About Us',
+                context: context,
+                title: LocalizationHelper.tr(context, 'settings.terms_of_service'),
+                onTap: () => Get.toNamed(MyRoutes.termsOfService),
+                trailing: const Icon(Icons.keyboard_arrow_right),
+              ),
+              _buildSettingsItem(
+                context: context,
+                title: LocalizationHelper.tr(context, 'settings.about_us'),
                 onTap: () {
                   // Navigate to About Us Page
                 },
-                trailing: Icon(Icons.keyboard_arrow_right),
+                trailing: const Icon(Icons.keyboard_arrow_right),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               _buildSettingsItem(
-                title: 'Logout',
-                onTap: () {
-                  authController.showLogoutConfirmation();
-                },
+                context: context,
+                title: LocalizationHelper.tr(context, 'logout'),
+                onTap: () => authController.showLogoutConfirmation(),
                 textColor: Theme.of(context).colorScheme.error,
                 trailing: Icon(
                   Icons.logout,
@@ -98,14 +97,18 @@ class SettingsPage extends StatelessWidget {
               ),
             ],
           ),
-        )));
+        ),
+      ),
+    );
   }
 
-  _buildSettingsItem(
-      {required String title,
-      VoidCallback? onTap,
-      Color? textColor,
-      Widget? trailing}) {
+  Widget _buildSettingsItem({
+    required BuildContext context,
+    required String title,
+    VoidCallback? onTap,
+    Color? textColor,
+    Widget? trailing,
+  }) {
     return ListTile(
       title: Text(title),
       onTap: onTap,
