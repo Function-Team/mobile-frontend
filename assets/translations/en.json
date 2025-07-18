@@ -10,7 +10,8 @@
     "delete": "Delete",
     "edit": "Edit",
     "search": "Search",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "change": "Change"
   },
   "settings": {
     "title": "Settings",
@@ -20,7 +21,10 @@
     "change_password": "Change Password",
     "preferences": "Preferences",
     "language": "Language",
-    "language_description": "Choose your preferred language for the app",
+    "choose_language": "Choose Language",
+    "language_description": "Select your preferred language. The app will restart to apply changes.",
+    "change_language": "Change Language",
+    "change_language_confirm": "Change language to {language}? The app will restart.",
     "notification": "Notifications",
     "about": "About",
     "app_version": "App Version",
