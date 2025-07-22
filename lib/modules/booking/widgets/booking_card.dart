@@ -1,47 +1,110 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
-import 'package:function_mobile/common/widgets/images/network_image.dart';
-import 'package:function_mobile/common/widgets/buttons/outline_button.dart';
-import 'package:intl/intl.dart';
+import 'package:get/get.dart';
+import '../controllers/booking_card_controller.dart';
+import 'package:function_mobile/common/routes/routes.dart';
+
+extension BookingStatusExtension on BookingStatus {
+  String get displayName {
+    switch (this) {
+      case BookingStatus.confirmed:
+        return 'Confirmed';
+      case BookingStatus.pending:
+        return 'Pending';
+      case BookingStatus.cancelled:
+        return 'Cancelled';
+      case BookingStatus.expired:
+        return 'Expired';
+    }
+  }
+
+  Color get color {
+    switch (this) {
+      case BookingStatus.confirmed:
+        return Colors.green;
+      case BookingStatus.pending:
+        return Colors.orange;
+      case BookingStatus.cancelled:
+        return Colors.red;
+      case BookingStatus.expired:
+        return Colors.red;
+    }
+  }
+
+  // Metode untuk mengkonversi string ke enum
+  static final Map<String, BookingStatus> _statusMap = {
+    'confirmed': BookingStatus.confirmed,
+    'pending': BookingStatus.pending,
+    'cancelled': BookingStatus.cancelled,
+    'expired': BookingStatus.expired,
+  };
+
+  static BookingStatus fromString(String status) =>
+      _statusMap[status.toLowerCase()] ?? BookingStatus.pending;
+}
 
 class BookingCard extends StatelessWidget {
-  final BookingModel booking;
+  final BookingModel bookingModel;
   final VoidCallback onTap;
   final VoidCallback? onCancel;
-  final VoidCallback? onConfirm;
   final VoidCallback? onViewVenue;
+  final BookingCardController? _controller;
 
-  const BookingCard({
+  BookingCard({
     super.key,
-    required this.booking,
+    required this.bookingModel,
     required this.onTap,
     this.onCancel,
-    this.onConfirm,
     this.onViewVenue,
-  });
+  }) : _controller = null;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
+    return GestureDetector(
+      onTap: () {
+        Get.toNamed(MyRoutes.bookingDetail,
+            arguments: bookingModel.id.toString());
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        width: double.infinity,
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+              color: Theme.of(context).colorScheme.tertiary, width: 0.25),
+        ),
+        child: IntrinsicHeight(
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(context),
+              // Header with booking ID and status
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Booking #${bookingModel.id}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  _buildStatusBadge(context),
+                ],
+              ),
               const SizedBox(height: 12),
+
+              // Venue info
               _buildVenueInfo(context),
               const SizedBox(height: 12),
+
+              // Booking details
               _buildBookingDetails(context),
               const SizedBox(height: 12),
-              _buildActions(context),
+
+              // Action buttons
+              _buildActionButtons(context),
             ],
           ),
         ),
@@ -49,98 +112,20 @@ class BookingCard extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            Text(
-              'Booking #${booking.id}',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            const SizedBox(width: 8),
-            _buildStatusBadge(context),
-          ],
-        ),
-        _buildTimeRemaining(context),
-      ],
-    );
-  }
-
   Widget _buildStatusBadge(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: booking.statusColor.withOpacity(0.1),
+        color: bookingModel.statusColor.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
-        booking.statusDisplayName,
+        bookingModel.statusDisplayName,
         style: TextStyle(
-          color: booking.statusColor,
+          color: bookingModel.statusColor,
           fontSize: 12,
           fontWeight: FontWeight.bold,
         ),
-      ),
-    );
-  }
-
-  Widget _buildTimeRemaining(BuildContext context) {
-    if (booking.status != BookingStatus.pending) {
-      return const SizedBox.shrink();
-    }
-
-    final now = DateTime.now();
-    final bookingDateTime = DateTime(
-      booking.startDateTime.year,
-      booking.startDateTime.month,
-      booking.startDateTime.day,
-      int.parse(booking.startTime.split(':')[0]),
-      int.parse(booking.startTime.split(':')[1]),
-    );
-
-    if (bookingDateTime.isBefore(now)) {
-      return const SizedBox.shrink();
-    }
-
-    final difference = bookingDateTime.difference(now);
-    String timeText;
-
-    if (difference.inDays > 0) {
-      timeText = '${difference.inDays}d';
-    } else if (difference.inHours > 0) {
-      timeText = '${difference.inHours}h';
-    } else {
-      timeText = '${difference.inMinutes}m';
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: Colors.orange.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.schedule,
-            size: 12,
-            color: Colors.orange[700],
-          ),
-          const SizedBox(width: 4),
-          Text(
-            timeText,
-            style: TextStyle(
-              color: Colors.orange[700],
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -151,11 +136,32 @@ class BookingCard extends StatelessWidget {
         // Venue image
         ClipRRect(
           borderRadius: BorderRadius.circular(8),
-          child: NetworkImageWithLoader(
-            imageUrl: booking.place?.firstPictureUrl ?? '',
+          child: Container(
             width: 60,
             height: 60,
-            fit: BoxFit.cover,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: bookingModel.place?.firstPictureUrl != null
+                ? Image.network(
+                    bookingModel.place!.firstPictureUrl!,
+                    width: 60,
+                    height: 60,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(
+                        Icons.location_city,
+                        size: 30,
+                        color: Colors.grey[400],
+                      );
+                    },
+                  )
+                : Icon(
+                    Icons.location_city,
+                    size: 30,
+                    color: Colors.grey[400],
+                  ),
           ),
         ),
         const SizedBox(width: 12),
@@ -166,72 +172,35 @@ class BookingCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                booking.place?.name ?? 'Unknown Venue',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                bookingModel.place?.name ?? 'Unknown Venue',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 4),
-              Row(
-                children: [
-                  Icon(
-                    Icons.location_on,
-                    size: 16,
+              if (bookingModel.place?.city != null)
+                Text(
+                  bookingModel.place!.city!.name ?? 'Unknown City',
+                  style: TextStyle(
                     color: Colors.grey[600],
+                    fontSize: 14,
                   ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      booking.place?.address ?? 'Address not available',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[600],
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
+                ),
               const SizedBox(height: 4),
-              if (booking.place?.rating != null)
-                Row(
-                  children: [
-                    Icon(
-                      Icons.star,
-                      size: 16,
-                      color: Colors.amber[600],
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      booking.place!.rating!.toStringAsFixed(1),
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
+              if (bookingModel.place?.price != null)
+                Text(
+                  'Rp ${_formatPrice(bookingModel.place!.price!)} / day',
+                  style: TextStyle(
+                    color: Theme.of(context).primaryColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
                 ),
             ],
           ),
-        ),
-
-        // Quick actions
-        Column(
-          children: [
-            if (onViewVenue != null)
-              IconButton(
-                onPressed: onViewVenue,
-                icon: Icon(
-                  Icons.info_outline,
-                  color: Theme.of(context).primaryColor,
-                ),
-                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                padding: EdgeInsets.zero,
-              ),
-          ],
         ),
       ],
     );
@@ -248,200 +217,224 @@ class BookingCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Expanded(
-                child: _buildDetailItem(
-                  context,
-                  icon: Icons.calendar_today,
-                  label: 'Date',
-                  value: booking.formattedDate,
-                ),
+              Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
+              const SizedBox(width: 8),
+              Text(
+                bookingModel.formattedDate,
+                style: const TextStyle(fontSize: 14),
               ),
-              Container(
-                width: 1,
-                height: 20,
-                color: Colors.grey[300],
-              ),
-              Expanded(
-                child: _buildDetailItem(
-                  context,
-                  icon: Icons.access_time,
-                  label: 'Time',
-                  value: booking.formattedTimeRange,
-                ),
+              const Spacer(),
+              Icon(Icons.access_time, size: 16, color: Colors.grey[600]),
+              const SizedBox(width: 8),
+              Text(
+                bookingModel.formattedTimeRange,
+                style: const TextStyle(fontSize: 14),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: _buildDetailItem(
-                  context,
-                  icon: Icons.schedule,
-                  label: 'Duration',
-                  value: _formatDuration(booking.duration),
+          if (bookingModel.status == BookingStatus.pending) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(Icons.schedule, size: 16, color: Colors.orange[700]),
+                const SizedBox(width: 8),
+                Text(
+                  'Awaiting admin confirmation',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.orange[700],
+                    fontStyle: FontStyle.italic,
+                  ),
                 ),
-              ),
-              Container(
-                width: 1,
-                height: 20,
-                color: Colors.grey[300],
-              ),
-              Expanded(
-                child: _buildDetailItem(
-                  context,
-                  icon: Icons.attach_money,
-                  label: 'Price',
-                  value: booking.place?.price != null
-                      ? 'IDR ${NumberFormat("#,##0", "id_ID").format(booking.place!.price)}'
-                      : 'N/A',
-                ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildDetailItem(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required String value,
-  }) {
+  Widget _buildActionButtons(BuildContext context) {
+    switch (bookingModel.status) {
+      case BookingStatus.confirmed:
+        return _buildConfirmedActions(context);
+      case BookingStatus.pending:
+        return _buildPendingActions(context);
+      case BookingStatus.cancelled:
+      case BookingStatus.expired:
+        return _buildInactiveActions(context);
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  Widget _buildConfirmedActions(BuildContext context) {
+    // Check if payment is needed (you can add payment status logic here)
+    final bool needsPayment = bookingModel.payment == null;
+
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 16,
-          color: Theme.of(context).primaryColor,
-        ),
-        const SizedBox(width: 6),
+        if (needsPayment) ...[
+          Expanded(
+            flex: 2,
+            child: ElevatedButton.icon(
+              onPressed: () => _proceedToPayment(context),
+              icon: const Icon(Icons.payment, size: 16),
+              label: const Text('Pay Now'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).primaryColor,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.grey[600],
-                ),
+          child: OutlinedButton.icon(
+            onPressed: () => _contactVenue(context),
+            icon: const Icon(Icons.chat, size: 16),
+            label: const Text('Contact'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
               ),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: onViewVenue ?? () => _viewVenue(context),
+            icon: const Icon(Icons.location_on, size: 16),
+            label: const Text('View'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
               ),
-            ],
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildActions(BuildContext context) {
-    final actions = <Widget>[];
-
-    // Show different actions based on booking status
-    switch (booking.status) {
-      case BookingStatus.pending:
-        if (onCancel != null) {
-          if (actions.isNotEmpty) actions.add(const SizedBox(width: 8));
-          actions.add(
-            Expanded(
-              child: OutlineButton(
-                text: 'View Details',
-                onPressed: onTap,
-                height: 40,
+  Widget _buildPendingActions(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: onCancel ?? () => _cancelBooking(context),
+            icon: const Icon(Icons.cancel, size: 16),
+            label: const Text('Cancel'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.red,
+              side: const BorderSide(color: Colors.red),
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
               ),
             ),
-          );
-        }
-        break;
-
-      case BookingStatus.confirmed:
-        actions.add(
-          Expanded(
-            child: OutlineButton(
-              text: 'View Details',
-              onPressed: onTap,
-              height: 40,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: onViewVenue ?? () => _viewVenue(context),
+            icon: const Icon(Icons.location_on, size: 16),
+            label: const Text('View Venue'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
           ),
-        );
-
-      // // Show cancel only if booking is in the future
-      // final now = DateTime.now();
-      // final bookingDateTime = DateTime(
-      //   booking.date.year,
-      //   booking.date.month,
-      //   booking.date.day,
-      //   int.parse(booking.startTime.split(':')[0]),
-      //   int.parse(booking.startTime.split(':')[1]),
-      // );
-
-      // if (bookingDateTime.isAfter(now) && onCancel != null) {
-      //   actions.add(const SizedBox(width: 8));
-      //   actions.add(
-      //     Expanded(
-      //       child: OutlineButton(
-      //         text: 'Cancel',
-      //         onPressed: onCancel!,
-      //         textColor: Colors.red,
-      //         outlineColor: Colors.red,
-      //         height: 40,
-      //       ),
-      //     ),
-      //   );
-      // }
-      // break;
-
-      case BookingStatus.expired:
-        actions.add(
-          Expanded(
-            child: OutlineButton(
-              text: 'View Details',
-              onPressed: onTap,
-              height: 40,
-            ),
-          ),
-        );
-        break;
-
-      case BookingStatus.cancelled:
-        actions.add(
-          Expanded(
-            child: OutlineButton(
-              text: 'View Details',
-              onPressed: onTap,
-              height: 40,
-            ),
-          ),
-        );
-        break;
-    }
-
-    if (actions.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Row(children: actions);
+        ),
+      ],
+    );
   }
 
-  String _formatDuration(Duration duration) {
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes % 60;
+  Widget _buildInactiveActions(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton.icon(
+            onPressed: onViewVenue ?? () => _viewVenue(context),
+            icon: const Icon(Icons.location_on, size: 16),
+            label: const Text('View Venue'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
-    if (hours > 0) {
-      return '${hours}h ${minutes}m';
-    } else {
-      return '${minutes}m';
+  // Action methods
+  void _proceedToPayment(BuildContext context) {
+    Get.toNamed('/payment', arguments: bookingModel);
+  }
+
+  void _contactVenue(BuildContext context) {
+    // Implement contact venue functionality
+    Get.snackbar(
+      'Contact Venue',
+      'Contacting venue owner...',
+      backgroundColor: Colors.blue,
+      colorText: Colors.white,
+    );
+  }
+
+  void _viewVenue(BuildContext context) {
+    if (bookingModel.place?.id != null) {
+      Get.toNamed('/venue-detail', arguments: {
+        'venueId': bookingModel.place!.id,
+      });
     }
+  }
+
+  void _cancelBooking(BuildContext context) {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Cancel Booking'),
+        content: Text(
+          'Are you sure you want to cancel this booking for ${bookingModel.place?.name ?? "this venue"}?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () {
+              Get.back();
+              if (onCancel != null) {
+                onCancel!();
+              }
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Yes, Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Helper methods
+  String _formatPrice(int price) {
+    return price.toString().replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]},',
+        );
   }
 }
