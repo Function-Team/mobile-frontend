@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:function_mobile/common/widgets/texts/localized_text.dart';
+import 'package:function_mobile/common/widgets/texts/tr_text.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/modules/profile/views/faq_page.dart';
 import 'package:get/get.dart';
@@ -73,11 +73,11 @@ Widget buildProfileOptions(BuildContext context) {
           // Handle about us
         },
       ),
-      _buildOptionTiles(
+      _buildOptionTile(
         context: context,
         icon: Icons.settings_outlined,
-        titleWidget: const LocalizedText('settings.title'),
-        subtitleWidget: const LocalizedText('settings.description'),
+        title: LocalizationHelper.tr('settings.title'),
+        subtitle: LocalizationHelper.tr('settings.description'),
         onTap: () => controller.goToSettings(),
       ),
     ],

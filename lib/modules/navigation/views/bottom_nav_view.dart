@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:function_mobile/common/widgets/bottom_sheets/logout_bottom_sheet.dart';
-import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 import 'package:function_mobile/modules/booking/views/bookings_list_page.dart';
 import 'package:function_mobile/modules/chat/views/chat_page.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/common/bindings/localization_binding.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/home/views/home_page.dart';
 import 'package:function_mobile/modules/profile/views/profile_page.dart';
@@ -11,7 +12,7 @@ import 'package:function_mobile/modules/navigation/controllers/bottom_nav_contro
 
 class BottomNavView extends StatelessWidget {
   final BottomNavController controller = Get.find();
-  final AuthController authController = Get.find<AuthController>();
+  final LocalizationController localizationController = Get.find();
 
   BottomNavView({super.key});
 
@@ -25,37 +26,69 @@ class BottomNavView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-    canPop: false, 
-    onPopInvoked: (didPop) async {
-      if(!didPop) {
-        if(controller.currentIndex.value == 0){
-          final shouldExit = await LogoutBottomSheet.show(context, imagePath: 'assets/images/logout.svg');
-          if(shouldExit == true && context.mounted){
-            authController.logout();
-          }
-        }else{
-          controller.changePage(0);
-        }
-      }
-    },
-    child: Scaffold(
+    return Scaffold(
       body: Obx(() => pages[controller.currentIndex.value]),
-      bottomNavigationBar: Obx(
-        () => BottomNavigationBar(
+      bottomNavigationBar: Obx(() {
+        // This will rebuild when language changes
+        final _ = localizationController.currentLocale.value;
+        
+        return BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
           currentIndex: controller.currentIndex.value,
           onTap: controller.changePage,
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Bookings'),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.favorite), label: 'Favorites'),
-            BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-     ],
+          selectedItemColor: Theme.of(context).primaryColor,
+          unselectedItemColor: Colors.grey[600],
+          selectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 12,
           ),
-        ),
-      ),
+          unselectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.w500,
+            fontSize: 11,
+          ),
+          items: [
+            BottomNavigationBarItem(
+              icon: _buildNavIcon(Icons.home_outlined, Icons.home, 0),
+              // SOLUSI: Gunakan LocalizationHelper.tr() langsung
+              label: LocalizationHelper.tr(LocaleKeys.navigation_home),
+            ),
+            BottomNavigationBarItem(
+              icon: _buildNavIcon(Icons.book_outlined, Icons.book, 1),
+              // SOLUSI: Gunakan LocalizationHelper.tr() langsung
+              label: LocalizationHelper.tr(LocaleKeys.navigation_bookings),
+            ),
+            BottomNavigationBarItem(
+              icon: _buildNavIcon(Icons.favorite_outline, Icons.favorite, 2),
+              // SOLUSI: Gunakan LocalizationHelper.tr() langsung
+              label: LocalizationHelper.tr(LocaleKeys.navigation_favorites),
+            ),
+            BottomNavigationBarItem(
+              icon: _buildNavIcon(Icons.chat_outlined, Icons.chat, 3),
+              // SOLUSI: Gunakan LocalizationHelper.tr() langsung
+              label: LocalizationHelper.tr(LocaleKeys.navigation_chat),
+            ),
+            BottomNavigationBarItem(
+              icon: _buildNavIcon(Icons.person_outline, Icons.person, 4),
+              // SOLUSI: Gunakan LocalizationHelper.tr() langsung
+              label: LocalizationHelper.tr(LocaleKeys.navigation_profile),
+            ),
+          ],
+        );
+      }),
     );
+  }
+
+  Widget _buildNavIcon(IconData outlineIcon, IconData filledIcon, int index) {
+    return Obx(() {
+      final isSelected = controller.currentIndex.value == index;
+      return AnimatedSwitcher(
+        duration: const Duration(milliseconds: 200),
+        child: Icon(
+          isSelected ? filledIcon : outlineIcon,
+          key: ValueKey(isSelected),
+          size: 24,
+        ),
+      );
+    });
   }
 }

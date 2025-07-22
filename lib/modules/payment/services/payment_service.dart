@@ -8,7 +8,6 @@ class PaymentService {
 
   static const String baseUrl = 'https://railway.thefunction.id/api/';
 
-
   // Create payment and get Snap token
   Future<PaymentResponse> createPayment(int bookingId) async {
     try {
