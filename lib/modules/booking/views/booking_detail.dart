@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/buttons/outline_button.dart';
 import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_detail_controller.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:get/get.dart';
@@ -423,7 +425,7 @@ class BookingDetailPage extends GetView<BookingDetailController> {
             _buildPriceRow(
                 'Base Price (${summary['hours']} hours)', summary['subtotal']),
             _buildPriceRow('Service Fee', summary['service_fee']),
-            _buildPriceRow('Tax (10%)', summary['tax']),
+            _buildPriceRow(LocalizationHelper.tr(LocaleKeys.booking_tax), summary['tax']),
             const Divider(height: 24),
             _buildPriceRow(
               'Total Amount',
@@ -604,7 +606,7 @@ class BookingDetailPage extends GetView<BookingDetailController> {
       actions.add(
         Expanded(
           child: OutlineButton(
-            text: 'Contact Host',
+            text: LocalizationHelper.tr(LocaleKeys.booking_contactHost),
             onPressed: () {},
             //controller.contactVenueOwner,
             height: 48,
@@ -621,8 +623,8 @@ class BookingDetailPage extends GetView<BookingDetailController> {
         Expanded(
           child: OutlineButton(
             text: controller.isCancelling.value
-                ? 'Cancelling...'
-                : 'Cancel Booking',
+                ? LocalizationHelper.tr(LocaleKeys.booking_cancelling)
+                : LocalizationHelper.tr(LocaleKeys.booking_cancelBooking),
             onPressed: controller.isCancelling.value
                 ? () {}
                 : controller.showCancelConfirmationDialog,

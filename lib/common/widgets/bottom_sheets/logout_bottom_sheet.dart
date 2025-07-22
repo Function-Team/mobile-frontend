@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/buttons/outline_button.dart';
 import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 
 class LogoutBottomSheet extends StatelessWidget {
   final String? customImagePath;
@@ -56,7 +58,7 @@ class LogoutBottomSheet extends StatelessWidget {
 
             const SizedBox(height: 24),
             Text(
-              'Leave App',
+              LocalizationHelper.tr(LocaleKeys.settings_logout),
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
@@ -66,7 +68,7 @@ class LogoutBottomSheet extends StatelessWidget {
 
             const SizedBox(height: 8),
             Text(
-              'Are you sure you want to exit the app?',
+              LocalizationHelper.tr(LocaleKeys.settings_logoutConfirmation),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Colors.grey.shade600,
                     fontSize: 14,
@@ -79,17 +81,16 @@ class LogoutBottomSheet extends StatelessWidget {
               children: [
                 Expanded(
                   child: OutlineButton(
-                    text: 'CANCEL',
+                    text: LocalizationHelper.tr(LocaleKeys.common_cancel),
                     onPressed: () => Navigator.of(context).pop(false),
                   ),
                 ),
-
                 const SizedBox(width: 16),
                 Expanded(
                   child: PrimaryButton(
-                    text: 'EXIT',
+                    text: LocalizationHelper.tr(LocaleKeys.common_exit),
                     onPressed: () => Navigator.of(context).pop(true),
-                    backgroundColor: Colors.red, 
+                    backgroundColor: Colors.red,
                   ),
                 ),
               ],

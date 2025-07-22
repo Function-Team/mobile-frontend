@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/profile/models/profile_model.dart';
 
 Widget buildProfileCard(
@@ -79,7 +81,7 @@ Widget buildProfileCard(
         const SizedBox(height: 20),
         PrimaryButton(
           width: double.infinity,
-          text: "View Profile",
+          text: LocalizationHelper.tr(LocaleKeys.profile_viewProfile),
           onPressed: onTapViewProfile,
         ),
       ],

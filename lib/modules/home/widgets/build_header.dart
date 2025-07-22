@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 
 Widget buildHeader(
   BuildContext context, {
@@ -38,7 +40,7 @@ Widget buildHeader(
                     ),
               const SizedBox(width: 8),
               Text(
-                'Hello, ',
+                LocalizationHelper.tr(LocaleKeys.common_hello),
                 style: Theme.of(context)
                     .textTheme
                     .headlineSmall

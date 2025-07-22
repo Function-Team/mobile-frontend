@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/buttons/secondary_button.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/home/controllers/search_filter_controller.dart';
 import 'package:get/get.dart';
 
@@ -49,7 +51,8 @@ class SearchContainer extends StatelessWidget {
                   SizedBox(width: 8),
                   Text(
                     controllerActivity.text.isEmpty
-                        ? 'Search Activity/Venue'
+                        ? LocalizationHelper.tr(
+                            LocaleKeys.search_selectActivity)
                         : controllerActivity.text,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color: Colors.grey[600],
@@ -77,7 +80,8 @@ class SearchContainer extends StatelessWidget {
                   SizedBox(width: 8),
                   Text(
                     controllerLocation.text.isEmpty
-                        ? 'Search Location'
+                        ? LocalizationHelper.tr(
+                            LocaleKeys.search_selectLocation)
                         : controllerLocation.text,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color: Colors.grey[600],
@@ -105,7 +109,8 @@ class SearchContainer extends StatelessWidget {
                   SizedBox(width: 8),
                   Text(
                     controllerCapacity.text.isEmpty
-                        ? 'Choose Capacity'
+                        ? LocalizationHelper.tr(
+                            LocaleKeys.search_selectCapacity)
                         : controllerCapacity.text,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color: Colors.grey[600],
@@ -133,7 +138,7 @@ class SearchContainer extends StatelessWidget {
                   SizedBox(width: 8),
                   Text(
                     controllerDate.text.isEmpty
-                        ? 'Choose Date'
+                        ? LocalizationHelper.tr(LocaleKeys.search_selectDate)
                         : controllerDate.text,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color: Colors.grey[600],
@@ -143,19 +148,19 @@ class SearchContainer extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Search Button
           SecondaryButton(
-            text: 'Search',
+            text: LocalizationHelper.tr(LocaleKeys.search_search),
             onPressed: onTapSearch,
             width: double.infinity,
           ),
         ]
-        .map((e) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: e,
-            ))
-        .toList(),
+            .map((e) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: e,
+                ))
+            .toList(),
       ),
     );
   }

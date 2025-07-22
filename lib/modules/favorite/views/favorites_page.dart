@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/favorite/controllers/favorites_controller.dart';
 import 'package:function_mobile/modules/favorite/widgets/favorite_card.dart';
 import 'package:get/get.dart';
@@ -31,7 +33,7 @@ class FavoritesPage extends GetView<FavoritesController> {
                 Icon(Icons.favorite_border, size: 64, color: Colors.grey[400]),
                 const SizedBox(height: 16),
                 Text(
-                  'No favorites yet',
+                  LocalizationHelper.tr(LocaleKeys.favorites_noFavorites),
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey[600],

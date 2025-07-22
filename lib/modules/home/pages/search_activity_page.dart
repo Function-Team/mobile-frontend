@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:get/get.dart';
 
 class SearchActivityPage extends StatelessWidget {
@@ -28,7 +30,7 @@ class SearchActivityPage extends StatelessWidget {
           controller: searchController,
           autofocus: true,
           decoration: InputDecoration(
-            hintText: 'Search Activity/Venue',
+            hintText: LocalizationHelper.tr(LocaleKeys.search_selectActivity),
             border: InputBorder.none,
             suffixIcon: IconButton(
               icon: Icon(Icons.close),
@@ -64,7 +66,7 @@ class SearchActivityPage extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Text(
-                'Activities',
+                LocalizationHelper.tr(LocaleKeys.search_selectActivity),
                 style: Theme.of(context).textTheme.titleLarge,
               ),
             ),

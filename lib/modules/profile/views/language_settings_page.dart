@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 
 class LanguageSettingsPage extends StatelessWidget {
   const LanguageSettingsPage({super.key});
@@ -9,7 +10,7 @@ class LanguageSettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(LocalizationHelper.tr('settings.language')),
+       title: Text(LocalizationHelper.tr(LocaleKeys.settings_language)),
         elevation: 0,
       ),
       body: Padding(
@@ -18,7 +19,7 @@ class LanguageSettingsPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              LocalizationHelper.tr('settings.choose_language'),
+              LocalizationHelper.tr(LocaleKeys.settings_changeLanguage),
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),

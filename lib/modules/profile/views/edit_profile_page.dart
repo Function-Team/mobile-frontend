@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/buttons/secondary_button.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
 import 'package:function_mobile/common/widgets/inputs/primary_text_field.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 import 'package:get/get.dart';
 
@@ -42,11 +44,10 @@ class EditProfilePage extends StatelessWidget {
                 usernameController, emailController, phoneController),
             const SizedBox(height: 30),
             SecondaryButton(
-              text: 'Save Changes',
+              text: LocalizationHelper.tr(LocaleKeys.common_saveChange),
               width: double.infinity,
               onPressed: () {
                 // TODO: Implement save functionality
-                
               },
             ),
           ],
@@ -122,24 +123,24 @@ class EditProfilePage extends StatelessWidget {
     return Column(
       children: [
         PrimaryTextField(
-          label: 'Username',
-          hintText: 'Enter your username',
+          label: LocalizationHelper.tr(LocaleKeys.auth_username),
+          hintText: LocalizationHelper.tr(LocaleKeys.booking_enterFullName),
           prefixIcon: Icon(Icons.person),
           keyboardType: TextInputType.text,
           controller: usernameController,
         ),
         SizedBox(height: 16),
         PrimaryTextField(
-          label: 'Email',
-          hintText: 'Enter your email address',
+          label: LocalizationHelper.tr(LocaleKeys.auth_email),
+          hintText: LocalizationHelper.tr(LocaleKeys.booking_enterEmail),
           prefixIcon: Icon(Icons.email),
           keyboardType: TextInputType.emailAddress,
           controller: emailController,
         ),
         SizedBox(height: 16),
         PrimaryTextField(
-          label: 'Phone Number',
-          hintText: 'Enter your phone number',
+          label: LocalizationHelper.tr(LocaleKeys.auth_phoneNumber),
+          hintText: LocalizationHelper.tr(LocaleKeys.booking_enterPhoneNumber),
           prefixIcon: Icon(Icons.phone),
           keyboardType: TextInputType.phone,
           controller: phoneController,

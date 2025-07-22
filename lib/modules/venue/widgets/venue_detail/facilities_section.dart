@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 
 import '../../../../common/widgets/buttons/custom_text_button.dart';
 
@@ -22,7 +24,7 @@ class FacilitiesSection extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Facilities',
+                LocalizationHelper.tr(LocaleKeys.venue_facilities),
                 style: TextStyle(
                   color: Colors.black,
                   fontSize: 16,
@@ -30,7 +32,7 @@ class FacilitiesSection extends StatelessWidget {
                 ),
               ),
               CustomTextButton(
-                text: 'See more',
+                text: LocalizationHelper.tr(LocaleKeys.common_seeMore),
                 onTap: () {
                   print('See More Clicked');
                 },
@@ -88,5 +90,4 @@ class FacilitiesSection extends StatelessWidget {
       ),
     );
   }
-
 }

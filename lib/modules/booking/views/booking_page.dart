@@ -3,6 +3,8 @@ import 'package:function_mobile/common/widgets/buttons/outline_button.dart';
 import 'package:function_mobile/common/widgets/buttons/secondary_button.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
 import 'package:function_mobile/common/widgets/inputs/primary_text_field.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_controller.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:get/get.dart';
@@ -266,39 +268,38 @@ class BookingPage extends GetView<BookingController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Guest Information',
+          Text(LocalizationHelper.tr(LocaleKeys.booking_guestInformation),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
           ),
           const SizedBox(height: 16),
           PrimaryTextField(
-            label: 'Full Name',
-            hintText: 'Enter your full name',
+            label: LocalizationHelper.tr(LocaleKeys.auth_fullName),
+            hintText: LocalizationHelper.tr(LocaleKeys.booking_enterFullName),
             controller: controller.guestNameController,
             prefixIcon: const Icon(Icons.person),
           ),
           const SizedBox(height: 16),
           PrimaryTextField(
-            label: 'Email Address',
-            hintText: 'Enter your email',
+            label: LocalizationHelper.tr(LocaleKeys.auth_email),
+            hintText: LocalizationHelper.tr(LocaleKeys.booking_enterEmail),
             controller: controller.guestEmailController,
             keyboardType: TextInputType.emailAddress,
             prefixIcon: const Icon(Icons.email),
           ),
           const SizedBox(height: 16),
           PrimaryTextField(
-            label: 'Phone Number',
-            hintText: 'Enter your phone number',
+            label: LocalizationHelper.tr(LocaleKeys.auth_phoneNumber),
+            hintText: LocalizationHelper.tr(LocaleKeys.booking_enterPhoneNumber),
             controller: controller.guestPhoneController,
             keyboardType: TextInputType.phone,
             prefixIcon: const Icon(Icons.phone),
           ),
           const SizedBox(height: 16),
           PrimaryTextField(
-            label: 'Special Requests (Optional)',
-            hintText: 'Any special requirements or requests',
+            label: LocalizationHelper.tr(LocaleKeys.booking_specialRequests),
+            hintText: LocalizationHelper.tr(LocaleKeys.booking_specialRequestsHint),
             controller: controller.specialRequestsController,
             maxLines: 3,
             prefixIcon: const Icon(Icons.note_add),
@@ -323,7 +324,7 @@ class BookingPage extends GetView<BookingController> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Price Summary',
+                LocalizationHelper.tr(LocaleKeys.booking_priceSummary),
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),

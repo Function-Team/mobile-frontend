@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/texts/tr_text.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/profile/views/faq_page.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/profile/controllers/profile_options_controller.dart';
@@ -14,8 +15,8 @@ Widget buildProfileOptions(BuildContext context) {
       _buildOptionTile(
         context: context,
         icon: Icons.account_balance_wallet_outlined,
-        title: LocalizationHelper.tr('profile.payment_methods'),
-        subtitle: 'Add or remove payment methods',
+        title: LocalizationHelper.tr(LocaleKeys.profile_payment_methods),
+        subtitle: LocalizationHelper.tr(LocaleKeys.profile_payment_methods_subtitle),
         onTap: () {
           // Handle PAYMENT METHODS
         },
@@ -24,8 +25,8 @@ Widget buildProfileOptions(BuildContext context) {
       _buildOptionTile(
         context: context,
         icon: Icons.person_outline,
-        title: LocalizationHelper.tr('profile.your_details'),
-        subtitle: 'Update your personal details',
+        title: LocalizationHelper.tr(LocaleKeys.profile_your_details),
+        subtitle: LocalizationHelper.tr(LocaleKeys.profile_your_details_subtitle),
         onTap: () {
           // Handle your details
         },
@@ -33,8 +34,8 @@ Widget buildProfileOptions(BuildContext context) {
       _buildOptionTile(
         context: context,
         icon: Icons.money_off,
-        title: LocalizationHelper.tr('profile.refunds'),
-        subtitle: 'Request a refund',
+        title: LocalizationHelper.tr(LocaleKeys.profile_refunds),
+        subtitle: LocalizationHelper.tr(LocaleKeys.profile_refunds_subtitle),
         onTap: () {
           // Handle refunds
         },
@@ -42,15 +43,15 @@ Widget buildProfileOptions(BuildContext context) {
       _buildOptionTile(
         context: context,
         icon: Icons.help_outline,
-        title: LocalizationHelper.tr('faq.title'),
-        subtitle: 'Frequently asked questions',
+        title: LocalizationHelper.tr(LocaleKeys.faq_title),
+        subtitle: LocalizationHelper.tr(LocaleKeys.faq_subtitle),
         onTap: () => Get.to(() => const FaqPage()),
       ),
       _buildOptionTile(
         context: context,
         icon: Icons.headset_mic_outlined,
-        title: LocalizationHelper.tr('contact_support.title'),
-        subtitle: 'Get help with your account',
+        title: LocalizationHelper.tr(LocaleKeys.contact_support_title),
+        subtitle: LocalizationHelper.tr(LocaleKeys.contact_support_subtitle),
         onTap: () {
           // TODO: Navigate to contact support page
         },
@@ -58,8 +59,8 @@ Widget buildProfileOptions(BuildContext context) {
       _buildOptionTile(
         context: context,
         icon: Icons.share,
-        title: LocalizationHelper.tr('follow_us.title'),
-        subtitle: 'Connect with us on social media',
+        title: LocalizationHelper.tr(LocaleKeys.follow_us_title),
+        subtitle: LocalizationHelper.tr(LocaleKeys.follow_us_subtitle),
         onTap: () {
           // TODO: Navigate to follow us page
         },
@@ -67,8 +68,8 @@ Widget buildProfileOptions(BuildContext context) {
       _buildOptionTile(
         context: context,
         icon: Icons.info_outline,
-        title: LocalizationHelper.tr('settings.about_us'),
-        subtitle: 'Learn more about us',
+        title: LocalizationHelper.tr(LocaleKeys.settings_about),
+        subtitle: LocalizationHelper.tr(LocaleKeys.settings_about_subtitle),
         onTap: () {
           // Handle about us
         },
@@ -76,8 +77,8 @@ Widget buildProfileOptions(BuildContext context) {
       _buildOptionTile(
         context: context,
         icon: Icons.settings_outlined,
-        title: LocalizationHelper.tr('settings.title'),
-        subtitle: LocalizationHelper.tr('settings.description'),
+        title: LocalizationHelper.tr(LocaleKeys.settings_settings),
+        subtitle: LocalizationHelper.tr(LocaleKeys.settings_description),
         onTap: () => controller.goToSettings(),
       ),
     ],
