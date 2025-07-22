@@ -4,6 +4,8 @@ import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:function_mobile/modules/venue/widgets/venue_card.dart';
 import 'package:get/get.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart'; // TAMBAHKAN
 
 class VenueListPage extends GetView<VenueListController> {
   const VenueListPage({super.key});
@@ -37,11 +39,12 @@ class VenueListPage extends GetView<VenueListController> {
       child: TextField(
         controller: controller.searchController,
         decoration: InputDecoration(
-          hintText: 'Search venue',
+          hintText:
+              LocalizationHelper.tr(LocaleKeys.search_searchVenueHint), // FIXED
           prefixIcon: Obx(() =>
               controller.isLoading.value && controller.searchQuery.isNotEmpty
-                  ? Padding(
-                      padding: const EdgeInsets.all(10.0),
+                  ? const Padding(
+                      padding: EdgeInsets.all(10.0),
                       child: SizedBox(
                         width: 15,
                         height: 15,
@@ -55,7 +58,7 @@ class VenueListPage extends GetView<VenueListController> {
                     controller.searchController.clear();
                   },
                 )
-              : SizedBox()),
+              : const SizedBox()),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
             borderSide: BorderSide.none,
@@ -82,11 +85,12 @@ class VenueListPage extends GetView<VenueListController> {
               Obx(
                 () => controller.selectedCategory.isEmpty
                     ? Text(
-                        'All Venues',
+                        LocalizationHelper.tr(
+                            LocaleKeys.venue_allVenues), // FIXED
                         style: Theme.of(context).textTheme.titleMedium,
                       )
                     : Text(
-                        '${controller.selectedCategory.value} Venues',
+                        '${controller.selectedCategory.value} ${LocalizationHelper.tr(LocaleKeys.venue_venues)}', // FIXED
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
               ),
@@ -176,7 +180,8 @@ class VenueListPage extends GetView<VenueListController> {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: controller.refreshVenues,
-            child: const Text('Try Again'),
+            child: Text(
+                LocalizationHelper.tr(LocaleKeys.common_tryAgain)), // FIXED
           ),
         ],
       ),
@@ -184,15 +189,15 @@ class VenueListPage extends GetView<VenueListController> {
   }
 
   Widget _buildEmptyState() {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.search_off, size: 48, color: Colors.grey),
-          SizedBox(height: 16),
+          const Icon(Icons.search_off, size: 48, color: Colors.grey),
+          const SizedBox(height: 16),
           Text(
-            'No venues found',
-            style: TextStyle(color: Colors.grey),
+            LocalizationHelper.tr(LocaleKeys.search_noResultsFound), // FIXED
+            style: const TextStyle(color: Colors.grey),
           ),
         ],
       ),
@@ -212,7 +217,8 @@ class VenueListPage extends GetView<VenueListController> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Filter by Category',
+              LocalizationHelper.tr(
+                  LocaleKeys.search_filterByCategory), // FIXED
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
@@ -221,7 +227,8 @@ class VenueListPage extends GetView<VenueListController> {
                   runSpacing: 8,
                   children: [
                     ActionChip(
-                      label: const Text('All'),
+                      label: Text(LocalizationHelper.tr(
+                          LocaleKeys.search_allCategories)), // FIXED
                       backgroundColor: controller.selectedCategory.isEmpty
                           ? Theme.of(context)
                               .colorScheme
@@ -251,7 +258,8 @@ class VenueListPage extends GetView<VenueListController> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () => Get.back(),
-                child: const Text('Close'),
+                child: Text(
+                    LocalizationHelper.tr(LocaleKeys.common_close)), // FIXED
               ),
             ),
           ],

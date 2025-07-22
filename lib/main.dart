@@ -6,6 +6,7 @@ import 'package:function_mobile/common/bindings/app_binding.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/theme/app_theme.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/modules/payment/services/payment_service.dart';
 import 'package:function_mobile/core/services/api_service.dart';
 import 'package:get/get.dart';
@@ -16,6 +17,7 @@ Future<void> main() async {
   await dotenv.load(fileName: '.env');
   debugPaintSizeEnabled = false;
   Get.put(ApiService());
+  LocalizationHelper.debugLocalization;
   // PaymentService.initializeMidtrans(
   //   clientKey: 'SB-Mid-client-xDq_e8A2BNHKg_je',
   //   merchantId: 'G796043912',

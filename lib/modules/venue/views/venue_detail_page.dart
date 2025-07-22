@@ -13,6 +13,8 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:function_mobile/modules/venue/controllers/venue_detail_controller.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart'; // TAMBAHKAN
 
 class VenueDetailPage extends StatelessWidget {
   const VenueDetailPage({super.key});
@@ -36,7 +38,8 @@ class VenueDetailPage extends StatelessWidget {
                 Text(controller.errorMessage.value),
                 const SizedBox(height: 16),
                 PrimaryButton(
-                    text: "Retry", onPressed: controller.retryLoading),
+                    text: LocalizationHelper.tr(LocaleKeys.common_retry), // FIXED
+                    onPressed: controller.retryLoading),
               ],
             ),
           );
@@ -63,7 +66,8 @@ class VenueDetailPage extends StatelessWidget {
                       width: double.infinity,
                       child: Obx(() {
                         // Cek gambar utama
-                        String? imageUrl = controller.venue.value?.firstPictureUrl;
+                        String? imageUrl =
+                            controller.venue.value?.firstPictureUrl;
                         // Jika null/kosong, fallback ke venueImages
                         if (imageUrl == null || imageUrl.isEmpty) {
                           if (controller.venueImages.isNotEmpty) {
@@ -73,8 +77,7 @@ class VenueDetailPage extends StatelessWidget {
                         return GestureDetector(
                           onTap: () {
                             if (imageUrl != null && imageUrl.isNotEmpty) {
-                              controller.openImageAtIndex(
-                                  context, 0);
+                              controller.openImageAtIndex(context, 0);
                             }
                           },
                           child: NetworkImageWithLoader(
@@ -111,15 +114,14 @@ class VenueDetailPage extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    margin: EdgeInsets.only(top: 150),
-                    padding: EdgeInsets.fromLTRB(16, 16, 16, 16),
+                    margin: const EdgeInsets.only(top: 150),
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
                     child: Column(
                       children: [
                         ImageGallery(
                           images: controller.venueImages,
                           onImageTap: (index) {
-                            controller.openImageAtIndex(
-                                context, index);
+                            controller.openImageAtIndex(context, index);
                           },
                         ),
                         _buildVenueInfoSection(context, controller),
@@ -176,7 +178,8 @@ class VenueDetailPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        controller.venue.value?.name ?? 'Data tidak ada',
+                        controller.venue.value?.name ??
+                            LocalizationHelper.tr(LocaleKeys.common_noData), // FIXED
                         style: const TextStyle(
                           color: Colors.black,
                           fontSize: 22,
@@ -188,7 +191,7 @@ class VenueDetailPage extends StatelessWidget {
                         children: [
                           const Icon(Icons.star, color: Colors.amber, size: 18),
                           Text(
-                            ' ${controller.venue.value?.rating?.toStringAsFixed(1) ?? '0'} (${controller.venue.value?.ratingCount ?? 'No'} Reviews)',
+                            ' ${controller.venue.value?.rating?.toStringAsFixed(1) ?? '0'} (${controller.venue.value?.ratingCount ?? '0'} ${LocalizationHelper.tr(LocaleKeys.venue_reviews)})', // FIXED
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[700],
@@ -237,13 +240,13 @@ class VenueDetailPage extends StatelessWidget {
               spacing: 8,
               children: [
                 CategoryChip(
-                  label:
-                      controller.venue.value?.category?.name ?? 'Uncategorized',
+                  label: controller.venue.value?.category?.name ??
+                      LocalizationHelper.tr(LocaleKeys.venue_category_uncategorized), // FIXED
                   color: Colors.blue,
                 ),
                 CategoryChip(
                   label:
-                      '1-${controller.venue.value?.maxCapacity ?? "Uncategorized"}',
+                      '1-${controller.venue.value?.maxCapacity ?? LocalizationHelper.tr(LocaleKeys.venue_capacity_unknown)}', // FIXED
                   color: Colors.blue,
                   icon: Icons.groups_2,
                 ),
@@ -265,19 +268,20 @@ class VenueDetailPage extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'About Venue',
-                      style: TextStyle(
+                    Text(
+                      LocalizationHelper.tr(LocaleKeys.venue_aboutVenue), // FIXED
+                      style: const TextStyle(
                         color: Colors.black,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     CustomTextButton(
-                      text: 'Selengkapnya',
+                      text: LocalizationHelper.tr(LocaleKeys.common_showMore), // FIXED
                       onTap: () {
                         Get.to(() => AboutDetail(
-                            venueName: controller.venue.value?.name ?? 'Venue',
+                            venueName: controller.venue.value?.name ??
+                                LocalizationHelper.tr(LocaleKeys.venue_details), // FIXED
                             venueDescription:
                                 controller.venue.value?.description ?? ''));
                       },
@@ -288,7 +292,7 @@ class VenueDetailPage extends StatelessWidget {
                 ),
                 Text(
                   controller.venue.value?.description ??
-                      '- Ruang meeting dengan nuansa kayu dan warna hangat\n- WiFi gratis',
+                      LocalizationHelper.tr(LocaleKeys.venue_description_default), // FIXED
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey[700],
@@ -304,9 +308,9 @@ class VenueDetailPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Venue Owner',
-                  style: TextStyle(
+                Text(
+                  LocalizationHelper.tr(LocaleKeys.venue_venueOwner), // FIXED
+                  style: const TextStyle(
                     color: Colors.black,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -335,7 +339,7 @@ class VenueDetailPage extends StatelessWidget {
                         const SizedBox(width: 8),
                         Text(
                           controller.venue.value?.host?.user?.username ??
-                              'Vickie Streich',
+                              LocalizationHelper.tr(LocaleKeys.venue_owner_defaultName), // FIXED
                           style: const TextStyle(
                             color: Colors.black,
                             fontSize: 14,
@@ -345,7 +349,7 @@ class VenueDetailPage extends StatelessWidget {
                       ],
                     ),
                     PrimaryButton(
-                      text: 'Contact',
+                      text: LocalizationHelper.tr(LocaleKeys.venue_contact), // FIXED
                       onPressed: () {},
                       width: 120,
                       height: 42,
@@ -367,7 +371,7 @@ class VenueDetailPage extends StatelessWidget {
       margin: const EdgeInsets.only(top: 16),
       child: GestureDetector(
         onTap: () {
-          print('Location Clicked');
+          // print('Location Clicked'); // Biarkan ini untuk debug jika perlu
         },
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -386,7 +390,7 @@ class VenueDetailPage extends StatelessWidget {
                   children: [
                     Text(
                       controller.venue.value?.address ??
-                          'No Location Data Available',
+                          LocalizationHelper.tr(LocaleKeys.venue_noLocationData), // FIXED
                       style: const TextStyle(fontSize: 14, color: Colors.black),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -412,153 +416,6 @@ class VenueDetailPage extends StatelessWidget {
     );
   }
 
-  // ! In Development
-  // Section 3
-  //   Widget _buildReviewsSection(
-  //     BuildContext context, VenueDetailController controller) {
-  //   // Example reviews list (replace with actual data from the controller)
-  //   final List<Map<String, dynamic>> reviews = controller.venue.;
-  //   return Container(
-  //     margin: const EdgeInsets.only(top: 16),
-  //     padding: const EdgeInsets.all(16),
-  //     decoration: BoxDecoration(
-  //       color: Colors.white,
-  //       borderRadius: BorderRadius.circular(8),
-  //       border: Border.all(color: Colors.grey[300]!),
-  //     ),
-  //     child: Column(
-  //       crossAxisAlignment: CrossAxisAlignment.start,
-  //       children: [
-  //         Row(
-  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //           children: [
-  //             const Text(
-  //               'Reviews',
-  //               style: TextStyle(
-  //                 color: Colors.black,
-  //                 fontSize: 16,
-  //                 fontWeight: FontWeight.bold,
-  //               ),
-  //             ),
-  //             CustomTextButton(
-  //               text: 'See more',
-  //               onTap: () {
-  //                 Get.to(() => const ReviewsPage());
-  //               },
-  //               icon: Icons.arrow_forward,
-  //               isrightIcon: true,
-  //             ),
-  //           ],
-  //         ),
-  //         const SizedBox(height: 10),
-  //         reviews.isEmpty
-  //             ? const Center(
-  //                 child: Text(
-  //                   'No reviews yet',
-  //                   style: TextStyle(
-  //                     color: Colors.grey,
-  //                     fontSize: 14,
-  //                     fontStyle: FontStyle.italic,
-  //                   ),
-  //                 ),
-  //               )
-  //             : Row(
-  //                 children: [
-  //                   Expanded(
-  //                     child: _buildReviewCard(
-  //                       reviews[0]['name'],
-  //                       reviews[0]['rating'],
-  //                       reviews[0]['comment'],
-  //                       reviews[0]['imageUrl'],
-  //                     ),
-  //                   ),
-  //                   if (reviews.length > 1) ...[
-  //                     const SizedBox(width: 12),
-  //                     Expanded(
-  //                       child: _buildReviewCard(
-  //                         reviews[1]['name'],
-  //                         reviews[1]['rating'],
-  //                         reviews[1]['comment'],
-  //                         reviews[1]['imageUrl'],
-  //                       ),
-  //                     ),
-  //                   ],
-  //                 ],
-  //               ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
-  // Widget _buildReviewCard(
-  //   String name,
-  //   double rating,
-  //   String reviews,
-  //   String? profilePicture,
-  // ) {
-  //   return Container(
-  //     padding: const EdgeInsets.all(12),
-  //     decoration: BoxDecoration(
-  //       borderRadius: BorderRadius.circular(8),
-  //       border: Border.all(color: Colors.grey[300]!),
-  //     ),
-  //     child: Column(
-  //       crossAxisAlignment: CrossAxisAlignment.start,
-  //       children: [
-  //         Row(
-  //           children: [
-  //             CircleAvatar(
-  //               radius: 14,
-  //               backgroundColor: Colors.grey[400],
-  //               child: profilePicture != null && profilePicture.isNotEmpty
-  //                   ? ClipOval(
-  //                       child: NetworkImageWithLoader(
-  //                         imageUrl: profilePicture,
-  //                         width: 28,
-  //                         height: 28,
-  //                         fit: BoxFit.cover,
-  //                       ),
-  //                     )
-  //                   : Text(
-  //                       name.isNotEmpty ? name[0].toUpperCase() : '?',
-  //                       style: const TextStyle(
-  //                         color: Colors.white,
-  //                         fontSize: 12,
-  //                         fontWeight: FontWeight.w500,
-  //                       ),
-  //                     ),
-  //             ),
-  //             const SizedBox(width: 8),
-  //             Text(
-  //               name,
-  //               style: const TextStyle(
-  //                   fontSize: 14,
-  //                   fontWeight: FontWeight.w500,
-  //                   color: Colors.black),
-  //             ),
-  //             const Spacer(),
-  //             Text(
-  //               rating.toString(),
-  //               style: const TextStyle(
-  //                 fontSize: 14,
-  //                 fontWeight: FontWeight.bold,
-  //                 color: Colors.amber,
-  //               ),
-  //             ),
-  //           ],
-  //         ),
-  //         const SizedBox(height: 8),
-  //         Text(
-  //           reviews,
-  //           style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-  //           maxLines: 2,
-  //           overflow: TextOverflow.ellipsis,
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
   //Section 4
   Widget _buildScheduleSection(
       BuildContext context, VenueDetailController controller) {
@@ -576,18 +433,18 @@ class VenueDetailPage extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Schedule',
-                style: TextStyle(
+              Text(
+                LocalizationHelper.tr(LocaleKeys.venue_schedule), // FIXED
+                style: const TextStyle(
                   color: Colors.black,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               CustomTextButton(
-                text: 'See more',
+                text: LocalizationHelper.tr(LocaleKeys.common_showMore), // FIXED
                 onTap: () {
-                  print('See More Clicked');
+                  // print('See More Clicked'); // Biarkan ini untuk debug jika perlu
                 },
                 icon: Icons.arrow_forward,
                 isrightIcon: true,
@@ -596,13 +453,20 @@ class VenueDetailPage extends StatelessWidget {
           ),
           Column(
             children: [
-              _buildScheduleItem('Monday', '7:00 - 21:00'),
-              _buildScheduleItem('Tuesday', '7:00 - 21:00'),
-              _buildScheduleItem('Wednesday', '7:00 - 21:00'),
-              _buildScheduleItem('Thursday', '7:00 - 21:00'),
-              _buildScheduleItem('Friday', '7:00 - 21:00'),
-              _buildScheduleItem('Saturday', '7:00 - 21:00'),
-              _buildScheduleItem('Sunday', 'Closed'),
+              _buildScheduleItem(LocalizationHelper.tr(LocaleKeys.common_monday),
+                  '7:00 - 21:00'), // FIXED
+              _buildScheduleItem(LocalizationHelper.tr(LocaleKeys.common_tuesday),
+                  '7:00 - 21:00'), // FIXED
+              _buildScheduleItem(LocalizationHelper.tr(LocaleKeys.common_wednesday),
+                  '7:00 - 21:00'), // FIXED
+              _buildScheduleItem(LocalizationHelper.tr(LocaleKeys.common_thursday),
+                  '7:00 - 21:00'), // FIXED
+              _buildScheduleItem(LocalizationHelper.tr(LocaleKeys.common_friday),
+                  '7:00 - 21:00'), // FIXED
+              _buildScheduleItem(LocalizationHelper.tr(LocaleKeys.common_saturday),
+                  '7:00 - 21:00'), // FIXED
+              _buildScheduleItem(LocalizationHelper.tr(LocaleKeys.common_sunday),
+                  LocalizationHelper.tr(LocaleKeys.venue_closed)), // FIXED
             ],
           ),
         ],
@@ -667,7 +531,7 @@ class VenueDetailPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Start From',
+                      LocalizationHelper.tr(LocaleKeys.venue_startFrom), // FIXED
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[700],
@@ -687,14 +551,14 @@ class VenueDetailPage extends StatelessWidget {
                               ),
                         ),
                         Text(
-                          '/Hour',
+                          LocalizationHelper.tr(LocaleKeys.venue_perHour), // FIXED
                           style:
                               TextStyle(fontSize: 14, color: Colors.grey[700]),
                         ),
                       ],
                     ),
                     Text(
-                      'Include tax',
+                      LocalizationHelper.tr(LocaleKeys.venue_includeTax), // FIXED
                       style: TextStyle(fontSize: 12, color: Colors.grey[700]),
                     ),
                   ],
@@ -702,7 +566,7 @@ class VenueDetailPage extends StatelessWidget {
               ),
               Expanded(
                 child: SecondaryButton(
-                  text: 'Book this',
+                  text: LocalizationHelper.tr(LocaleKeys.booking_bookNow), // FIXED
                   onPressed: () {
                     final venue = controller.venue.value;
                     if (venue != null) {
@@ -713,9 +577,9 @@ class VenueDetailPage extends StatelessWidget {
                     } else {
                       CustomSnackbar.show(
                         context: context,
-                        message: 'Venue information not available',
+                        message: LocalizationHelper.tr(LocaleKeys.errors_venueUnavailable), // FIXED
                         type: SnackbarType.error,
-                      ); // Show snackbar if venue information is no
+                      );
                     }
                   },
                 ),
