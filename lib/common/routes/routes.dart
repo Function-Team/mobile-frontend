@@ -1,7 +1,9 @@
 import 'package:function_mobile/modules/auth/views/signup_page.dart';
 import 'package:function_mobile/modules/booking/bindings/booking_binding.dart';
+import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:function_mobile/modules/booking/views/booking_detail.dart';
 import 'package:function_mobile/modules/booking/views/booking_page.dart';
+import 'package:function_mobile/modules/booking/views/booking_success_page.dart';
 import 'package:function_mobile/modules/booking/views/bookings_list_page.dart';
 import 'package:function_mobile/modules/chat/bindings/chat_binding.dart';
 import 'package:function_mobile/modules/chat/views/chat_page.dart';
@@ -16,6 +18,10 @@ import 'package:function_mobile/modules/legal/privacy_policy_page.dart';
 import 'package:function_mobile/modules/auth/views/login_page.dart';
 import 'package:function_mobile/modules/legal/terms_of_service_page.dart';
 import 'package:function_mobile/common/widgets/views/widgets_view.dart';
+import 'package:function_mobile/modules/payment/models/payment_model.dart';
+import 'package:function_mobile/modules/payment/views/payment_history_page.dart';
+import 'package:function_mobile/modules/payment/views/payment_page.dart';
+import 'package:function_mobile/modules/payment/views/payment_status_page.dart';
 // import 'package:function_mobile/modules/payment/bindings/payment_binding.dart';
 // import 'package:function_mobile/modules/payment/views/payment_failed_page.dart';
 // import 'package:function_mobile/modules/payment/views/payment_history_page.dart';
@@ -87,10 +93,11 @@ class MyRoutes {
   static const String imageGallery = '/image-gallery';
 
   // Payment
-  static const String paymentPage = '/payment';
+  static const String payment = '/payment';
+  static const String paymentStatus = '/payment-status';
   static const String paymentHistory = '/payment-history';
-  static const String paymentSuccess = '/payment-success';
-  static const String paymentFailed = '/payment-failed';
+  static const String bookingSuccess = '/booking-success';
+  // static const String bookingDetail = '/booking-detail';
 
   // Define the routes for the app
 
@@ -185,23 +192,27 @@ class MyRoutes {
           initialIndex: Get.arguments['initialIndex'] ?? 0),
     ),
     // Payment
-    // GetPage(
-    //   name: paymentPage,
-    //   page: () => PaymentPage(),
-    //   binding: PaymentBinding(),
-    // ),
-    // GetPage(
-    //   name: paymentHistory,
-    //   page: () => PaymentHistoryPage(),
-    //   binding: PaymentBinding(),
-    // ),
-    // GetPage(
-    //   name: paymentSuccess,
-    //   page: () => PaymentSuccessPage(),
-    // ),
-    // GetPage(
-    //   name: paymentFailed,
-    //   page: () => PaymentFailedPage(),
-    // ),
+    GetPage(
+      name: payment,
+      page: () {
+        final BookingModel booking = Get.arguments as BookingModel;
+        return PaymentPage(booking: booking);
+      },
+    ),
+    GetPage(
+      name: MyRoutes.paymentStatus,
+      page: () {
+        final Map<String, dynamic> args = Get.arguments as Map<String, dynamic>;
+        return PaymentStatusPage(
+          paymentId: args['paymentId'] as int,
+          status: args['status'] as PaymentStatus,
+        );
+      },
+    ),
+    GetPage(name: MyRoutes.paymentHistory, page: () => const PaymentHistoryPage()),
+    GetPage(
+    name: bookingSuccess,
+    page: () => const BookingSuccessPage(),
+  ),
   ];
 }

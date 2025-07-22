@@ -492,7 +492,7 @@ class BookingPage extends GetView<BookingController> {
 
               return SecondaryButton(
                 text: 'Confirm Booking',
-                onPressed: () => controller.saveBooking(venue),
+                onPressed: () => controller.saveBookingWithPayment(venue),
                 width: double.infinity,
               );
             }),

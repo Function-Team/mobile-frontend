@@ -12,6 +12,8 @@ import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:get/get.dart';
 import 'dart:async';
+import 'package:function_mobile/modules/payment/controllers/payment_controller.dart';
+import 'package:function_mobile/common/routes/routes.dart';
 
 class BookingController extends GetxController {
   final BookingService _bookingService = BookingService();
@@ -27,7 +29,8 @@ class BookingController extends GetxController {
 
   // Booking state
   final RxBool isProcessing = false.obs;
-  final RxString bookingStatus = 'idle'.obs; // idle, processing, success, failed
+  final RxString bookingStatus =
+      'idle'.obs; // idle, processing, success, failed
   final RxInt remainingSeconds = 300.obs; // 5 minutes countdown
   Timer? _timer;
 
@@ -186,68 +189,76 @@ class BookingController extends GetxController {
     Get.find<BookingListController>().refreshBookings();
   }
 
-  Future<void> saveBooking(VenueModel venue) async {
-  if (!isFormValid()) return;
+  Future<void> saveBookingWithPayment(VenueModel venue) async {
+    if (!isFormValid()) return;
 
-  try {
-    isProcessing.value = true;
-    bookingStatus.value = 'processing';
+    try {
+      isProcessing.value = true;
+      bookingStatus.value = 'processing';
 
-    // Debug info
-    debugBookingRequest(venue);
+      // Debug info
+      debugBookingRequest(venue);
 
-    // Create the booking request using the existing model from booking_model.dart
-    final bookingRequest = BookingCreateRequest.fromVenueAndForm(
-      venue: venue,
-      date: selectedDateRange.value!.start,
-      startTime: startTime.value!,
-      endTime: endTime.value!,
-      capacity: int.parse(selectedCapacity.value),
-      specialRequests: specialRequestsController.text.trim().isNotEmpty 
-          ? specialRequestsController.text.trim() 
-          : null,
-      userName: guestNameController.text.trim(),
-      userEmail: guestEmailController.text.trim(),
-      userPhone: guestPhoneController.text.trim().isNotEmpty 
-          ? guestPhoneController.text.trim() 
-          : null,
-    );
+      // Create the booking request using the existing model from booking_model.dart
+      final bookingRequest = BookingCreateRequest.fromVenueAndForm(
+        venue: venue,
+        date: selectedDateRange.value!.start,
+        startTime: startTime.value!,
+        endTime: endTime.value!,
+        capacity: int.parse(selectedCapacity.value),
+        specialRequests: specialRequestsController.text.trim().isNotEmpty
+            ? specialRequestsController.text.trim()
+            : null,
+        userName: guestNameController.text.trim(),
+        userEmail: guestEmailController.text.trim(),
+        userPhone: guestPhoneController.text.trim().isNotEmpty
+            ? guestPhoneController.text.trim()
+            : null,
+      );
 
+      // Create booking via existing service method
+      final createdBooking =
+          await _bookingService.createBooking(bookingRequest);
 
-    // Create booking via existing service method
-    final createdBooking = await _bookingService.createBooking(bookingRequest);
-    
-    bookingStatus.value = 'success';
-    
-    _showSuccess('Booking request submitted successfully! Please wait for admin approval.');
-    
-    // Navigate to booking list after a short delay
-    await Future.delayed(const Duration(seconds: 2));
-    goToBookingListPage();
-    
-  } catch (e) {
-    bookingStatus.value = 'failed';
-    
-    String errorMessage = 'Failed to create booking';
-    if (e.toString().contains('Connection refused') || 
-        e.toString().contains('SocketException') ||
-        e.toString().contains('Failed host lookup')) {
-      errorMessage = 'Cannot connect to server. Please check if FastAPI is running.';
-    } else if (e.toString().contains('Time slot is already booked')) {
-      errorMessage = 'This time slot is already booked. Please choose a different time.';
-    } else if (e.toString().contains('Validation failed') || 
-               e.toString().contains('422')) {
-      errorMessage = 'Please check your booking details and try again.';
-    } else if (e.toString().contains('409')) {
-      errorMessage = 'Time slot is already booked. Please choose a different time.';
+      if (createdBooking != null) {
+        bookingStatus.value = 'success';
+
+        _showSuccess('Booking created! Please proceed to payment.');
+
+        // Navigate to payment
+        await proceedToPayment(createdBooking);
+      } else {
+        throw Exception('Failed to create booking');
+      }
+    } catch (e) {
+      bookingStatus.value = 'failed';
+
+      String errorMessage = 'Failed to create booking';
+      if (e.toString().contains('Connection refused') ||
+          e.toString().contains('SocketException') ||
+          e.toString().contains('Failed host lookup')) {
+        errorMessage =
+            'Cannot connect to server. Please check if FastAPI is running.';
+      } else if (e.toString().contains('Time slot is already booked')) {
+        errorMessage =
+            'This time slot is already booked. Please choose a different time.';
+      } else if (e.toString().contains('Validation failed') ||
+          e.toString().contains('422')) {
+        errorMessage = 'Please check your booking details and try again.';
+      } else if (e.toString().contains('409')) {
+        errorMessage =
+            'Time slot is already booked. Please choose a different time.';
+      } else if (e.toString().contains('500')) {
+        errorMessage = 'Server error occurred. Please try again later.';
+      } else {
+        errorMessage = e.toString().replaceAll('Exception: ', '');
+      }
+
+      _showError(errorMessage);
+    } finally {
+      isProcessing.value = false;
     }
-    
-    _showError(errorMessage);
-    print('Error saving booking: $e');
-  } finally {
-    isProcessing.value = false;
   }
-}
 
   // Helper method untuk debugging
   void debugBookingRequest(VenueModel venue) {
@@ -261,8 +272,20 @@ class BookingController extends GetxController {
     print('Guest Email: ${guestEmailController.text}');
     print('Guest Phone: ${guestPhoneController.text}');
     print('Special Requests: ${specialRequestsController.text}');
-    print('API Base URL: ${AppConstants.baseUrl}');
     print('========================');
+  }
+
+  // Navigate to payment after successful booking creation
+  Future<void> proceedToPayment(BookingModel booking) async {
+    try {
+      // Navigate to payment page with booking data
+      Get.toNamed(
+        '/payment', // Use string route instead of MyRoutes.payment for now
+        arguments: booking,
+      );
+    } catch (e) {
+      _showError('Failed to proceed to payment: ${e.toString()}');
+    }
   }
 
   // Get booking summary for display - using venue's existing price with day calculation
@@ -328,14 +351,14 @@ class BookingController extends GetxController {
 
   // Validation for booking date and time
   String? validateBookingDateTime() {
-  if (selectedDateRange.value == null) {
-    return 'Please select a booking date';
+    if (selectedDateRange.value == null) {
+      return 'Please select a booking date';
+    }
+    if (startTime.value == null || endTime.value == null) {
+      return 'Please select start and end times';
+    }
+    return null; // Let backend handle advanced validation
   }
-  if (startTime.value == null || endTime.value == null) {
-    return 'Please select start and end times';
-  }
-  return null; // Let backend handle advanced validation
-}
 
   // Clear form data
   void clearForm() {
@@ -365,6 +388,4 @@ class BookingController extends GetxController {
     }
     return slots;
   }
-
-  
 }
