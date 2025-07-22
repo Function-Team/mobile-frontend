@@ -241,12 +241,12 @@ class VenueDetailPage extends StatelessWidget {
               children: [
                 CategoryChip(
                   label: controller.venue.value?.category?.name ??
-                      LocalizationHelper.tr(LocaleKeys.venue_category_uncategorized), // FIXED
+                      LocalizationHelper.tr(LocaleKeys.venue_category_uncategorized), 
                   color: Colors.blue,
                 ),
                 CategoryChip(
                   label:
-                      '1-${controller.venue.value?.maxCapacity ?? LocalizationHelper.tr(LocaleKeys.venue_capacity_unknown)}', // FIXED
+                      '1-${controller.venue.value?.maxCapacity ?? LocalizationHelper.tr(LocaleKeys.venue_capacity_unknown)}', 
                   color: Colors.blue,
                   icon: Icons.groups_2,
                 ),
@@ -269,7 +269,7 @@ class VenueDetailPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      LocalizationHelper.tr(LocaleKeys.venue_aboutVenue), // FIXED
+                      LocalizationHelper.tr(LocaleKeys.venue_aboutVenue),
                       style: const TextStyle(
                         color: Colors.black,
                         fontSize: 16,
@@ -566,7 +566,7 @@ class VenueDetailPage extends StatelessWidget {
               ),
               Expanded(
                 child: SecondaryButton(
-                  text: LocalizationHelper.tr(LocaleKeys.booking_bookNow), // FIXED
+                  text: LocalizationHelper.tr(LocaleKeys.booking_bookNow),
                   onPressed: () {
                     final venue = controller.venue.value;
                     if (venue != null) {

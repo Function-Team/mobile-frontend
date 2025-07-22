@@ -8,36 +8,29 @@
   },
   "profile": {
     "payment_methods": "Metode Pembayaran",
-    "your_details": "Detail Anda",
-    "refunds": "Pengembalian Dana"
+    "payment_methods_subtitle": "Tambah atau hapus metode pembayaran",
+    "your_details": "Detail Anda", 
+    "your_details_subtitle": "Perbarui detail personal Anda",
+    "refunds": "Refund",
+    "refunds_subtitle": "Ajukan permintaan refund",
+    "viewProfile": "Lihat Profile"
   },
   "faq": {
-    "title": "FAQ"
+    "title": "FAQ",
+    "subtitle": "Pertanyaan yang sering diajukan"
   },
   "contact_support": {
-    "title": "Hubungi Dukungan"
+    "title": "Hubungi Dukungan",
+    "subtitle": "Dapatkan bantuan untuk akun Anda"
   },
   "follow_us": {
-    "title": "Ikuti Kami"
-  },
-  "settings": {
-    "about_us": "Tentang Kami",
-    "title": "Pengaturan",
-    "description": "Kelola preferensi aplikasi Anda",
-    "account_settings": "Pengaturan Akun",
-    "edit_profile": "Edit Profil",
-    "change_password": "Ubah Kata Sandi",
-    "preferences": "Preferensi",
-    "notification": "Notifikasi",
-    "app_version": "Versi Aplikasi",
-    "privacy_policy": "Kebijakan Privasi",
-    "terms_conditions": "Syarat & Ketentuan",
-    "choose_language": "Pilih Bahasa",
-    "language_description": "Pilih bahasa pilihan Anda",
-    "change_language_confirm": "Bahasa berhasil diubah"
+    "title": "Ikuti Kami",
+    "subtitle": "Terhubung dengan kami di media sosial"
   },
   "common": {
     "change": "Ubah",
+    "saveChange": "Simpan Perubahan",
+    "hello" : "Hi, ",
     "unknown": "Tidak Dikenal",
     "error": "Kesalahan",
     "success": "Berhasil",
@@ -48,6 +41,7 @@
     "no": "Tidak",
     "save": "Simpan",
     "edit": "Edit",
+    "exit": "Keluar",
     "delete": "Hapus",
     "close": "Tutup",
     "back": "Kembali",
@@ -63,6 +57,7 @@
     "internetRequired": "Diperlukan koneksi internet",
     "connectionFailed": "Koneksi gagal",
     "showMore": "Tampilkan Lebih Banyak",
+    "seeMore": "Lebih Banyak",
     "monday": "Senin",
     "tuesday": "Selasa",
     "wednesday": "Rabu",
@@ -89,7 +84,7 @@
     "bookingId": "ID Pemesanan",
     "bookingDate": "Tanggal Pemesanan",
     "status": "Status",
-    "myBookings": "Pemesanan Saya",
+    "myBookings": "Pesanan Saya",
     "upcomingBookings": "Pemesanan Mendatang",
     "pastBookings": "Pemesanan Lalu",
     "noBookings": "Tidak ada pemesanan ditemukan",
@@ -101,16 +96,29 @@
     "paymentStatus": "Status Pembayaran",
     "paymentMethod": "Metode Pembayaran",
     "makeBooking": "Buat Pemesanan",
-    "bookNow": "Pesan Sekarang",
+    "bookNow": "Pesan",
     "checkAvailability": "Periksa Ketersediaan",
     "timeSlot": "Slot Waktu",
     "capacity": "Kapasitas",
-    "specialRequests": "Permintaan Khusus",
     "contactInfo": "Informasi Kontak",
     "guestCount": "Jumlah Tamu",
     "bookingRules": "Aturan Pemesanan",
     "cancellationPolicy": "Kebijakan Pembatalan",
-    "refundPolicy": "Kebijakan Pengembalian Dana"
+    "refundPolicy": "Kebijakan Pengembalian Dana",
+    "guestInformation": "Informasi Tamu",
+    "enterFullName": "Masukkan nama lengkap Anda",
+    "enterEmail": "Masukkan email Anda",
+    "enterPhoneNumber": "Masukkan nomor telepon Anda", 
+    "specialRequests": "Permintaan Khusus (Opsional)",
+    "specialRequestsHint": "Kebutuhan atau permintaan khusus",
+    "priceSummary": "Ringkasan Harga",
+    "priceDetails": "Detail Harga",
+    "guestName": "Nama:",
+    "serviceFee": "Biaya Layanan",
+    "tax": "Pajak",
+    "discount": "Diskon", 
+    "contactHost": "Hubungi Host",
+    "cancelling": "Membatalkan..."
   },
   "venue": {
     "details": "Detail",
@@ -137,6 +145,10 @@
     "email": "Email",
     "website": "Situs Web",
     "socialMedia": "Media Sosial",
+    "all": "Semua",
+    "pending": "Tertunda",
+    "confirmed": "Konfirmasi",
+    "expired": "Kedaluwarsa",
     "openingHours": "Jam Buka",
     "schedule": "Jadwal",
     "availability": "Ketersediaan",
@@ -149,7 +161,7 @@
     "type": "Tipe",
     "nearbyVenues": "Venue Terdekat",
     "popularVenues": "Venue Populer",
-    "recommendedVenues": "Venue Rekomendasi",
+    "recommendedVenues": "Rekomendasi Venue",
     "venueList": "Daftar Venue",
     "allVenues": "Semua Venue",
     "viewAll": "Lihat Semua",
@@ -258,7 +270,16 @@
     "sortDistance": "Jarak",
     "sortRelevance": "Relevansi",
     "searchVenueHint": "Cari venue",
+    "selectActivity": "Pilih Aktivitas",
+    "selectCapacity": "Pilih Kapasitas",
+    "selectAll": "Pilih Semua", 
+    "clearAll": "Hapus Semua",
     "filterByCategory": "Saring berdasarkan Kategori"
+  },
+  "favorites": {
+    "noFavorites": "Belum ada favorit",
+    "startExploring": "Mulai jelajahi dan simpan venue yang Anda suka",
+    "exploreVenues": "Jelajahi Venue"
   },
   "settings": {
     "settings": "Pengaturan",
@@ -266,6 +287,8 @@
     "account": "Akun",
     "preferences": "Preferensi",
     "language": "Bahasa",
+    "description": "Kelola preferensi aplikasi Anda",
+    "about_subtitle": "Pelajari lebih lanjut tentang kami",
     "changeLanguage": "Ubah Bahasa",
     "languageChanged": "Bahasa Berubah",
     "changeLanguageConfirm": "Bahasa telah berhasil diubah",

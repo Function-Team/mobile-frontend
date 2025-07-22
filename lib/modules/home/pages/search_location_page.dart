@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:get/get.dart';
 
 class SearchLocationPage extends StatelessWidget {
@@ -14,7 +16,7 @@ class SearchLocationPage extends StatelessWidget {
             controller: searchController,
             autofocus: true,
             decoration: InputDecoration(
-              hintText: 'Search Location',
+              hintText: LocalizationHelper.tr(LocaleKeys.search_searchLocation),
               border: InputBorder.none,
               suffixIcon: IconButton(
                 icon: Icon(Icons.close),

@@ -8,36 +8,29 @@
   },
   "profile": {
     "payment_methods": "Payment Methods",
+    "payment_methods_subtitle": "Add or remove payment methods",
     "your_details": "Your Details", 
-    "refunds": "Refunds"
+    "your_details_subtitle": "Update your personal details",
+    "refunds": "Refunds",
+    "refunds_subtitle": "Request a refund",
+    "viewProfile": "View Profile"
   },
   "faq": {
-    "title": "FAQ"
+    "title": "FAQ",
+    "subtitle": "Frequently asked questions"
   },
   "contact_support": {
-    "title": "Contact Support"
+    "title": "Contact Support",
+    "subtitle": "Get help with your account"
   },
   "follow_us": {
-    "title": "Follow Us"
-  },
-  "settings": {
-    "about_us": "About Us",
-    "title": "Settings",
-    "description": "Manage your app preferences",
-    "account_settings": "Account Settings",
-    "edit_profile": "Edit Profile", 
-    "change_password": "Change Password",
-    "preferences": "Preferences",
-    "notification": "Notifications",
-    "app_version": "App Version",
-    "privacy_policy": "Privacy Policy", 
-    "terms_conditions": "Terms & Conditions",
-    "choose_language": "Choose Language",
-    "language_description": "Select your preferred language",
-    "change_language_confirm": "Language changed successfully"
+    "title": "Follow Us",
+    "subtitle": "Connect with us on social media"
   },
   "common": {
     "change": "Change",
+    "saveChange": "Save Changes",
+    "hello" : "Hello, ",
     "unknown": "Unknown",
     "error": "Error",
     "success": "Success",
@@ -48,6 +41,7 @@
     "no": "No",
     "save": "Save",
     "edit": "Edit",
+    "exit": "Exit",
     "delete": "Delete",
     "close": "Close",
     "back": "Back",
@@ -63,6 +57,7 @@
     "internetRequired": "Internet connection required",
     "connectionFailed": "Connection failed",
     "showMore": "Show More",
+    "seeMore": "See More",
     "monday": "Monday",
     "tuesday": "Tuesday",
     "wednesday": "Wednesday", 
@@ -105,12 +100,25 @@
     "checkAvailability": "Check Availability",
     "timeSlot": "Time Slot",
     "capacity": "Capacity",
-    "specialRequests": "Special Requests",
     "contactInfo": "Contact Information",
     "guestCount": "Guest Count",
     "bookingRules": "Booking Rules",
     "cancellationPolicy": "Cancellation Policy",
-    "refundPolicy": "Refund Policy"
+    "refundPolicy": "Refund Policy",
+    "guestInformation": "Guest Information",
+    "enterFullName": "Enter your full name",
+    "enterEmail": "Enter your email",
+    "enterPhoneNumber": "Enter your phone number",
+    "specialRequests": "Special Requests (Optional)",
+    "specialRequestsHint": "Any special requirements or requests",
+    "priceSummary": "Price Summary",
+    "priceDetails": "Price Details",
+    "guestName": "Name:",
+    "serviceFee": "Service Fee",
+    "tax": "Tax", 
+    "discount": "Discount",
+    "contactHost": "Contact Host",
+    "cancelling": "Cancelling..."
   },
   "venue": {
     "details": "Details",
@@ -163,6 +171,10 @@
     "shareVenue": "Share Venue",
     "reportVenue": "Report Venue",
     "unavailable": "Unavailable",
+    "all": "All",
+    "pending": "Pending",
+    "confirmed": "Confirmed",
+    "expired": "Expired",
     "closed": "Closed",
     "open": "Open",
     "open24Hours": "Open 24 Hours",
@@ -258,7 +270,16 @@
     "sortDistance": "Distance",
     "sortRelevance": "Relevance",
     "searchVenueHint": "Search venue",
+    "selectActivity": "Select Activity",
+    "selectCapacity": "Select Capacity", 
+    "selectAll": "Select All",
+    "clearAll": "Clear All",
     "filterByCategory": "Filter by Category"
+  },
+  "favorites": {
+    "noFavorites": "No favorites yet",
+    "startExploring": "Start exploring and save venues you love",
+    "exploreVenues": "Explore Venues"
   },
   "settings": {
     "settings": "Settings",
@@ -266,6 +287,8 @@
     "account": "Account",
     "preferences": "Preferences",
     "language": "Language",
+    "description": "Manage your app preferences",
+    "about_subtitle": "Learn more about us",
     "changeLanguage": "Change Language",
     "languageChanged": "Language Changed",
     "changeLanguageConfirm": "Language has been changed successfully",

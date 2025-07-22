@@ -2,7 +2,7 @@
 
 // ignore_for_file: constant_identifier_names
 
-abstract class  LocaleKeys {
+abstract class LocaleKeys {
   static const navigation_home = 'navigation.home';
   static const navigation_bookings = 'navigation.bookings';
   static const navigation_favorites = 'navigation.favorites';
@@ -13,20 +13,31 @@ abstract class  LocaleKeys {
   static const profile_your_details = 'profile.your_details';
   static const profile_refunds = 'profile.refunds';
   static const profile = 'profile';
+  static const profile_payment_methods_subtitle =
+      'profile.payment_methods_subtitle';
+  static const profile_your_details_subtitle = 'profile.your_details_subtitle';
+  static const profile_refunds_subtitle = 'profile.refunds_subtitle';
+  static const profile_viewProfile = 'profile.viewProfile';
   static const faq_title = 'faq.title';
+  static const faq_subtitle = 'faq.subtitle';
   static const faq = 'faq';
   static const contact_support_title = 'contact_support.title';
+  static const contact_support_subtitle = 'contact_support.subtitle';
   static const contact_support = 'contact_support';
   static const follow_us_title = 'follow_us.title';
+  static const follow_us_subtitle = 'follow_us.subtitle';
   static const follow_us = 'follow_us';
   static const settings_settings = 'settings.settings';
   static const settings_profile = 'settings.profile';
   static const settings_account = 'settings.account';
   static const settings_preferences = 'settings.preferences';
+  static const settings_description = 'settings.description';
+  static const settings_about_subtitle = 'settings.about_subtitle';
   static const settings_language = 'settings.language';
   static const settings_changeLanguage = 'settings.changeLanguage';
   static const settings_languageChanged = 'settings.languageChanged';
-  static const settings_changeLanguageConfirm = 'settings.changeLanguageConfirm';
+  static const settings_changeLanguageConfirm =
+      'settings.changeLanguageConfirm';
   static const settings_theme = 'settings.theme';
   static const settings_darkMode = 'settings.darkMode';
   static const settings_lightMode = 'settings.lightMode';
@@ -36,7 +47,8 @@ abstract class  LocaleKeys {
   static const settings_emailNotifications = 'settings.emailNotifications';
   static const settings_smsNotifications = 'settings.smsNotifications';
   static const settings_bookingNotifications = 'settings.bookingNotifications';
-  static const settings_promotionalNotifications = 'settings.promotionalNotifications';
+  static const settings_promotionalNotifications =
+      'settings.promotionalNotifications';
   static const settings_newsUpdates = 'settings.newsUpdates';
   static const settings_privacy = 'settings.privacy';
   static const settings_privacyPolicy = 'settings.privacyPolicy';
@@ -69,9 +81,12 @@ abstract class  LocaleKeys {
   static const settings_logout = 'settings.logout';
   static const settings_logoutConfirmation = 'settings.logoutConfirmation';
   static const settings_deleteAccount = 'settings.deleteAccount';
-  static const settings_deleteAccountConfirmation = 'settings.deleteAccountConfirmation';
+  static const settings_deleteAccountConfirmation =
+      'settings.deleteAccountConfirmation';
   static const settings = 'settings';
   static const common_change = 'common.change';
+  static const common_saveChange = 'common.saveChange';
+  static const common_hello = 'common.hello';
   static const common_unknown = 'common.unknown';
   static const common_error = 'common.error';
   static const common_success = 'common.success';
@@ -82,6 +97,7 @@ abstract class  LocaleKeys {
   static const common_no = 'common.no';
   static const common_save = 'common.save';
   static const common_edit = 'common.edit';
+  static const common_exit = 'common.exit';
   static const common_delete = 'common.delete';
   static const common_close = 'common.close';
   static const common_back = 'common.back';
@@ -97,6 +113,7 @@ abstract class  LocaleKeys {
   static const common_internetRequired = 'common.internetRequired';
   static const common_connectionFailed = 'common.connectionFailed';
   static const common_showMore = 'common.showMore';
+  static const common_seeMore = 'common.seewMore';
   static const common_monday = 'common.monday';
   static const common_tuesday = 'common.tuesday';
   static const common_wednesday = 'common.wednesday';
@@ -145,6 +162,19 @@ abstract class  LocaleKeys {
   static const booking_cancellationPolicy = 'booking.cancellationPolicy';
   static const booking_refundPolicy = 'booking.refundPolicy';
   static const booking = 'booking';
+  static const booking_guestInformation = 'booking.guestInformation';
+  static const booking_enterFullName = 'booking.enterFullName';
+  static const booking_enterEmail = 'booking.enterEmail';
+  static const booking_enterPhoneNumber = 'booking.enterPhoneNumber';
+  static const booking_specialRequestsHint = 'booking.specialRequestsHint';
+  static const booking_priceSummary = 'booking.priceSummary';
+  static const booking_priceDetails = 'booking.priceDetails';
+  static const booking_guestName = 'booking.guestName';
+  static const booking_serviceFee = 'booking.serviceFee';
+  static const booking_tax = 'booking.tax';
+  static const booking_discount = 'booking.discount';
+  static const booking_contactHost = 'booking.contactHost';
+  static const booking_cancelling = 'booking.cancelling';
   static const venue_details = 'venue.details';
   static const venue_venueDetails = 'venue.venueDetails';
   static const venue_price = 'venue.price';
@@ -170,6 +200,10 @@ abstract class  LocaleKeys {
   static const venue_email = 'venue.email';
   static const venue_website = 'venue.website';
   static const venue_socialMedia = 'venue.socialMedia';
+  static const venue_all = 'venue.all';
+  static const venue_pending = 'venue.pending';
+  static const venue_confirmed = 'venue.confirmed';
+  static const venue_expired = 'venue.expired';
   static const venue_openingHours = 'venue.openingHours';
   static const venue_schedule = 'venue.schedule';
   static const venue_availability = 'venue.availability';
@@ -283,7 +317,10 @@ abstract class  LocaleKeys {
   static const search_sortRelevance = 'search.sortRelevance';
   static const search_searchVenueHint = 'search.searchVenueHint';
   static const search_filterByCategory = 'search.filterByCategory';
+  static const search_selectActivity = 'search.selectActivity';
+  static const search_selectCapacity = 'search.selectCapacity';
   static const search = 'search';
+  static const errors_unknown = 'errors.unknown';
   static const errors_unknownError = 'errors.unknownError';
   static const errors_networkError = 'errors.networkError';
   static const errors_connectionError = 'errors.connectionError';
@@ -302,10 +339,14 @@ abstract class  LocaleKeys {
   static const errors_locationNotAvailable = 'errors.locationNotAvailable';
   static const errors_permissionDenied = 'errors.permissionDenied';
   static const errors_cameraPermissionDenied = 'errors.cameraPermissionDenied';
-  static const errors_storagePermissionDenied = 'errors.storagePermissionDenied';
-  static const errors_locationPermissionDenied = 'errors.locationPermissionDenied';
-  static const errors_microphonePermissionDenied = 'errors.microphonePermissionDenied';
-  static const errors_contactsPermissionDenied = 'errors.contactsPermissionDenied';
+  static const errors_storagePermissionDenied =
+      'errors.storagePermissionDenied';
+  static const errors_locationPermissionDenied =
+      'errors.locationPermissionDenied';
+  static const errors_microphonePermissionDenied =
+      'errors.microphonePermissionDenied';
+  static const errors_contactsPermissionDenied =
+      'errors.contactsPermissionDenied';
   static const errors_fileNotFound = 'errors.fileNotFound';
   static const errors_fileUploadFailed = 'errors.fileUploadFailed';
   static const errors_fileTooLarge = 'errors.fileTooLarge';
@@ -386,7 +427,8 @@ abstract class  LocaleKeys {
   static const auth_enableBiometric = 'auth.enableBiometric';
   static const auth_fingerprintLogin = 'auth.fingerprintLogin';
   static const auth_faceIdLogin = 'auth.faceIdLogin';
-  static const auth_authenticateWithFingerprint = 'auth.authenticateWithFingerprint';
+  static const auth_authenticateWithFingerprint =
+      'auth.authenticateWithFingerprint';
   static const auth_authenticateWithFaceId = 'auth.authenticateWithFaceId';
   static const auth_biometricNotAvailable = 'auth.biometricNotAvailable';
   static const auth_biometricNotEnrolled = 'auth.biometricNotEnrolled';
@@ -403,5 +445,7 @@ abstract class  LocaleKeys {
   static const auth_welcomeBack = 'auth.welcomeBack';
   static const auth_welcome = 'auth.welcome';
   static const auth = 'auth';
-
+  static const favorites_noFavorites = 'favorites.noFavorites';
+  static const favorites_startExploring = 'favorites.startExploring';
+  static const favorites_exploreVenues = 'favorites.exploreVenues';
 }

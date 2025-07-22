@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/home/controllers/home_controller.dart';
 import 'package:function_mobile/modules/home/widgets/venue_recommend_card.dart';
 import 'package:get/get.dart';
@@ -11,7 +13,7 @@ Widget buildRecommendation(BuildContext context, HomeController controller) {
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Text(
-        'Recommendation',
+        LocalizationHelper.tr(LocaleKeys.venue_recommendedVenues),
         style: Theme.of(context).textTheme.headlineMedium,
       ),
       const SizedBox(height: 10),

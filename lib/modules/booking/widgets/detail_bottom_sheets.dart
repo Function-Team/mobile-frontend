@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 
 class DetailBottomSheets extends StatelessWidget {
   const DetailBottomSheets({super.key});
@@ -25,7 +27,7 @@ class DetailBottomSheets extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16.0),
-          Text('Price Details',
+          Text(LocalizationHelper.tr(LocaleKeys.booking_priceDetails),
               style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 8.0),
           Row(

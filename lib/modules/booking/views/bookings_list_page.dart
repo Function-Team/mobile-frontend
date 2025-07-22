@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_list_controller.dart';
 import 'package:function_mobile/modules/booking/widgets/booking_card.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
@@ -32,7 +34,7 @@ class BookingsListPage extends GetView<BookingListController> {
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
       title: Text(
-        'My Bookings',
+        LocalizationHelper.tr(LocaleKeys.booking_myBookings),
         style: Theme.of(context).textTheme.titleLarge?.copyWith(
               color: Theme.of(context).colorScheme.onPrimary,
               fontWeight: FontWeight.bold,
@@ -101,7 +103,7 @@ class BookingsListPage extends GetView<BookingListController> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                   child: Text(
-                    'All (${controller.bookings.length})',
+                    '${LocalizationHelper.tr(LocaleKeys.venue_all)} (${controller.bookings.length})',
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -112,7 +114,7 @@ class BookingsListPage extends GetView<BookingListController> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                   child: Text(
-                    'Pending (${controller.pendingCount.value})',
+                    '${LocalizationHelper.tr(LocaleKeys.venue_pending)} (${controller.pendingCount.value})',
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -123,7 +125,7 @@ class BookingsListPage extends GetView<BookingListController> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                   child: Text(
-                    'Confirmed (${controller.confirmedCount.value})',
+                    '${LocalizationHelper.tr(LocaleKeys.venue_confirmed)} (${controller.confirmedCount.value})',
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -134,7 +136,7 @@ class BookingsListPage extends GetView<BookingListController> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                   child: Text(
-                    'Expired (${controller.expiredCount.value})',
+                    '${LocalizationHelper.tr(LocaleKeys.venue_expired)} (${controller.expiredCount.value})',
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
