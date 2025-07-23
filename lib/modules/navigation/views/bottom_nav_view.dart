@@ -29,7 +29,6 @@ class BottomNavView extends StatelessWidget {
     return Scaffold(
       body: Obx(() => pages[controller.currentIndex.value]),
       bottomNavigationBar: Obx(() {
-        // This will rebuild when language changes
         final _ = localizationController.currentLocale.value;
         
         return BottomNavigationBar(
@@ -49,27 +48,22 @@ class BottomNavView extends StatelessWidget {
           items: [
             BottomNavigationBarItem(
               icon: _buildNavIcon(Icons.home_outlined, Icons.home, 0),
-              // SOLUSI: Gunakan LocalizationHelper.tr() langsung
               label: LocalizationHelper.tr(LocaleKeys.navigation_home),
             ),
             BottomNavigationBarItem(
               icon: _buildNavIcon(Icons.book_outlined, Icons.book, 1),
-              // SOLUSI: Gunakan LocalizationHelper.tr() langsung
               label: LocalizationHelper.tr(LocaleKeys.navigation_bookings),
             ),
             BottomNavigationBarItem(
               icon: _buildNavIcon(Icons.favorite_outline, Icons.favorite, 2),
-              // SOLUSI: Gunakan LocalizationHelper.tr() langsung
               label: LocalizationHelper.tr(LocaleKeys.navigation_favorites),
             ),
             BottomNavigationBarItem(
               icon: _buildNavIcon(Icons.chat_outlined, Icons.chat, 3),
-              // SOLUSI: Gunakan LocalizationHelper.tr() langsung
               label: LocalizationHelper.tr(LocaleKeys.navigation_chat),
             ),
             BottomNavigationBarItem(
               icon: _buildNavIcon(Icons.person_outline, Icons.person, 4),
-              // SOLUSI: Gunakan LocalizationHelper.tr() langsung
               label: LocalizationHelper.tr(LocaleKeys.navigation_profile),
             ),
           ],
