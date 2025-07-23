@@ -19,8 +19,7 @@ class SettingsPage extends StatelessWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title:
-            Text(LocalizationHelper.tr(LocaleKeys.settings_settings)), // FIXED
+        title: Text(LocalizationHelper.tr(LocaleKeys.settings_settings)),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -31,7 +30,7 @@ class SettingsPage extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
-                  LocalizationHelper.tr(LocaleKeys.settings_account), // FIXED
+                  LocalizationHelper.tr(LocaleKeys.settings_account),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -39,16 +38,15 @@ class SettingsPage extends StatelessWidget {
               ),
               _buildSettingsItem(
                 context: context,
-                title:
-                    LocalizationHelper.tr(LocaleKeys.settings_profile), // FIXED
+                title: LocalizationHelper.tr(LocaleKeys.settings_profile),
                 onTap: () => Get.toNamed(MyRoutes.editProfile),
                 trailing: const Icon(Icons.keyboard_arrow_right),
                 icon: Icons.person_outline,
               ),
               _buildSettingsItem(
                 context: context,
-                title: LocalizationHelper.tr(
-                    LocaleKeys.settings_changePassword), // FIXED
+                title:
+                    LocalizationHelper.tr(LocaleKeys.settings_changePassword),
                 onTap: () {
                   // Navigate to Change Password Page
                 },
@@ -62,8 +60,7 @@ class SettingsPage extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
-                  LocalizationHelper.tr(
-                      LocaleKeys.settings_preferences), // FIXED
+                  LocalizationHelper.tr(LocaleKeys.settings_preferences),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -71,16 +68,14 @@ class SettingsPage extends StatelessWidget {
               ),
               _buildSettingsItem(
                 context: context,
-                title: LocalizationHelper.tr(
-                    LocaleKeys.settings_language), // FIXED
+                title: LocalizationHelper.tr(LocaleKeys.settings_language),
                 onTap: () => Get.to(() => const LanguageSettingsPage()),
                 trailing: const Icon(Icons.keyboard_arrow_right),
                 icon: Icons.language,
               ),
               _buildSettingsItem(
                 context: context,
-                title: LocalizationHelper.tr(
-                    LocaleKeys.settings_notifications), // FIXED
+                title: LocalizationHelper.tr(LocaleKeys.settings_notifications),
                 onTap: () {
                   // Navigate to Notification Page
                 },
@@ -89,8 +84,7 @@ class SettingsPage extends StatelessWidget {
               ),
               _buildSettingsItem(
                 context: context,
-                title:
-                    LocalizationHelper.tr(LocaleKeys.settings_theme), // FIXED
+                title: LocalizationHelper.tr(LocaleKeys.settings_theme),
                 onTap: () {
                   // Navigate to Theme Page
                 },
@@ -104,7 +98,7 @@ class SettingsPage extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
-                  LocalizationHelper.tr(LocaleKeys.settings_help), // FIXED
+                  LocalizationHelper.tr(LocaleKeys.settings_about),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -112,65 +106,21 @@ class SettingsPage extends StatelessWidget {
               ),
               _buildSettingsItem(
                 context: context,
-                title: LocalizationHelper.tr(LocaleKeys.settings_faq), // FIXED
-                onTap: () {
-                  // Navigate to FAQ Page
-                },
-                trailing: const Icon(Icons.keyboard_arrow_right),
-                icon: Icons.help_outline,
-              ),
-              _buildSettingsItem(
-                context: context,
-                title:
-                    LocalizationHelper.tr(LocaleKeys.settings_support), // FIXED
-                onTap: () {
-                  // Navigate to Support Page
-                },
-                trailing: const Icon(Icons.keyboard_arrow_right),
-                icon: Icons.headset_mic_outlined,
-              ),
-              _buildSettingsItem(
-                context: context,
-                title: LocalizationHelper.tr(
-                    LocaleKeys.settings_contactUs), // FIXED
-                onTap: () {
-                  // Navigate to Contact Us Page
-                },
-                trailing: const Icon(Icons.keyboard_arrow_right),
-                icon: Icons.contact_support_outlined,
-              ),
-
-              const SizedBox(height: 16),
-              const Divider(),
-
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  LocalizationHelper.tr(LocaleKeys.settings_about), // FIXED
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-              ),
-              _buildSettingsItem(
-                context: context,
-                title:
-                    LocalizationHelper.tr(LocaleKeys.settings_version), // FIXED
+                title: LocalizationHelper.tr(LocaleKeys.settings_version),
                 trailing: const Text('1.0.0'),
                 icon: Icons.info_outline,
               ),
               _buildSettingsItem(
                 context: context,
-                title: LocalizationHelper.tr(
-                    LocaleKeys.settings_privacyPolicy), // FIXED
+                title: LocalizationHelper.tr(LocaleKeys.settings_privacyPolicy),
                 onTap: () => Get.toNamed(MyRoutes.privacyPolicy),
                 trailing: const Icon(Icons.keyboard_arrow_right),
                 icon: Icons.privacy_tip_outlined,
               ),
               _buildSettingsItem(
                 context: context,
-                title: LocalizationHelper.tr(
-                    LocaleKeys.settings_termsOfService), // FIXED
+                title:
+                    LocalizationHelper.tr(LocaleKeys.settings_termsOfService),
                 onTap: () => Get.toNamed(MyRoutes.termsOfService),
                 trailing: const Icon(Icons.keyboard_arrow_right),
                 icon: Icons.description_outlined,
@@ -190,8 +140,7 @@ class SettingsPage extends StatelessWidget {
                     },
                     icon: const Icon(Icons.logout, color: Colors.white),
                     label: Text(
-                      LocalizationHelper.tr(
-                          LocaleKeys.settings_logout), // FIXED
+                      LocalizationHelper.tr(LocaleKeys.settings_logout),
                       style: const TextStyle(color: Colors.white),
                     ),
                     style: ElevatedButton.styleFrom(
@@ -240,14 +189,13 @@ class SettingsPage extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(LocalizationHelper.tr(LocaleKeys.settings_logout)), // FIXED
-        content: Text(LocalizationHelper.tr(
-            LocaleKeys.settings_logoutConfirmation)), // FIXED
+        title: Text(LocalizationHelper.tr(LocaleKeys.settings_logout)),
+        content:
+            Text(LocalizationHelper.tr(LocaleKeys.settings_logoutConfirmation)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child:
-                Text(LocalizationHelper.tr(LocaleKeys.common_cancel)), // FIXED
+            child: Text(LocalizationHelper.tr(LocaleKeys.common_cancel)),
           ),
           TextButton(
             onPressed: () {
@@ -255,7 +203,7 @@ class SettingsPage extends StatelessWidget {
               authController.logout();
             },
             child: Text(
-              LocalizationHelper.tr(LocaleKeys.settings_logout), // FIXED
+              LocalizationHelper.tr(LocaleKeys.settings_logout),
               style: const TextStyle(color: Colors.red),
             ),
           ),

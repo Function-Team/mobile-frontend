@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:get/get.dart';
-import '../controllers/booking_card_controller.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 
 extension BookingStatusExtension on BookingStatus {
@@ -25,13 +24,11 @@ extension BookingStatusExtension on BookingStatus {
       case BookingStatus.pending:
         return Colors.orange;
       case BookingStatus.cancelled:
-        return Colors.red;
       case BookingStatus.expired:
         return Colors.red;
     }
   }
 
-  // Metode untuk mengkonversi string ke enum
   static final Map<String, BookingStatus> _statusMap = {
     'confirmed': BookingStatus.confirmed,
     'pending': BookingStatus.pending,
@@ -48,15 +45,14 @@ class BookingCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback? onCancel;
   final VoidCallback? onViewVenue;
-  final BookingCardController? _controller;
 
-  BookingCard({
+  const BookingCard({
     super.key,
     required this.bookingModel,
     required this.onTap,
     this.onCancel,
     this.onViewVenue,
-  }) : _controller = null;
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -151,59 +147,61 @@ class BookingCard extends StatelessWidget {
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Icon(
-                        Icons.location_city,
-                        size: 30,
+                        Icons.image_not_supported,
                         color: Colors.grey[400],
+                        size: 30,
                       );
                     },
                   )
                 : Icon(
-                    Icons.location_city,
-                    size: 30,
+                    Icons.image,
                     color: Colors.grey[400],
+                    size: 30,
                   ),
-          ),
-        ),
-        const SizedBox(width: 12),
-
-        // Venue details
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                bookingModel.place?.name ?? 'Unknown Venue',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 4),
-              if (bookingModel.place?.city != null)
-                Text(
-                  bookingModel.place!.city!.name ?? 'Unknown City',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
-                  ),
-                ),
-              const SizedBox(height: 4),
-              if (bookingModel.place?.price != null)
-                Text(
-                  'Rp ${_formatPrice(bookingModel.place!.price!)} / day',
-                  style: TextStyle(
-                    color: Theme.of(context).primaryColor,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                ),
-            ],
           ),
         ),
       ],
     );
+    // const SizedBox(width: 12),
+
+    // Venue details
+    //       Expanded(
+    //         child: Column(
+    //           crossAxisAlignment: CrossAxisAlignment.start,
+    //           children: [
+    //             Text(
+    //               bookingModel.venueDisplayName,
+    //               style: const TextStyle(
+    //                 fontWeight: FontWeight.bold,
+    //                 fontSize: 16,
+    //               ),
+    //               maxLines: 1,
+    //               overflow: TextOverflow.ellipsis,
+    //             ),
+    //             const SizedBox(height: 4),
+    //             Text(
+    //               bookingModel.cityDisplayName,
+    //               style: TextStyle(
+    //                 color: Colors.grey[600],
+    //                 fontSize: 14,
+    //               ),
+    //               maxLines: 1,
+    //               overflow: TextOverflow.ellipsis,
+    //             ),
+    //             const SizedBox(height: 4),
+    //             Text(
+    //               bookingModel.formattedPrice,
+    //               style: TextStyle(
+    //                 color: Theme.of(context).primaryColor,
+    //                 fontWeight: FontWeight.bold,
+    //                 fontSize: 14,
+    //               ),
+    //             ),
+    //           ],
+    //         ),
+    //       ),
+    //     ],
+    //   );
   }
 
   Widget _buildBookingDetails(BuildContext context) {
@@ -221,14 +219,20 @@ class BookingCard extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 bookingModel.formattedDate,
-                style: const TextStyle(fontSize: 14),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               const Spacer(),
               Icon(Icons.access_time, size: 16, color: Colors.grey[600]),
               const SizedBox(width: 8),
               Text(
                 bookingModel.formattedTimeRange,
-                style: const TextStyle(fontSize: 14),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
@@ -263,42 +267,23 @@ class BookingCard extends StatelessWidget {
       case BookingStatus.cancelled:
       case BookingStatus.expired:
         return _buildInactiveActions(context);
-      default:
-        return const SizedBox.shrink();
     }
   }
 
   Widget _buildConfirmedActions(BuildContext context) {
-    // Check if payment is needed (you can add payment status logic here)
-    final bool needsPayment = bookingModel.payment == null;
-
+    // For confirmed bookings, always show payment option
+    // (payment status will be handled in payment module)
     return Row(
       children: [
-        if (needsPayment) ...[
-          Expanded(
-            flex: 2,
-            child: ElevatedButton.icon(
-              onPressed: () => _proceedToPayment(context),
-              icon: const Icon(Icons.payment, size: 16),
-              label: const Text('Pay Now'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).primaryColor,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-        ],
         Expanded(
-          child: OutlinedButton.icon(
-            onPressed: () => _contactVenue(context),
-            icon: const Icon(Icons.chat, size: 16),
-            label: const Text('Contact'),
-            style: OutlinedButton.styleFrom(
+          flex: 2,
+          child: ElevatedButton.icon(
+            onPressed: () => _proceedToPayment(context),
+            icon: const Icon(Icons.payment, size: 16),
+            label: const Text('Pay Now'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).primaryColor,
+              foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 8),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -309,9 +294,9 @@ class BookingCard extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: OutlinedButton.icon(
-            onPressed: onViewVenue ?? () => _viewVenue(context),
-            icon: const Icon(Icons.location_on, size: 16),
-            label: const Text('View'),
+            onPressed: () => _contactVenue(context),
+            icon: const Icon(Icons.chat, size: 16),
+            label: const Text('Contact'),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 8),
               shape: RoundedRectangleBorder(
@@ -329,12 +314,10 @@ class BookingCard extends StatelessWidget {
       children: [
         Expanded(
           child: OutlinedButton.icon(
-            onPressed: onCancel ?? () => _cancelBooking(context),
-            icon: const Icon(Icons.cancel, size: 16),
-            label: const Text('Cancel'),
+            onPressed: () => _contactVenue(context),
+            icon: const Icon(Icons.chat, size: 16),
+            label: const Text('Contact Venue'),
             style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.red,
-              side: const BorderSide(color: Colors.red),
               padding: const EdgeInsets.symmetric(vertical: 8),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -345,10 +328,12 @@ class BookingCard extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: OutlinedButton.icon(
-            onPressed: onViewVenue ?? () => _viewVenue(context),
-            icon: const Icon(Icons.location_on, size: 16),
-            label: const Text('View Venue'),
+            onPressed: () => _cancelBooking(context),
+            icon: const Icon(Icons.cancel, size: 16),
+            label: const Text('Cancel'),
             style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.red,
+              side: const BorderSide(color: Colors.red),
               padding: const EdgeInsets.symmetric(vertical: 8),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
