@@ -19,7 +19,7 @@ class SearchFilterController extends GetxController {
   final RxString locationText = ''.obs;
   final RxString capacityText = ''.obs;
   final RxString dateText = ''.obs;
-  
+
   // Observable state lainnya tetap sama
   final RxList<VenueModel> searchResults = <VenueModel>[].obs;
   final RxBool isLoading = false.obs;
@@ -51,13 +51,13 @@ class SearchFilterController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    
+
     // Inisialisasi nilai Rx dari controller
     activityText.value = activityController.text;
     locationText.value = locationController.text;
     capacityText.value = capacityController.text;
     dateText.value = dateController.text;
-    
+
     loadInitialData();
   }
 
@@ -107,7 +107,7 @@ class SearchFilterController extends GetxController {
         dateController.text =
             '${picked.start.day}/${picked.start.month} - ${picked.end.day}/${picked.end.month}';
       }
-      
+
       // Update Rx variable
       dateText.value = dateController.text;
     }
@@ -360,6 +360,29 @@ class SearchFilterController extends GetxController {
 
   // Advanced search
   Future<void> performAdvancedSearch() async {
+    // Validasi field wajib
+    if (activityText.value.isEmpty) {
+      Get.snackbar(
+        'Perhatian',
+        'Silakan pilih aktivitas atau tempat terlebih dahulu',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    if (locationText.value.isEmpty) {
+      Get.snackbar(
+        'Perhatian',
+        'Silakan pilih lokasi terlebih dahulu',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
     try {
       isLoading.value = true;
       hasError.value = false;
@@ -407,10 +430,26 @@ class SearchFilterController extends GetxController {
           await _venueRepository.searchAvailableVenues(searchParams);
       searchResults.assignAll(results);
 
-      // Navigate to results
+      // Buat ringkasan parameter pencarian untuk ditampilkan
+      Map<String, dynamic> searchSummary = {
+        'activity': activityText.value,
+        'location': locationText.value,
+        'capacity': capacityText.value,
+        'date': dateText.value,
+        'startTime': startTime.value != null
+            ? '${startTime.value!.hour.toString().padLeft(2, '0')}:${startTime.value!.minute.toString().padLeft(2, '0')}'
+            : null,
+        'endTime': endTime.value != null
+            ? '${endTime.value!.hour.toString().padLeft(2, '0')}:${endTime.value!.minute.toString().padLeft(2, '0')}'
+            : null,
+      };
+
+      // Navigate to results dengan parameter lengkap
       Get.toNamed(MyRoutes.venueList, arguments: {
         'searchResults': results,
         'isSearchResult': true,
+        'searchSummary': searchSummary,
+        'searchQuery': activityText.value, // Tambahkan query pencarian
       });
     } catch (e) {
       hasError.value = true;
@@ -428,7 +467,7 @@ class SearchFilterController extends GetxController {
     capacityController.clear();
     dateController.clear();
     searchQueryController.clear();
-    
+
     // Update Rx variables
     activityText.value = '';
     locationText.value = '';

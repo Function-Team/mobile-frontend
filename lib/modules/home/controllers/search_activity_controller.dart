@@ -25,16 +25,16 @@ class SearchActivityController extends GetxController {
     try {
       isLoading.value = true;
       errorMessage.value = '';
-  
+
       // Load activities and venues concurrently
       final results = await Future.wait([
         _venueRepository.getActivities(),
         _venueRepository.getVenues(),
       ]);
-  
+
       allActivities.assignAll(results[0] as List<CategoryModel>);
       filteredActivities.assignAll(results[0] as List<CategoryModel>);
-      
+
       // just show 5 venues
       final venues = results[1] as List<VenueModel>;
       allVenues.assignAll(venues.take(5).toList());

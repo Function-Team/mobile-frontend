@@ -36,13 +36,13 @@ class SearchContainer extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Obx(() => Text(
-                textValue.value.isEmpty ? hintText : textValue.value,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: textValue.value.isEmpty
-                          ? Colors.grey[600]
-                          : Colors.black87,
-                    ),
-              )),
+                    textValue.value.isEmpty ? hintText : textValue.value,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: textValue.value.isEmpty
+                              ? Colors.grey[600]
+                              : Colors.black87,
+                        ),
+                  )),
             ),
           ],
         ),
@@ -172,16 +172,41 @@ class SearchContainer extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          // Search Button
-          Obx(() => PrimaryButton(
-                text: 'Cari Tempat',
-                width: double.infinity,
-                isLoading: searchController.isLoading.value,
-                onPressed: () {
-                  searchController.performAdvancedSearch();
-                  if (onTapSearch != null) onTapSearch!();
-                },
-              )),
+          // Button Row with Search and Reset
+          Row(
+            children: [
+              // Reset Button
+              Expanded(
+                flex: 1,
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Reset'),
+                  onPressed: () {
+                    searchController.clearAllFilters();
+                  },
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    side: BorderSide(color: Theme.of(context).primaryColor),
+                  ),
+                ),
+              ),
+              
+              const SizedBox(width: 8),
+              
+              // Search Button
+              Expanded(
+                flex: 2,
+                child: Obx(() => PrimaryButton(
+                  text: 'Cari Tempat',
+                  isLoading: searchController.isLoading.value,
+                  onPressed: () {
+                    searchController.performAdvancedSearch();
+                    if (onTapSearch != null) onTapSearch!();
+                  },
+                )),
+              ),
+            ],
+          ),
         ],
       ),
     );

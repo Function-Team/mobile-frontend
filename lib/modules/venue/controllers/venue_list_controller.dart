@@ -24,6 +24,10 @@ class VenueListController extends GetxController {
   // Debouncer untuk menghindari terlalu banyak API calls
   final _debouncer = Debouncer(delay: Duration(milliseconds: 300));
 
+  // Tambahkan variabel untuk menyimpan parameter pencarian
+  final Rx<Map<String, dynamic>> searchSummary = Rx<Map<String, dynamic>>({});
+  final RxBool isFromAdvancedSearch = false.obs;
+
   @override
   void onInit() {
     super.onInit();
@@ -31,13 +35,35 @@ class VenueListController extends GetxController {
 
     // Ambil parameter pencarian dari argumen jika ada
     final Map<String, dynamic>? args = Get.arguments as Map<String, dynamic>?;
-    if (args != null && args.containsKey('searchQuery')) {
-      final String query = args['searchQuery'] as String? ?? '';
-      if (query.isNotEmpty) {
-        searchController.text = query;
-        searchQuery.value = query;
-        // Langsung cari dengan query dari argumen
-        _performSearch();
+    if (args != null) {
+      // Cek apakah ada hasil pencarian langsung
+      if (args.containsKey('searchResults') && args['isSearchResult'] == true) {
+        isFromAdvancedSearch.value = true;
+        final List<VenueModel> searchResults = args['searchResults'] as List<VenueModel>;
+        venues.assignAll(searchResults);
+        isLoading.value = false;
+        
+        // Simpan parameter pencarian jika ada
+        if (args.containsKey('searchSummary')) {
+          searchSummary.value = args['searchSummary'] as Map<String, dynamic>;
+        }
+        
+        // Load kategori untuk filter
+        loadCategories();
+        return;
+      }
+      
+      if (args.containsKey('searchQuery')) {
+        final String query = args['searchQuery'] as String? ?? '';
+        if (query.isNotEmpty) {
+          searchController.text = query;
+          searchQuery.value = query;
+          // Langsung cari dengan query dari argumen
+          _performSearch();
+        } else {
+          // Jika tidak ada query, load semua venue
+          loadVenues();
+        }
       } else {
         // Jika tidak ada query, load semua venue
         loadVenues();
@@ -103,22 +129,21 @@ class VenueListController extends GetxController {
       errorMessage.value = '';
 
       final loadedVenues = await _venueRepository.searchVenues();
-      
+
       // Filter venue yang valid seperti di HomeController
       final filteredVenues = loadedVenues
-          .where((venue) => 
-              venue.id != null && 
-              venue.name != null && 
-              venue.price != null)
+          .where((venue) =>
+              venue.id != null && venue.name != null && venue.price != null)
           .toList();
-          
+
       if (filteredVenues.isEmpty) {
         hasError.value = true;
-        errorMessage.value = 'Tidak ada venue yang tersedia saat ini. Silakan coba lagi nanti.';
+        errorMessage.value =
+            'Tidak ada venue yang tersedia saat ini. Silakan coba lagi nanti.';
         venues.clear();
         return;
       }
-      
+
       venues.assignAll(filteredVenues);
     } catch (e) {
       hasError.value = true;

@@ -86,11 +86,11 @@ class VenueListPage extends GetView<VenueListController> {
                 () => controller.selectedCategory.isEmpty
                     ? Text(
                         LocalizationHelper.tr(
-                            LocaleKeys.venue_allVenues), // FIXED
+                            LocaleKeys.venue_allVenues),
                         style: Theme.of(context).textTheme.titleMedium,
                       )
                     : Text(
-                        '${controller.selectedCategory.value} ${LocalizationHelper.tr(LocaleKeys.venue_venues)}', // FIXED
+                        '${controller.selectedCategory.value} ${LocalizationHelper.tr(LocaleKeys.venue_venues)}',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
               ),
@@ -100,6 +100,12 @@ class VenueListPage extends GetView<VenueListController> {
               ),
             ],
           ),
+          
+          // Tampilkan parameter pencarian jika dari advanced search
+          Obx(() => controller.isFromAdvancedSearch.value
+              ? _buildSearchSummary(context)
+              : const SizedBox.shrink()),
+          
           Obx(
             () => controller.selectedCategory.isEmpty
                 ? const SizedBox.shrink()
@@ -108,6 +114,71 @@ class VenueListPage extends GetView<VenueListController> {
                     deleteIcon: const Icon(Icons.clear, size: 18),
                     onDeleted: () => controller.clearCategory(),
                   ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Widget baru untuk menampilkan parameter pencarian
+  Widget _buildSearchSummary(BuildContext context) {
+    return Obx(() {
+      final summary = controller.searchSummary.value;
+      if (summary.isEmpty) return const SizedBox.shrink();
+      
+      return Container(
+        margin: const EdgeInsets.only(top: 8, bottom: 8),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey[300]!),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Parameter Pencarian:',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            const SizedBox(height: 8),
+            if (summary['activity'] != null && summary['activity'].isNotEmpty)
+              _buildSummaryItem(context, 'Aktivitas/Tempat', summary['activity']),
+            if (summary['location'] != null && summary['location'].isNotEmpty)
+              _buildSummaryItem(context, 'Lokasi', summary['location']),
+            if (summary['date'] != null && summary['date'].isNotEmpty)
+              _buildSummaryItem(context, 'Tanggal', summary['date']),
+            if (summary['startTime'] != null && summary['endTime'] != null)
+              _buildSummaryItem(context, 'Waktu', '${summary['startTime']} - ${summary['endTime']}'),
+            if (summary['startTime'] != null)
+              _buildSummaryItem(context, 'Waktu Mulai', summary['startTime']),
+            if (summary['endTime'] != null)
+              _buildSummaryItem(context, 'Waktu Selesai', summary['endTime']),
+            if (summary['capacity'] != null && summary['capacity'].isNotEmpty)
+              _buildSummaryItem(context, 'Kapasitas', summary['capacity']),
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _buildSummaryItem(BuildContext context, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$label: ',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
           ),
         ],
       ),
