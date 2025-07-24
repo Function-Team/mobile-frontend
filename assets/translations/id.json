@@ -88,7 +88,15 @@
   },
   "follow_us": {
     "title": "Ikuti Kami",
-    "subtitle": "Terhubung dengan kami di media sosial"
+    "subtitle": "Tetap terhubung dan dapatkan update terbaru dari kami!",
+    "menuSubtitle": "Terhubung dengan kami di media sosial",
+    "instagram": "Instagram",
+    "linkedin": "LinkedIn",
+    "instagramHandle": "@function.venue",
+    "linkedinHandle": "Function Team",
+    "openPlatform": "Buka {platform}?",
+    "openPlatformMessage": "Ini akan membuka {platform} di browser atau aplikasi Anda. Anda akan meninggalkan aplikasi ini sementara.",
+    "errorOpening": "Tidak dapat membuka {platform}. Silakan coba lagi atau periksa apakah aplikasi sudah terinstal."
   },
   "common": {
     "change": "Ubah",
@@ -106,6 +114,7 @@
     "edit": "Edit",
     "exit": "Keluar",
     "delete": "Hapus",
+    "open": "Buka",
     "close": "Tutup",
     "back": "Kembali",
     "next": "Lanjut",

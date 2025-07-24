@@ -58,6 +58,14 @@ abstract class LocaleKeys {
   static const follow_us_title = 'follow_us.title';
   static const follow_us_subtitle = 'follow_us.subtitle';
   static const follow_us = 'follow_us';
+  static const follow_us_menuSubtitle = 'follow_us.menuSubtitle';
+  static const follow_us_instagram = 'follow_us.instagram';
+  static const follow_us_linkedin = 'follow_us.linkedin';
+  static const follow_us_instagramHandle = 'follow_us.instagramHandle';
+  static const follow_us_linkedinHandle = 'follow_us.linkedinHandle';
+  static const follow_us_openPlatform = 'follow_us.openPlatform';
+  static const follow_us_openPlatformMessage = 'follow_us.openPlatformMessage';
+  static const follow_us_errorOpening = 'follow_us.errorOpening';
   static const settings_settings = 'settings.settings';
   static const settings_profile = 'settings.profile';
   static const settings_account = 'settings.account';
@@ -130,6 +138,7 @@ abstract class LocaleKeys {
   static const common_edit = 'common.edit';
   static const common_exit = 'common.exit';
   static const common_delete = 'common.delete';
+  static const common_open = 'common.open';
   static const common_close = 'common.close';
   static const common_back = 'common.back';
   static const common_next = 'common.next';

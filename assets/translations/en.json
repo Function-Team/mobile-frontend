@@ -85,9 +85,17 @@
     "title": "Contact Support",
     "subtitle": "Get help with your account"
   },
-  "follow_us": {
+ "follow_us": {
     "title": "Follow Us",
-    "subtitle": "Connect with us on social media"
+    "subtitle": "Stay connected and get the latest updates from us!",
+    "menuSubtitle": "Connect with us on social media",
+    "instagram": "Instagram",
+    "linkedin": "LinkedIn",
+    "instagramHandle": "@function.venue",
+    "linkedinHandle": "Function Team",
+    "openPlatform": "Open {platform}?",
+    "openPlatformMessage": "This will open {platform} in your browser or app. You'll leave the current app temporarily.",
+    "errorOpening": "Could not open {platform}. Please try again or check if the app is installed."
   },
   "common": {
     "change": "Change",
@@ -105,6 +113,7 @@
     "edit": "Edit",
     "exit": "Exit",
     "delete": "Delete",
+    "open": "Open",
     "close": "Close",
     "back": "Back",
     "next": "Next",
