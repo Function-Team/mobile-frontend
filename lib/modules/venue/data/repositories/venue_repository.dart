@@ -164,4 +164,68 @@ class VenueRepository {
       return [];
     }
   }
+
+  Future<List<VenueModel>> searchAvailableVenues(
+      Map<String, dynamic> searchParams) async {
+    try {
+      // Build query string from searchParams
+      String queryString = '';
+      if (searchParams.isNotEmpty) {
+        final queryParts = searchParams.entries
+            .where((entry) =>
+                entry.value != null && entry.value.toString().isNotEmpty)
+            .map((entry) =>
+                '${Uri.encodeComponent(entry.key)}=${Uri.encodeComponent(entry.value.toString())}')
+            .toList();
+
+        if (queryParts.isNotEmpty) {
+          queryString = '?${queryParts.join('&')}';
+        }
+      }
+
+      final response =
+          await _apiService.getRequest('/places/search$queryString');
+
+      if (response is List) {
+        return response.map((json) => VenueModel.fromJson(json)).toList();
+      }
+
+      return [];
+    } catch (e) {
+      print('Error searching available venues: $e');
+      throw Exception('Failed to search venues: $e');
+    }
+  }
+
+  // Get all cities
+  Future<List<CityModel>> getCities() async {
+    try {
+      final response = await _apiService.getRequest('/city');
+      if (response is List) {
+        return response.map((json) => CityModel.fromJson(json)).toList();
+      } else {
+        throw Exception(
+            'Failed to load cities. Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching cities: $e');
+      return [];
+    }
+  }
+
+  // Get all activities
+  Future<List<CategoryModel>> getActivities() async {
+    try {
+      final response = await _apiService.getRequest('/activity');
+      if (response is List) {
+        return response.map((json) => CategoryModel.fromJson(json)).toList();
+      } else {
+        throw Exception(
+            'Failed to load activities. Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching activities: $e');
+      return [];
+    }
+  }
 }

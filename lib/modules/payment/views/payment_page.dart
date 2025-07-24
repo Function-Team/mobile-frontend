@@ -105,6 +105,7 @@ class PaymentPage extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             PrimaryButton(
+              isLoading: false,
               text: 'Try Again',
               onPressed: () => controller.initializePayment(booking),
               width: double.infinity,
@@ -367,6 +368,7 @@ class PaymentPage extends StatelessWidget {
       return Column(
         children: [
           PrimaryButton(
+            isLoading: controller.isPaymentProcessing.value,
             text: controller.isPaymentProcessing.value 
               ? 'Processing Payment...' 
               : 'Pay Now',

@@ -23,7 +23,7 @@ class PrimaryButton extends StatelessWidget {
     this.paddingHorizontal,
     this.paddingVertical,
     this.backgroundColor,
-    super.key, 
+    super.key, required bool isLoading, 
   });
 
   @override

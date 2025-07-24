@@ -37,6 +37,7 @@ class ChangeBookingBottomSheet extends StatelessWidget {
           _capacityDropdown(controller),
           const SizedBox(height: 24),
           PrimaryButton(
+            isLoading: false,
             width: double.infinity,
             text: 'Save Date',
             onPressed: () {

@@ -65,6 +65,7 @@ class BookingFormWidget extends StatelessWidget {
         // Book and Pay Button
         Obx(() {
           return PrimaryButton(
+            isLoading: controller.isProcessing.value,
             text: controller.isProcessing.value 
               ? 'Creating Booking...' 
               : 'Book & Pay Now',

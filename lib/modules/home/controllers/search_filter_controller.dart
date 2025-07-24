@@ -7,165 +7,443 @@ import 'package:get/get.dart';
 class SearchFilterController extends GetxController {
   final VenueRepository _venueRepository = VenueRepository();
 
-  //Controllers
+  // Controllers
   final activityController = TextEditingController();
   final locationController = TextEditingController();
   final capacityController = TextEditingController();
   final dateController = TextEditingController();
   final searchQueryController = TextEditingController();
 
-  //Observable state
+  // Tambahkan variabel Rx untuk melacak nilai field
+  final RxString activityText = ''.obs;
+  final RxString locationText = ''.obs;
+  final RxString capacityText = ''.obs;
+  final RxString dateText = ''.obs;
+  
+  // Observable state lainnya tetap sama
   final RxList<VenueModel> searchResults = <VenueModel>[].obs;
   final RxBool isLoading = false.obs;
   final RxBool hasError = false.obs;
   final RxString errorMessage = ''.obs;
   final RxString searchQuery = ''.obs;
 
-  //category filtering state
+  // Enhanced search parameters for multi-day support
+  final Rx<DateTime?> startDate = Rx<DateTime?>(null);
+  final Rx<DateTime?> endDate = Rx<DateTime?>(null);
+  final Rx<TimeOfDay?> startTime = Rx<TimeOfDay?>(null);
+  final Rx<TimeOfDay?> endTime = Rx<TimeOfDay?>(null);
+  final RxInt selectedCityId = 0.obs;
+  final RxInt selectedCategoryId = 0.obs;
+  final RxInt selectedActivityId = 0.obs;
+  final RxInt maxCapacity = 0.obs;
+  final RxString selectedCity = ''.obs;
+
+  // Consistent data structure for cities and activities
+  final RxList<CityModel> citiesData = <CityModel>[].obs;
+  final RxList<CityModel> filteredCities = <CityModel>[].obs;
+  final RxList<CategoryModel> activitiesData = <CategoryModel>[].obs;
+  final RxString citySearchQuery = ''.obs;
+
+  // Category filtering state
   final RxString selectedCategory = ''.obs;
-  final RxList<String> categories = <String>[].obs;
   final RxMap<String, int> categoryMap = <String, int>{}.obs;
 
-//------------FEATURE SEARCH BY CAPACITY--------------//
+  @override
+  void onInit() {
+    super.onInit();
+    
+    // Inisialisasi nilai Rx dari controller
+    activityText.value = activityController.text;
+    locationText.value = locationController.text;
+    capacityText.value = capacityController.text;
+    dateText.value = dateController.text;
+    
+    loadInitialData();
+  }
 
-  void goToCapacitySelection() async {
-    final result = await Get.toNamed(MyRoutes.searchCapacity);
+  // Load cities and activities data
+  Future<void> loadInitialData() async {
+    try {
+      isLoading.value = true;
 
+      // Load cities and activities concurrently
+      final results = await Future.wait([
+        _venueRepository.getCities(),
+        _venueRepository.getActivities(),
+      ]);
+
+      citiesData.assignAll(results[0] as List<CityModel>);
+      filteredCities.assignAll(results[0] as List<CityModel>);
+      activitiesData.assignAll(results[1] as List<CategoryModel>);
+    } catch (e) {
+      print('Error loading initial data: $e');
+      hasError.value = true;
+      errorMessage.value = 'Failed to load data: $e';
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // Date range selection
+  Future<void> selectDateRange() async {
+    final DateTimeRange? picked = await showDateRangePicker(
+      context: Get.context!,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      initialDateRange: startDate.value != null && endDate.value != null
+          ? DateTimeRange(start: startDate.value!, end: endDate.value!)
+          : null,
+    );
+
+    if (picked != null) {
+      startDate.value = picked.start;
+      endDate.value = picked.end;
+
+      // Update the UI text properly
+      if (picked.start == picked.end) {
+        dateController.text =
+            '${picked.start.day}/${picked.start.month}/${picked.start.year}';
+      } else {
+        dateController.text =
+            '${picked.start.day}/${picked.start.month} - ${picked.end.day}/${picked.end.month}';
+      }
+      
+      // Update Rx variable
+      dateText.value = dateController.text;
+    }
+  }
+
+  // Time selection
+  Future<void> selectStartTime() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: Get.context!,
+      initialTime: startTime.value ?? TimeOfDay.now(),
+    );
+
+    if (picked != null) {
+      startTime.value = picked;
+    }
+  }
+
+  Future<void> selectEndTime() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: Get.context!,
+      initialTime: endTime.value ?? TimeOfDay.now(),
+    );
+
+    if (picked != null) {
+      endTime.value = picked;
+    }
+  }
+
+  // Capacity picker
+  void showCapacityPicker() {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Pilih Kapasitas Maksimal',
+              style: Get.textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 20),
+            Obx(() => Slider(
+                  value: maxCapacity.value.toDouble(),
+                  min: 0,
+                  max: 500,
+                  divisions: 50,
+                  label: maxCapacity.value == 0
+                      ? 'Semua'
+                      : '${maxCapacity.value} orang',
+                  onChanged: (value) {
+                    maxCapacity.value = value.toInt();
+                  },
+                )),
+            const SizedBox(height: 10),
+            Obx(() => Text(
+                  maxCapacity.value == 0
+                      ? 'Semua kapasitas'
+                      : 'Maksimal ${maxCapacity.value} orang',
+                  style: Get.textTheme.bodyLarge,
+                )),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      maxCapacity.value = 0;
+                      capacityController.text = 'Semua kapasitas';
+                      Get.back();
+                    },
+                    child: const Text('Reset'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      capacityController.text = maxCapacity.value == 0
+                          ? 'Semua kapasitas'
+                          : 'Maks ${maxCapacity.value} orang';
+                      capacityText.value = capacityController.text;
+                      Get.back();
+                    },
+                    child: const Text('Pilih'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+    );
+  }
+
+  // City selection with search
+  void showCityPicker() {
+    citySearchQuery.value = '';
+    filteredCities.assignAll(citiesData);
+
+    Get.bottomSheet(
+      Container(
+        height: Get.height * 0.7,
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          children: [
+            Text(
+              'Pilih Kota',
+              style: Get.textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              decoration: const InputDecoration(
+                hintText: 'Cari kota...',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) {
+                citySearchQuery.value = value;
+                if (value.isEmpty) {
+                  filteredCities.assignAll(citiesData);
+                } else {
+                  filteredCities.assignAll(
+                    citiesData
+                        .where((city) => (city.name ?? '')
+                            .toLowerCase()
+                            .contains(value.toLowerCase()))
+                        .toList(),
+                  );
+                }
+              },
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: Obx(() => ListView.builder(
+                    itemCount: filteredCities.length,
+                    itemBuilder: (context, index) {
+                      final city = filteredCities[index];
+                      return ListTile(
+                        title: Text(city.name ?? 'Unknown City'),
+                        // Tambahkan update untuk locationText.value saat kota dipilih
+                        onTap: () {
+                          selectedCity.value = city.name ?? '';
+                          selectedCityId.value = city.id ?? 0;
+                          locationController.text = city.name ?? '';
+                          locationText.value = locationController.text;
+                          Get.back();
+                        },
+                      );
+                    },
+                  )),
+            ),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+    );
+  }
+
+  // Activity picker
+  void showActivityPicker() {
+    Get.bottomSheet(
+      Container(
+        height: Get.height * 0.7,
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          children: [
+            Text(
+              'Pilih Aktivitas',
+              style: Get.textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 20),
+            Expanded(
+              child: Obx(() => ListView.builder(
+                    itemCount: activitiesData.length,
+                    itemBuilder: (context, index) {
+                      final activity = activitiesData[index];
+                      return ListTile(
+                        leading: const Icon(Icons.work),
+                        title: Text(activity.name ?? 'Unknown Activity'),
+                        // Tambahkan update untuk activityText.value saat aktivitas dipilih
+                        onTap: () {
+                          selectedActivityId.value = activity.id ?? 0;
+                          activityController.text = activity.name ?? '';
+                          activityText.value = activityController.text;
+                          Get.back();
+                        },
+                      );
+                    },
+                  )),
+            ),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+    );
+  }
+
+  // Navigation methods - PERBAIKAN
+  void goToSearchActivity() async {
+    final result = await Get.toNamed(MyRoutes.searchActivity);
+    if (result != null && result is Map<String, dynamic>) {
+      // Handle activity selection
+      if (result['type'] == 'activity' && result['activityId'] != null) {
+        selectedActivityId.value = result['activityId'];
+        activityController.text = result['searchQuery'] ?? '';
+        activityText.value = activityController.text;
+      }
+      // Handle venue selection
+      else if (result['type'] == 'venue' && result['venueId'] != null) {
+        // Set venue name in activity field for search
+        activityController.text = result['searchQuery'] ?? '';
+        activityText.value = activityController.text;
+        // You can also store venue ID if needed
+        // selectedVenueId.value = result['venueId'];
+      }
+      // Handle general search query
+      else if (result['type'] == 'search') {
+        activityController.text = result['searchQuery'] ?? '';
+        activityText.value = activityController.text;
+      }
+    }
+  }
+
+  void goToSearchLocation() async {
+    final result = await Get.toNamed(MyRoutes.searchLocation);
     if (result != null && result is String && result.isNotEmpty) {
-      capacityController.text = result;
-
-      _updateSearchWithCapacity();
+      locationController.text = result;
     }
   }
 
-  void _updateSearchWithCapacity() {
-    if (Get.currentRoute == MyRoutes.venueList) {
-      performSearch();
-    } else {
-      Map<String, dynamic> args = {
-        'minCapacity': _extraCapacityParameter(),
-      };
-      Get.toNamed(MyRoutes.venueList, arguments: args);
-    }
+  void goToSearchResults() {
+    Get.toNamed(MyRoutes.venueList, arguments: {
+      'searchResults': searchResults.value,
+      'isSearchResult': true,
+    });
   }
 
-  int? _extraCapacityParameter() {
-    int? minCapacity;
-
-    if (capacityController.text.isNotEmpty) {
-      final capacityText = capacityController.text;
-
-      // Handle 1-10 people format
-      if (capacityText.contains('-')) {
-        final parts = capacityText.split('-');
-        if (parts.length == 2) {
-          final firstPart = parts[0].trim();
-          final numericValue = firstPart.replaceAll(RegExp(r'[^0-9]'), '');
-          try {
-            minCapacity = int.parse(numericValue);
-          } catch (_) {}
-        }
-      }
-      // Handle 200+ people format
-      else if (capacityText.contains('+')) {
-        final parts = capacityText.split('+');
-        if (parts.isNotEmpty) {
-          final numericValue =
-              parts[0].trim().replaceAll(RegExp(r'[^0-9]'), '');
-          try {
-            minCapacity = int.parse(numericValue);
-          } catch (_) {}
-        }
-      }
-    }
-    return minCapacity;
-  }
-
-  String? _extraSearchQuery(Map<String, dynamic>? args) {
-    String? query;
-
-    if (args != null && args.containsKey('searchQuery')) {
-      query = args['searchQuery'] as String?;
-      if (query != null && query.isNotEmpty) {
-        searchQueryController.text = query;
-      }
-    } else if (searchQueryController.text.isNotEmpty) {
-      query = searchQueryController.text;
-    } else if (activityController.text.isNotEmpty) {
-      query = activityController.text;
-    }
-    return query;
-  }
-
-  int? _extraCategoryParamater() {
-    int? categoryId;
-
-    if (selectedCategory.isNotEmpty) {
-      categoryId = categoryMap[selectedCategory.value];
-    }
-    return categoryId;
-  }
-
-  Future<void> performSearch({Map<String, dynamic>? args}) async {
+  // Advanced search
+  Future<void> performAdvancedSearch() async {
     try {
       isLoading.value = true;
       hasError.value = false;
       errorMessage.value = '';
 
-      String? query = _extraSearchQuery(args);
-      int? minCapacity = _extraCapacityParameter();
-      int? categoryId = _extraCategoryParamater();
+      Map<String, dynamic> searchParams = {};
 
-      print('Searching with capacity: $minCapacity');
+      // City filter
+      if (selectedCityId.value > 0) {
+        searchParams['city_id'] = selectedCityId.value;
+      }
 
-      //Run the search
+      // Activity filter
+      if (selectedActivityId.value > 0) {
+        searchParams['activity_id'] = selectedActivityId.value;
+      }
 
-      final results = await _venueRepository.searchVenues(
-        searchQuery: query,
-        categoryId: categoryId,
-        minCapacity: minCapacity,
-      );
+      // Capacity filter
+      if (maxCapacity.value > 0) {
+        searchParams['max_capacity'] = maxCapacity.value;
+      }
+
+      // Date and time filters
+      if (startDate.value != null) {
+        searchParams['start_date'] =
+            startDate.value!.toIso8601String().split('T')[0];
+      }
+
+      if (endDate.value != null) {
+        searchParams['end_date'] =
+            endDate.value!.toIso8601String().split('T')[0];
+      }
+
+      if (startTime.value != null) {
+        searchParams['start_time'] =
+            '${startTime.value!.hour.toString().padLeft(2, '0')}:${startTime.value!.minute.toString().padLeft(2, '0')}:00';
+      }
+
+      if (endTime.value != null) {
+        searchParams['end_time'] =
+            '${endTime.value!.hour.toString().padLeft(2, '0')}:${endTime.value!.minute.toString().padLeft(2, '0')}:00';
+      }
+
+      final results =
+          await _venueRepository.searchAvailableVenues(searchParams);
       searchResults.assignAll(results);
+
+      // Navigate to results
+      Get.toNamed(MyRoutes.venueList, arguments: {
+        'searchResults': results,
+        'isSearchResult': true,
+      });
     } catch (e) {
       hasError.value = true;
-      errorMessage.value = 'Search failed, Please try again. ';
-      print('Error during search $e');
+      errorMessage.value = 'Search failed: ${e.toString()}';
+      print('Search error: $e');
     } finally {
       isLoading.value = false;
     }
   }
-//------------FEATURE SEARCH BY VENUE NAME--------------//
 
-  void goToSearchActivity() async {
-    final result = await Get.toNamed(MyRoutes.searchActivity);
-
-    if (result != null && result is Map<String, dynamic>) {
-      final String searchQuery = result['searchQuery'] ?? '';
-      final String type = result['type'] ?? '';
-
-      // Update controller text
-      activityController.text = searchQuery;
-
-      if (searchQuery.isNotEmpty && (type == 'search' || type == 'venue')) {
-        Get.toNamed(MyRoutes.venueList,
-            arguments: {'searchQuery': searchQuery});
-      }
-    }
-  }
-
-//------------FEATURE SEARCH BY LOCATION--------------//
-
-  void goToSearchLocation() {
-    Get.toNamed(MyRoutes.searchLocation);
-  }
-
-  // void goToDateSelection() {
-  //   Get.toNamed(MyRoutes.searchDate);
-  // }
-
-//this is temporay function to navigate to venue list
-  void goToSearchResults() {
-    Get.toNamed(MyRoutes.venueList);
+  // Clear all search filters
+  void clearAllFilters() {
+    activityController.clear();
+    locationController.clear();
+    capacityController.clear();
+    dateController.clear();
+    searchQueryController.clear();
+    
+    // Update Rx variables
+    activityText.value = '';
+    locationText.value = '';
+    capacityText.value = '';
+    dateText.value = '';
+    startDate.value = null;
+    endDate.value = null;
+    startTime.value = null;
+    endTime.value = null;
+    selectedCityId.value = 0;
+    selectedCategoryId.value = 0;
+    selectedActivityId.value = 0;
+    maxCapacity.value = 0;
+    selectedCity.value = '';
+    searchResults.clear();
   }
 
   @override
@@ -174,6 +452,7 @@ class SearchFilterController extends GetxController {
     locationController.dispose();
     capacityController.dispose();
     dateController.dispose();
+    searchQueryController.dispose();
     super.onClose();
   }
 }

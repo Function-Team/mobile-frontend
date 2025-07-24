@@ -66,88 +66,10 @@ class BookingService extends GetxService {
   // Cancel booking di FastAPI
   Future<void> cancelBooking(int bookingId) async {
     try {
-      await _apiService.deleteRequest('/booking/$bookingId');
+      await _apiService.patchRequest('/booking/user/cancel/$bookingId', {});
     } catch (e) {
       print('Error cancelling booking: $e');
       throw Exception('Failed to cancel booking: $e');
     }
-  }
-
-  // Helper method to check time conflicts
-  Future<bool> checkTimeConflict({
-    required int placeId,
-    required DateTime date,
-    required String startTime,
-    required String endTime,
-  }) async {
-    try {
-      final response = await _apiService.getRequest('/bookings/me');
-      print('Fetched bookings for conflict check: $response');
-
-      if (response is! List) return false;
-
-      final bookings = <BookingModel>[];
-      for (final bookingData in response) {
-        if (bookingData['place_id'] == placeId) {
-          // Only check bookings for the specific venue
-          final booking = BookingModel(
-            id: bookingData['id'],
-            placeId: bookingData['place_id'],
-            userId: bookingData['user_id'],
-            startDateTime: bookingData['start_datetime'],
-            endDateTime: bookingData['end_datetime'],
-            isConfirmed: bookingData['is_confirmed'] ?? false,
-            createdAt: bookingData['created_at'] != null
-                ? DateTime.parse(bookingData['created_at'])
-                : null,
-          );
-          bookings.add(booking);
-        }
-      }
-
-      // Filter bookings for the same date
-      final conflictingBookings = bookings
-          .where((booking) => (booking.status == BookingStatus.confirmed ||
-              booking.status == BookingStatus.pending))
-          .toList();
-
-      // Check for time overlaps
-      for (final booking in conflictingBookings) {
-        if (_timesOverlap(
-            startTime, endTime, booking.startTime, booking.endTime)) {
-          return true;
-        }
-      }
-
-      return false;
-    } catch (e) {
-      print('Error checking time conflict: $e');
-      return false; // Assume no conflict if we can't check
-    }
-  }
-
-  bool _timesOverlap(String start1, String end1, String start2, String end2) {
-    final start1Minutes = _timeToMinutes(start1);
-    final end1Minutes = _timeToMinutes(end1);
-    final start2Minutes = _timeToMinutes(start2);
-    final end2Minutes = _timeToMinutes(end2);
-
-    return !(end1Minutes <= start2Minutes || start1Minutes >= end2Minutes);
-  }
-
-  int _timeToMinutes(String time) {
-    final parts = time.split(':');
-    return int.parse(parts[0]) * 60 + int.parse(parts[1]);
-  }
-
-  // Utility method to format time for API
-  static String formatTimeForAPI(TimeOfDay time) {
-    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
-  }
-
-  // Utility method to parse time from API
-  static TimeOfDay parseTimeFromAPI(String timeString) {
-    final parts = timeString.split(':');
-    return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
   }
 }

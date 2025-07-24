@@ -9,7 +9,7 @@ import 'package:lottie/lottie.dart';
 class PaymentStatusPage extends StatelessWidget {
   final int paymentId;
   final PaymentStatus status;
-  
+
   const PaymentStatusPage({
     Key? key,
     required this.paymentId,
@@ -19,7 +19,7 @@ class PaymentStatusPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final PaymentController controller = Get.find<PaymentController>();
-    
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -53,7 +53,7 @@ class PaymentStatusPage extends StatelessWidget {
   Widget _buildStatusAnimation(PaymentStatus status) {
     String animationPath;
     Color backgroundColor;
-    
+
     switch (status) {
       case PaymentStatus.success:
         animationPath = 'assets/animations/success.json';
@@ -73,7 +73,7 @@ class PaymentStatusPage extends StatelessWidget {
         backgroundColor = Colors.grey[50]!;
         break;
     }
-    
+
     return Container(
       width: 200,
       height: 200,
@@ -96,35 +96,40 @@ class PaymentStatusPage extends StatelessWidget {
     String title;
     String description;
     Color titleColor;
-    
+
     switch (status) {
       case PaymentStatus.success:
         title = 'Payment Successful!';
-        description = 'Your booking has been confirmed. You will receive a confirmation email shortly.';
+        description =
+            'Your booking has been confirmed. You will receive a confirmation email shortly.';
         titleColor = Colors.green;
         break;
       case PaymentStatus.pending:
         title = 'Payment Pending';
-        description = 'Your payment is being processed. We will notify you once it\'s completed.';
+        description =
+            'Your payment is being processed. We will notify you once it\'s completed.';
         titleColor = Colors.orange;
         break;
       case PaymentStatus.failed:
         title = 'Payment Failed';
-        description = 'Your payment could not be processed. Please try again or use a different payment method.';
+        description =
+            'Your payment could not be processed. Please try again or use a different payment method.';
         titleColor = Colors.red;
         break;
       case PaymentStatus.cancelled:
         title = 'Payment Cancelled';
-        description = 'Your payment has been cancelled. No charges have been made to your account.';
+        description =
+            'Your payment has been cancelled. No charges have been made to your account.';
         titleColor = Colors.red;
         break;
       case PaymentStatus.expired:
         title = 'Payment Expired';
-        description = 'Your payment session has expired. Please start a new booking to continue.';
+        description =
+            'Your payment session has expired. Please start a new booking to continue.';
         titleColor = Colors.grey;
         break;
     }
-    
+
     return Column(
       children: [
         Text(
@@ -195,12 +200,14 @@ class PaymentStatusPage extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context, PaymentController controller, PaymentStatus status) {
+  Widget _buildActionButtons(BuildContext context, PaymentController controller,
+      PaymentStatus status) {
     switch (status) {
       case PaymentStatus.success:
         return Column(
           children: [
             PrimaryButton(
+              isLoading: controller.isLoading.value,
               text: 'View Booking Details',
               onPressed: () => Get.offAllNamed('/booking-detail'),
               width: double.infinity,
@@ -213,11 +220,12 @@ class PaymentStatusPage extends StatelessWidget {
             ),
           ],
         );
-        
+
       case PaymentStatus.pending:
         return Column(
           children: [
             PrimaryButton(
+              isLoading: controller.isLoading.value,
               text: 'Check Status',
               onPressed: () => controller.refreshPaymentStatus(paymentId),
               width: double.infinity,
@@ -230,11 +238,12 @@ class PaymentStatusPage extends StatelessWidget {
             ),
           ],
         );
-        
+
       case PaymentStatus.failed:
         return Column(
           children: [
             PrimaryButton(
+              isLoading: controller.isLoading.value,
               text: 'Try Again',
               onPressed: () => controller.retryPayment(),
               width: double.infinity,
@@ -258,12 +267,13 @@ class PaymentStatusPage extends StatelessWidget {
             ),
           ],
         );
-        
+
       case PaymentStatus.cancelled:
       case PaymentStatus.expired:
         return Column(
           children: [
             PrimaryButton(
+              isLoading: controller.isLoading.value,
               text: 'Start New Booking',
               onPressed: () => Get.offAllNamed('/venues'),
               width: double.infinity,

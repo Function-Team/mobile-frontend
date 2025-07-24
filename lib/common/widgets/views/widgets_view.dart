@@ -22,10 +22,10 @@ class ComponentsView extends StatelessWidget {
           padding: EdgeInsets.all(8),
           child: Column(
             children: [
-              PrimaryButton(
-                text: LocalizationHelper.tr(LocaleKeys.auth_logout),
-                onPressed: () {},
-              ),
+              // PrimaryButton(
+              //   text: LocalizationHelper.tr(LocaleKeys.auth_logout),
+              //   onPressed: () {},
+              // ),
               SizedBox(height: 18),
               SecondaryButton(text: LocalizationHelper.tr(LocaleKeys.auth_logout), onPressed: () {}),
               SizedBox(height: 18),

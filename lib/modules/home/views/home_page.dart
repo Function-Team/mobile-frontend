@@ -73,13 +73,6 @@ class HomePage extends StatelessWidget {
                         ),
                         const SizedBox(height: 40),
                         SearchContainer(
-                          controllerActivity:
-                              searchController.activityController,
-                          controllerLocation:
-                              searchController.locationController,
-                          controllerCapacity:
-                              searchController.capacityController,
-                          controllerDate: searchController.dateController,
                           onTapSearch: () {
                             searchController.goToSearchResults();
                           },

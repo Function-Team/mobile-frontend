@@ -1,166 +1,188 @@
 import 'package:flutter/material.dart';
-import 'package:function_mobile/common/widgets/buttons/secondary_button.dart';
+import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/home/controllers/search_filter_controller.dart';
 import 'package:get/get.dart';
 
 class SearchContainer extends StatelessWidget {
-  final TextEditingController controllerActivity;
-  final TextEditingController controllerLocation;
-  final TextEditingController controllerCapacity;
-  final TextEditingController controllerDate;
-  final VoidCallback onTapSearch;
+  final VoidCallback? onTapSearch;
 
   const SearchContainer({
     super.key,
-    required this.controllerActivity,
-    required this.controllerLocation,
-    required this.controllerCapacity,
-    required this.controllerDate,
-    required this.onTapSearch,
+    this.onTapSearch,
   });
+
+  Widget _buildSearchField({
+    required BuildContext context,
+    required TextEditingController controller,
+    required IconData icon,
+    required String hintText,
+    required VoidCallback onTap,
+    required RxString textValue, // Tambahkan parameter untuk variabel Rx
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey[300]!),
+          borderRadius: BorderRadius.circular(8),
+          color: Colors.white,
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.grey[600], size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Obx(() => Text(
+                textValue.value.isEmpty ? hintText : textValue.value,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: textValue.value.isEmpty
+                          ? Colors.grey[600]
+                          : Colors.black87,
+                    ),
+              )),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTimeField({
+    required BuildContext context,
+    required TimeOfDay? time,
+    required String hintText,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey[300]!),
+          borderRadius: BorderRadius.circular(8),
+          color: Colors.white,
+        ),
+        child: Center(
+          child: Text(
+            time != null
+                ? '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}'
+                : hintText,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: time != null ? Colors.black87 : Colors.grey[600],
+                ),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final searchController = Get.find<SearchFilterController>();
 
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         border: Border.all(color: Colors.grey[300]!),
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         children: [
           // Activity/Venue Search Field
-          InkWell(
-            onTap: () {
-              searchController.goToSearchActivity();
-            },
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[300]!),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.search, color: Colors.grey[600]),
-                  SizedBox(width: 8),
-                  Text(
-                    controllerActivity.text.isEmpty
-                        ? LocalizationHelper.tr(
-                            LocaleKeys.search_selectActivity)
-                        : controllerActivity.text,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Colors.grey[600],
-                        ),
-                  ),
-                ],
-              ),
-            ),
+          _buildSearchField(
+            context: context,
+            controller: searchController.activityController,
+            icon: Icons.search,
+            hintText: 'Cari tempat atau aktivitas',
+            onTap: () => searchController.goToSearchActivity(),
+            textValue: searchController.activityText, // Tambahkan variabel Rx
           ),
 
-          // Location Search Field
-          InkWell(
-            onTap: () {
-              searchController.goToSearchLocation();
-            },
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[300]!),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.location_on_outlined, color: Colors.grey[600]),
-                  SizedBox(width: 8),
-                  Text(
-                    controllerLocation.text.isEmpty
-                        ? LocalizationHelper.tr(
-                            LocaleKeys.search_selectLocation)
-                        : controllerLocation.text,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Colors.grey[600],
-                        ),
-                  ),
-                ],
-              ),
-            ),
+          const SizedBox(height: 12),
+
+          // Location Search Field with improved UX
+          _buildSearchField(
+            context: context,
+            controller: searchController.locationController,
+            icon: Icons.location_on_outlined,
+            hintText: 'Pilih kota',
+            onTap: () => searchController.showCityPicker(),
+            textValue: searchController.locationText, // Tambahkan variabel Rx
           ),
 
-          // Capacity Selection
-          InkWell(
-            onTap: () {
-              searchController.goToCapacitySelection();
-            },
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[300]!),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.people_outline, color: Colors.grey[600]),
-                  SizedBox(width: 8),
-                  Text(
-                    controllerCapacity.text.isEmpty
-                        ? LocalizationHelper.tr(
-                            LocaleKeys.search_selectCapacity)
-                        : controllerCapacity.text,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Colors.grey[600],
-                        ),
-                  ),
-                ],
-              ),
-            ),
+          const SizedBox(height: 12),
+
+          // Enhanced Date Range Selection
+          _buildSearchField(
+            context: context,
+            controller: searchController.dateController,
+            icon: Icons.date_range_outlined,
+            hintText: 'Pilih tanggal',
+            onTap: () => searchController.selectDateRange(),
+            textValue: searchController.dateText, // Tambahkan variabel Rx
           ),
 
-          // Date Selection
-          InkWell(
-            onTap: () {
-              // searchController.goToDateSelection();
-            },
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[300]!),
-                borderRadius: BorderRadius.circular(6),
+          const SizedBox(height: 12),
+
+          // Time Row - sudah menggunakan Obx, tidak perlu diubah
+          Row(
+            children: [
+              Expanded(
+                child: Obx(() => _buildTimeField(
+                      context: context,
+                      time: searchController.startTime.value,
+                      hintText: 'Jam mulai',
+                      onTap: () => searchController.selectStartTime(),
+                    )),
               ),
-              child: Row(
-                children: [
-                  Icon(Icons.calendar_today_outlined, color: Colors.grey[600]),
-                  SizedBox(width: 8),
-                  Text(
-                    controllerDate.text.isEmpty
-                        ? LocalizationHelper.tr(LocaleKeys.search_selectDate)
-                        : controllerDate.text,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Colors.grey[600],
-                        ),
-                  ),
-                ],
+              const SizedBox(width: 8),
+              Expanded(
+                child: Obx(() => _buildTimeField(
+                      context: context,
+                      time: searchController.endTime.value,
+                      hintText: 'Jam selesai',
+                      onTap: () => searchController.selectEndTime(),
+                    )),
               ),
-            ),
+            ],
           ),
+
+          const SizedBox(height: 12),
+
+          // Enhanced Capacity Field
+          _buildSearchField(
+            context: context,
+            controller: searchController.capacityController,
+            icon: Icons.people_outline,
+            hintText: 'Kapasitas maksimal',
+            onTap: () => searchController.showCapacityPicker(),
+            textValue: searchController.capacityText, // Tambahkan variabel Rx
+          ),
+
+          const SizedBox(height: 16),
 
           // Search Button
-          SecondaryButton(
-            text: LocalizationHelper.tr(LocaleKeys.search_search),
-            onPressed: onTapSearch,
-            width: double.infinity,
-          ),
-        ]
-            .map((e) => Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: e,
-                ))
-            .toList(),
+          Obx(() => PrimaryButton(
+                text: 'Cari Tempat',
+                width: double.infinity,
+                isLoading: searchController.isLoading.value,
+                onPressed: () {
+                  searchController.performAdvancedSearch();
+                  if (onTapSearch != null) onTapSearch!();
+                },
+              )),
+        ],
       ),
     );
   }

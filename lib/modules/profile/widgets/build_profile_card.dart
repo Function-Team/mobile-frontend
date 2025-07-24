@@ -80,6 +80,7 @@ Widget buildProfileCard(
         ),
         const SizedBox(height: 20),
         PrimaryButton(
+          isLoading: false,
           width: double.infinity,
           text: LocalizationHelper.tr(LocaleKeys.profile_viewProfile),
           onPressed: onTapViewProfile,

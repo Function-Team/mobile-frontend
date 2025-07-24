@@ -1,157 +1,106 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/generated/locale_keys.g.dart';
+import 'package:function_mobile/modules/home/controllers/search_activity_controller.dart';
+import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:get/get.dart';
 
 class SearchActivityPage extends StatelessWidget {
-  final TextEditingController searchController = TextEditingController();
-  final RxList<String> filteredActivities = [
-    'Workshop',
-    'Working Space',
-    'Work-out Session',
-    'World Culture Festival',
-    'Workstation Setup Event'
-  ].obs;
-
-  final RxList<String> filteredVenues = [
-    'WoW Hall',
-    'Surya Working Space',
-    'Wonder Studio',
-    'The Workstation'
-  ].obs;
-
-  SearchActivityPage({super.key});
+  const SearchActivityPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.put(SearchActivityController());
+
     return Scaffold(
       appBar: AppBar(
         title: TextField(
-          controller: searchController,
+          controller: controller.searchController,
           autofocus: true,
           decoration: InputDecoration(
             hintText: LocalizationHelper.tr(LocaleKeys.search_selectActivity),
             border: InputBorder.none,
             suffixIcon: IconButton(
-              icon: Icon(Icons.close),
-              onPressed: () {
-                searchController.clear();
-                _filterItems(''); 
-              },
+              icon: const Icon(Icons.close),
+              onPressed: controller.clearSearch,
             ),
           ),
-          onChanged: _filterItems,
-          // Handle when the user presses Enter/Submit
-          onSubmitted: (value) {
-            if (value.isNotEmpty) {
-              try {
-                // Return the search query and type to the parent page
-                Get.back(result: {'searchQuery': value, 'type': 'search'});
-              } catch (e) {
-                print('Error navigating back $e');
-                Get.back();
-              }
-            }
-          },
+          onChanged: controller.filterItems,
+          onSubmitted: controller.onSearchSubmitted,
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Get.back(),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                LocalizationHelper.tr(LocaleKeys.search_selectActivity),
-                style: Theme.of(context).textTheme.titleLarge,
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+
+        return SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  LocalizationHelper.tr(LocaleKeys.search_selectActivity),
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
               ),
-            ),
-            Obx(() => Column(
-                  children: filteredActivities
-                      .map((activity) =>
-                          _buildActivityItem(activity, Icons.work))
-                      .toList(),
-                )),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                'Venues',
-                style: Theme.of(context).textTheme.titleLarge,
+              // Activities section
+              Column(
+                children: controller.filteredActivities
+                    .map((activity) => _buildActivityItem(activity, controller))
+                    .toList(),
               ),
-            ),
-            Obx(() => Column(
-                  children: filteredVenues
-                      .map((venue) => _buildVenueItem(venue, ''))
-                      .toList(),
-                )),
-          ],
-        ),
-      ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Venues',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+              // Venues section
+              Column(
+                children: controller.filteredVenues
+                    .map((venue) => _buildVenueItem(venue, controller))
+                    .toList(),
+              ),
+            ],
+          ),
+        );
+      }),
     );
   }
 
-  void _filterItems(String query) {
-    if (query.isEmpty) {
-      // Reset to full list
-      filteredActivities.assignAll([
-        'Workshop',
-        'Working Space',
-        'Work-out Session',
-        'World Culture Festival',
-        'Workstation Setup Event'
-      ]);
-      filteredVenues.assignAll([
-        'WoW Hall',
-        'Surya Working Space',
-        'Wonder Studio',
-        'The Workstation'
-      ]);
-    } else {
-      // Filter based on query
-      final lowercaseQuery = query.toLowerCase();
-
-      filteredActivities.assignAll([
-        'Workshop',
-        'Working Space',
-        'Work-out Session',
-        'World Culture Festival',
-        'Workstation Setup Event'
-      ].where((item) => item.toLowerCase().contains(lowercaseQuery)));
-
-      filteredVenues.assignAll([
-        'WoW Hall',
-        'Surya Working Space',
-        'Wonder Studio',
-        'The Workstation'
-      ].where((item) => item.toLowerCase().contains(lowercaseQuery)));
-    }
-  }
-
-  Widget _buildActivityItem(String title, IconData icon) {
+  Widget _buildActivityItem(
+      CategoryModel activity, SearchActivityController controller) {
     return ListTile(
-      leading: Icon(icon, color: Colors.grey[600]),
-      title: Text(title),
-      onTap: () {
-        Get.back(result: {'searchQuery': title, 'type': 'activity'});
-      },
+      leading: Icon(Icons.work, color: Colors.grey[600]),
+      title: Text(activity.name ?? 'Unknown Activity'),
+      onTap: () => controller.onActivitySelected(activity),
     );
   }
 
-  Widget _buildVenueItem(String title, String imagePath) {
+  Widget _buildVenueItem(
+      VenueModel venue, SearchActivityController controller) {
     return ListTile(
       leading: CircleAvatar(
-        backgroundImage: imagePath.isNotEmpty ? AssetImage(imagePath) : null,
-        child: imagePath.isEmpty ? Icon(Icons.place) : null,
+        backgroundImage:
+            venue.firstPicture != null && venue.firstPicture!.isNotEmpty
+                ? NetworkImage(venue.firstPicture!)
+                : null,
+        child: venue.firstPicture == null || venue.firstPicture!.isEmpty
+            ? const Icon(Icons.place)
+            : null,
       ),
-      title: Text(title),
-      onTap: () {
-        // Return the selected venue to the parent page
-        Get.back(result: {'searchQuery': title, 'type': 'venue'});
-      },
+      title: Text(venue.name ?? 'Unknown Venue'),
+      subtitle: Text(venue.city?.name ?? ''),
+      onTap: () => controller.onVenueSelected(venue),
     );
   }
 }

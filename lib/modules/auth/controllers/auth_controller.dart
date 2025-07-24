@@ -21,6 +21,9 @@ class AuthController extends GetxController {
   // For login
   final TextEditingController emailLoginController = TextEditingController();
   final TextEditingController passwordLoginController = TextEditingController();
+  final RxBool obscureLoginPassword = true.obs;
+  final RxString emailLoginError = ''.obs;
+  final RxString passwordLoginError = ''.obs;
 
   // For register
   final TextEditingController usernameSignUpController =
@@ -30,6 +33,12 @@ class AuthController extends GetxController {
       TextEditingController();
   final TextEditingController confirmSignUpPasswordController =
       TextEditingController();
+  final RxBool obscureSignUpPassword = true.obs;
+  final RxBool obscureSignUpConfirmPassword = true.obs;
+  final RxString usernameSignUpError = ''.obs;
+  final RxString emailSignUpError = ''.obs;
+  final RxString passwordSignUpError = ''.obs;
+  final RxString confirmPasswordSignUpError = ''.obs;
 
   @override
   void onInit() {
@@ -47,6 +56,133 @@ class AuthController extends GetxController {
     emailLoginController.dispose();
     passwordLoginController.dispose();
     super.onClose();
+  }
+
+  // Toggle password visibility
+  void toggleLoginPasswordVisibility() {
+    obscureLoginPassword.value = !obscureLoginPassword.value;
+  }
+
+  void toggleSignUpPasswordVisibility() {
+    obscureSignUpPassword.value = !obscureSignUpPassword.value;
+  }
+
+  void toggleSignUpConfirmPasswordVisibility() {
+    obscureSignUpConfirmPassword.value = !obscureSignUpConfirmPassword.value;
+  }
+
+  // Login validation methods
+  String? validateEmail(String email) {
+    if (email.isEmpty) {
+      return 'Please enter your email address';
+    }
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+      return 'Please enter a valid email address';
+    }
+    return null;
+  }
+
+  String? validatePassword(String password) {
+    if (password.isEmpty) {
+      return 'Please enter your password';
+    }
+    if (password.length < 6) {
+      return 'Password must be at least 6 characters long';
+    }
+    return null;
+  }
+
+  // Signup validation methods
+  String? validateUsername(String username) {
+    if (username.trim().isEmpty) {
+      return 'Please enter a username';
+    }
+    if (username.trim().length < 3) {
+      return 'Username must be at least 3 characters long';
+    }
+    return null;
+  }
+
+  String? validateSignUpEmail(String email) {
+    if (email.trim().isNotEmpty &&
+        !RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email.trim())) {
+      return 'Please enter a valid email address';
+    }
+    return null;
+  }
+
+  String? validateConfirmPassword(String password, String confirmPassword) {
+    if (confirmPassword.isEmpty) {
+      return 'Please confirm your password';
+    }
+    if (password != confirmPassword) {
+      return 'Passwords do not match';
+    }
+    return null;
+  }
+
+  // Real-time validation for login
+  void validateEmailLoginField(String value) {
+    emailLoginError.value = validateEmail(value) ?? '';
+  }
+
+  void validatePasswordLoginField(String value) {
+    passwordLoginError.value = validatePassword(value) ?? '';
+  }
+
+  // Real-time validation for signup
+  void validateUsernameSignUpField(String value) {
+    usernameSignUpError.value = validateUsername(value) ?? '';
+  }
+
+  void validateEmailSignUpField(String value) {
+    emailSignUpError.value = validateSignUpEmail(value) ?? '';
+  }
+
+  void validatePasswordSignUpField(String value) {
+    passwordSignUpError.value = validatePassword(value) ?? '';
+    if (confirmPasswordSignUpError.isNotEmpty) {
+      confirmPasswordSignUpError.value = validateConfirmPassword(
+              value, confirmSignUpPasswordController.text) ??
+          '';
+    }
+  }
+
+  void validateConfirmPasswordSignUpField(String value) {
+    confirmPasswordSignUpError.value = validateConfirmPassword(
+            passwordSignUpController.text, value) ??
+        '';
+  }
+
+  // Submit validation for login
+  bool validateLoginForm() {
+    final emailError = validateEmail(emailLoginController.text.trim());
+    final passwordError = validatePassword(passwordLoginController.text);
+
+    emailLoginError.value = emailError ?? '';
+    passwordLoginError.value = passwordError ?? '';
+
+    return emailError == null && passwordError == null;
+  }
+
+  // Submit validation for signup
+  bool validateSignUpForm() {
+    final usernameError = validateUsername(usernameSignUpController.text);
+    final emailError = validateSignUpEmail(emailSignUpController.text);
+    final passwordError = validatePassword(passwordSignUpController.text);
+    final confirmPasswordError = validateConfirmPassword(
+        passwordSignUpController.text,
+        confirmSignUpPasswordController.text);
+
+    usernameSignUpError.value = usernameError ?? '';
+    emailSignUpError.value = emailError ?? '';
+    passwordSignUpError.value = passwordError ?? '';
+    confirmPasswordSignUpError.value = confirmPasswordError ?? '';
+
+    return usernameError == null &&
+        emailError == null &&
+        passwordError == null &&
+        confirmPasswordError == null;
   }
 
   void goToLogin() {
@@ -164,7 +300,7 @@ class AuthController extends GetxController {
   }
 
   Future<void> login() async {
-    if (!_validateLoginForm()) return;
+    if (!validateLoginForm()) return;
 
     isLoading.value = true;
     errorMessage.value = '';
@@ -225,7 +361,7 @@ class AuthController extends GetxController {
   }
 
   Future<void> signup() async {
-    if (!_validateSignupForm()) return;
+    if (!validateSignUpForm()) return;
 
     isLoading.value = true;
     errorMessage.value = '';

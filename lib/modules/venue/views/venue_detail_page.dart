@@ -38,6 +38,7 @@ class VenueDetailPage extends StatelessWidget {
                 Text(controller.errorMessage.value),
                 const SizedBox(height: 16),
                 PrimaryButton(
+                  isLoading: false,
                     text: LocalizationHelper.tr(LocaleKeys.common_retry), // FIXED
                     onPressed: controller.retryLoading),
               ],
@@ -349,6 +350,7 @@ class VenueDetailPage extends StatelessWidget {
                       ],
                     ),
                     PrimaryButton(
+                      isLoading: false,
                       text: LocalizationHelper.tr(LocaleKeys.venue_contact), // FIXED
                       onPressed: () {},
                       width: 120,
