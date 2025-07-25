@@ -29,8 +29,16 @@ class BookingService extends GetxService {
 
         for (final bookingData in response) {
           try {
+            // Parse booking first
             final booking = BookingModel.fromJson(bookingData);
-            bookings.add(booking);
+
+            // SOLUSI UTAMA: Fetch place details jika tidak ada atau tidak lengkap
+            BookingModel enrichedBooking = booking;
+            if (_needsPlaceEnrichment(booking)) {
+              enrichedBooking = await _enrichBookingWithPlaceDetails(booking);
+            }
+
+            bookings.add(enrichedBooking);
           } catch (e) {
             print('Error processing booking ${bookingData['id']}: $e');
             // Skip this booking but continue with others
@@ -46,6 +54,38 @@ class BookingService extends GetxService {
     }
   }
 
+  // Helper method untuk cek apakah booking perlu di-enrich dengan place details
+  bool _needsPlaceEnrichment(BookingModel booking) {
+    // Enrich jika place null atau place ada tapi address kosong
+    return booking.place == null ||
+        booking.place?.address == null ||
+        booking.place!.address!.isEmpty;
+  }
+
+  // Helper method untuk enrich booking dengan place details
+  Future<BookingModel> _enrichBookingWithPlaceDetails(
+      BookingModel booking) async {
+    try {
+      if (booking.placeId == null) {
+        print('Cannot enrich booking ${booking.id}: placeId is null');
+        return booking;
+      }
+
+      // Fetch place details
+      final placeResponse =
+          await _apiService.getRequest('/place/${booking.placeId}');
+      print('Fetched place details for booking ${booking.id}: $placeResponse');
+
+      final venueModel = VenueModel.fromJson(placeResponse);
+
+      // Return booking dengan place data yang lengkap
+      return booking.copyWith(place: venueModel);
+    } catch (e) {
+      print('Error enriching booking ${booking.id} with place details: $e');
+      return booking; // Return original jika gagal
+    }
+  }
+
   Future<BookingModel> createBooking(BookingCreateRequest request) async {
     try {
       print('Creating booking with data: ${request.toJson()}');
@@ -55,8 +95,14 @@ class BookingService extends GetxService {
           await _apiService.postRequest('/booking', request.toJson());
       print('Full booking response: $response');
 
-      print('Booking created successfully: $response');
-      return BookingModel.fromJson(response);
+      // Parse booking
+      final booking = BookingModel.fromJson(response);
+
+      // Immediately enrich dengan place details untuk consistency
+      final enrichedBooking = await _enrichBookingWithPlaceDetails(booking);
+
+      print('Booking created successfully with place details');
+      return enrichedBooking;
     } catch (e) {
       print('Error creating booking via FastAPI: $e');
       throw Exception('Failed to create booking: $e');
@@ -71,5 +117,35 @@ class BookingService extends GetxService {
       print('Error cancelling booking: $e');
       throw Exception('Failed to cancel booking: $e');
     }
+  }
+
+  // Method baru untuk refresh booking details
+  Future<BookingModel?> refreshBookingWithPlaceDetails(int bookingId) async {
+    try {
+      final booking = await getBookingById(bookingId);
+      if (booking == null) return null;
+
+      return await _enrichBookingWithPlaceDetails(booking);
+    } catch (e) {
+      print('Error refreshing booking $bookingId: $e');
+      return null;
+    }
+  }
+
+  // Batch enrich bookings (untuk optimasi jika perlu)
+  Future<List<BookingModel>> enrichBookingsWithPlaceDetails(
+      List<BookingModel> bookings) async {
+    final enrichedBookings = <BookingModel>[];
+
+    for (final booking in bookings) {
+      if (_needsPlaceEnrichment(booking)) {
+        final enriched = await _enrichBookingWithPlaceDetails(booking);
+        enrichedBookings.add(enriched);
+      } else {
+        enrichedBookings.add(booking);
+      }
+    }
+
+    return enrichedBookings;
   }
 }

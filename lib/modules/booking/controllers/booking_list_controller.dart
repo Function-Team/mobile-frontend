@@ -1,53 +1,36 @@
 import 'package:flutter/material.dart';
-import 'package:function_mobile/common/routes/routes.dart';
-import 'package:function_mobile/modules/booking/models/booking_model.dart';
-import 'package:function_mobile/modules/booking/services/booking_service.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_controller.dart';
+import 'package:function_mobile/modules/booking/models/booking_model.dart';
+import 'package:function_mobile/modules/booking/services/booking_service.dart';
 import 'package:get/get.dart';
 
-class BookingListController extends GetxController
-    with GetTickerProviderStateMixin {
+class BookingListController extends GetxController {
   final BookingService _bookingService = BookingService();
 
-  // State management
-  final RxList<BookingModel> bookings = <BookingModel>[].obs;
-  final RxBool isLoading = true.obs;
-  final RxBool hasError = false.obs;
-  final RxString errorMessage = ''.obs;
+  final bookings = <BookingModel>[].obs;
+  final filteredBookings = <BookingModel>[].obs;
+  final isLoading = false.obs;
+  final hasError = false.obs;
+  final errorMessage = ''.obs;
 
-  // Filter and sort options
-  final RxString selectedFilter = 'all'.obs;
-  final RxString selectedSort = 'date_desc'.obs;
+  final currentTabIndex = 0.obs;
+  final tabTitles = ['All', 'Pending', 'Confirmed', 'Completed', 'Cancelled'];
 
-  // Tab controller for different booking statuses
-  late TabController tabController;
-  final RxInt currentTabIndex = 0.obs;
+  final allCount = 0.obs;
+  final pendingCount = 0.obs;
+  final confirmedCount = 0.obs;
+  final completedCount = 0.obs;
+  final cancelledCount = 0.obs;
 
-  // Filtered bookings based on current tab
-  final RxList<BookingModel> filteredBookings = <BookingModel>[].obs;
-
-  // Booking counts for each status
-  final RxInt pendingCount = 0.obs;
-  final RxInt confirmedCount = 0.obs;
-  final RxInt completedCount = 0.obs;
-  final RxInt expiredCount = 0.obs;
+  // Sorting and filtering
+  final selectedSort = 'date_desc'.obs;
+  final searchQuery = ''.obs;
 
   @override
   void onInit() {
     super.onInit();
-    tabController = TabController(length: 5, vsync: this);
-    tabController.addListener(() {
-      currentTabIndex.value = tabController.index;
-      _filterBookingsByTab();
-    });
     fetchBookings();
-  }
-
-  @override
-  void onClose() {
-    tabController.dispose();
-    super.onClose();
   }
 
   Future<void> fetchBookings() async {
@@ -56,35 +39,25 @@ class BookingListController extends GetxController
       hasError.value = false;
       errorMessage.value = '';
 
+      print('🔄 Fetching user bookings...');
       final fetchedBookings = await _bookingService.getUserBookings();
+
       bookings.assignAll(fetchedBookings);
-
-      // DEBUG: Print status of all bookings
-      print('\n=== BOOKING STATUS DEBUG ===');
-      for (var booking in bookings) {
-        booking.debugPrintStatus();
-      }
-      print('=========================\n');
-
-      _updateBookingCounts();
-      _filterBookingsByTab();
-      _sortBookings();
+      updateBookingCounts();
+      filterBookingsByTab();
+      sortBookings();
     } catch (e) {
       hasError.value = true;
       errorMessage.value = 'Failed to load bookings: ${e.toString()}';
-      print('Error fetching bookings: $e');
+      showError('Failed to load bookings');
     } finally {
       isLoading.value = false;
     }
   }
 
-  Future<void> refreshBookings() async {
-    bookings.clear();
-    filteredBookings.clear();
-    await fetchBookings();
-  }
+  void updateBookingCounts() {
+    allCount.value = bookings.length;
 
-  void _updateBookingCounts() {
     pendingCount.value = bookings
         .where(
             (b) => b.status == BookingStatus.pending && !isBookingCompleted(b))
@@ -97,49 +70,87 @@ class BookingListController extends GetxController
 
     completedCount.value = bookings.where((b) => isBookingCompleted(b)).length;
 
-    expiredCount.value = bookings
-        .where(
-            (b) => b.status == BookingStatus.expired && !isBookingCompleted(b))
-        .length;
+    // Count untuk cancelled section
+    cancelledCount.value = bookings.where((b) => b.isInCancelledSection).length;
   }
 
-  // Helper method to check if booking is completed
-  bool isBookingCompleted(BookingModel booking) {
-    // Use the new isPaid getter that handles both formats
-    return booking.isConfirmed && booking.isPaid;
-  }
-
-  void _filterBookingsByTab() {
-    switch (currentTabIndex.value) {
-      case 0: // All
-        filteredBookings.assignAll(bookings);
-        break;
-      case 1: // Pending
-        filteredBookings.assignAll(bookings
-            .where((b) =>
-                b.status == BookingStatus.pending && !isBookingCompleted(b))
-            .toList());
-        break;
-      case 2: // Confirmed
-        filteredBookings.assignAll(bookings
-            .where((b) =>
-                b.status == BookingStatus.confirmed && !isBookingCompleted(b))
-            .toList());
-        break;
-      case 3: // Completed
-        filteredBookings
-            .assignAll(bookings.where((b) => isBookingCompleted(b)).toList());
-        break;
-      case 4: // Expired
-        filteredBookings.assignAll(bookings
-            .where((b) =>
-                b.status == BookingStatus.expired && !isBookingCompleted(b))
-            .toList());
-        break;
+  int getTabCount(int index) {
+    switch (index) {
+      case 0:
+        return allCount.value;
+      case 1:
+        return pendingCount.value;
+      case 2:
+        return confirmedCount.value;
+      case 3:
+        return completedCount.value;
+      case 4:
+        return cancelledCount.value;
+      default:
+        return 0;
     }
   }
 
-  void _sortBookings() {
+  void changeTab(int index) {
+    currentTabIndex.value = index;
+    filterBookingsByTab();
+    sortBookings();
+  }
+
+  bool isBookingCompleted(BookingModel booking) {
+    return booking.isConfirmed && booking.isPaid;
+  }
+
+  void filterBookingsByTab() {
+    List<BookingModel> filtered = [];
+
+    switch (currentTabIndex.value) {
+      case 0:
+        filtered = List.from(bookings);
+        break;
+
+      case 1:
+        filtered = bookings
+            .where((b) =>
+                b.status == BookingStatus.pending &&
+                !isBookingCompleted(b) &&
+                !b.isInCancelledSection)
+            .toList();
+        break;
+
+      case 2:
+        filtered = bookings
+            .where((b) =>
+                b.status == BookingStatus.confirmed &&
+                !isBookingCompleted(b) &&
+                !b.isInCancelledSection)
+            .toList();
+        break;
+
+      case 3:
+        filtered = bookings.where((b) => isBookingCompleted(b)).toList();
+        break;
+
+      case 4:
+        filtered = bookings.where((b) => b.isInCancelledSection).toList();
+        break;
+    }
+
+    // Apply search filter if active
+    if (searchQuery.value.isNotEmpty) {
+      final query = searchQuery.value.toLowerCase();
+      filtered = filtered.where((booking) {
+        final venueName =
+            (booking.place?.name ?? booking.placeName ?? '').toLowerCase();
+        final bookingId = booking.id.toString();
+        return venueName.contains(query) || bookingId.contains(query);
+      }).toList();
+    }
+
+    filteredBookings.assignAll(filtered);
+  }
+
+  void sortBookings() {
     switch (selectedSort.value) {
       case 'date_desc':
         filteredBookings
@@ -162,41 +173,72 @@ class BookingListController extends GetxController
 
   void setSortOption(String sortOption) {
     selectedSort.value = sortOption;
-    _sortBookings();
+    sortBookings();
+  }
+
+  void setSearchQuery(String query) {
+    searchQuery.value = query;
+    filterBookingsByTab();
+  }
+
+  Future<void> refreshBookings() async {
+    await fetchBookings();
   }
 
   Future<void> cancelBooking(BookingModel booking) async {
     try {
+      if (isBookingCompleted(booking)) {
+        showError('Cannot cancel a completed booking');
+        return;
+      }
+
+      if (booking.isInCancelledSection) {
+        showError('This booking is already cancelled');
+        return;
+      }
+
       await _bookingService.cancelBooking(booking.id);
-
-      // Remove from local list
-      bookings.removeWhere((b) => b.id == booking.id);
-
-      _updateBookingCounts();
-      _filterBookingsByTab();
-
-      _showSuccess('Booking cancelled successfully!');
+      await refreshBookings();
+      showSuccess('Booking cancelled successfully!');
     } catch (e) {
-      _showError('Failed to cancel booking: ${e.toString()}');
+      showError('Failed to cancel booking: ${e.toString()}');
     }
   }
 
   void showCancelConfirmationDialog(BookingModel booking) {
-    // Don't allow cancellation for completed bookings
     if (isBookingCompleted(booking)) {
-      _showError('Cannot cancel a completed booking');
+      showError('Cannot cancel a completed booking');
+      return;
+    }
+
+    if (booking.isInCancelledSection) {
+      showError('This booking is already cancelled');
       return;
     }
 
     Get.dialog(
       AlertDialog(
         title: const Text('Cancel Booking'),
-        content: Text(
-            'Are you sure you want to cancel this booking for ${booking.place?.name ?? 'this venue'}?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Are you sure you want to cancel this booking?'),
+            const SizedBox(height: 8),
+            Text(
+              'Venue: ${booking.place?.name ?? booking.placeName ?? 'Unknown'}',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            Text(
+              'Date: ${booking.formattedDate}',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: const Text('No'),
+            child: const Text('Keep Booking'),
           ),
           TextButton(
             onPressed: () {
@@ -211,89 +253,40 @@ class BookingListController extends GetxController
     );
   }
 
-  // Filter methods
-  List<BookingModel> getUpcomingBookings() {
-    final now = DateTime.now();
-    return bookings.where((booking) {
-      final bookingDateTime = booking.startDateTime;
-      return bookingDateTime.isAfter(now) &&
-          (booking.status == BookingStatus.confirmed ||
-              booking.status == BookingStatus.pending) &&
-          !isBookingCompleted(booking);
-    }).toList();
-  }
-
-  List<BookingModel> getPastBookings() {
-    final now = DateTime.now();
-    return bookings.where((booking) {
-      final bookingDateTime = booking.endDateTime;
-      return bookingDateTime.isBefore(now) || isBookingCompleted(booking);
-    }).toList();
-  }
-
-  List<BookingModel> getBookingsForDate(DateTime date) {
-    return bookings
-        .where((booking) =>
-            booking.startDateTime.year == date.year &&
-            booking.startDateTime.month == date.month &&
-            booking.startDateTime.day == date.day)
-        .toList();
-  }
-
-  // Payment method
   Future<void> createPaymentForBooking(BookingModel booking) async {
     if (!booking.isConfirmed) {
-      _showError('Booking must be confirmed by admin before payment');
+      showError('Booking must be confirmed by admin before payment');
       return;
     }
 
     if (isBookingCompleted(booking)) {
-      _showError('This booking is already paid');
+      showError('This booking is already paid');
       return;
     }
 
-    // Use BookingController's payment method
-    if (Get.isRegistered<BookingController>()) {
-      final bookingController = Get.find<BookingController>();
-      await bookingController.createPaymentForBooking(booking);
+    if (booking.isInCancelledSection) {
+      showError('Cannot make payment for cancelled booking');
+      return;
+    }
 
-      // Refresh bookings after payment attempt
+    try {
+      if (Get.isRegistered<BookingController>()) {
+        final bookingController = Get.find<BookingController>();
+        await bookingController.createPaymentForBooking(booking);
+      } else {
+        Get.put(BookingController());
+        final bookingController = Get.find<BookingController>();
+        await bookingController.createPaymentForBooking(booking);
+      }
+
       await Future.delayed(const Duration(seconds: 2));
       await refreshBookings();
-    } else {
-      // If BookingController is not registered, create it temporarily
-      Get.put(BookingController());
-      final bookingController = Get.find<BookingController>();
-      await bookingController.createPaymentForBooking(booking);
-
-      // Refresh bookings after payment attempt
-      await Future.delayed(const Duration(seconds: 2));
-      await refreshBookings();
-
-      // Clean up
-      Get.delete<BookingController>();
+    } catch (e) {
+      showError('Failed to create payment: ${e.toString()}');
     }
   }
 
-  // Navigation methods
-  void goToBookingDetail(BookingModel booking) {
-    Get.toNamed(
-      MyRoutes.bookingDetail,
-      arguments: booking.id,
-    );
-  }
-
-  void goToVenueDetail(BookingModel booking) {
-    if (booking.place?.id != null) {
-      Get.toNamed(
-        MyRoutes.venueDetail,
-        arguments: {'venueId': booking.place!.id},
-      );
-    }
-  }
-
-  // Utility methods
-  void _showSuccess(String message) {
+  void showSuccess(String message) {
     if (Get.context != null) {
       CustomSnackbar.show(
         context: Get.context!,
@@ -303,7 +296,7 @@ class BookingListController extends GetxController
     }
   }
 
-  void _showError(String message) {
+  void showError(String message) {
     if (Get.context != null) {
       CustomSnackbar.show(
         context: Get.context!,
@@ -311,41 +304,5 @@ class BookingListController extends GetxController
         type: SnackbarType.error,
       );
     }
-  }
-
-  String getBookingCountText() {
-    if (filteredBookings.isEmpty) {
-      return 'No bookings found';
-    }
-    return '${filteredBookings.length} booking${filteredBookings.length > 1 ? 's' : ''}';
-  }
-
-  // Search functionality
-  final RxString searchQuery = ''.obs;
-  final RxList<BookingModel> searchResults = <BookingModel>[].obs;
-
-  void searchBookings(String query) {
-    searchQuery.value = query;
-    if (query.isEmpty) {
-      searchResults.clear();
-      return;
-    }
-
-    final results = bookings.where((booking) {
-      final venueName = booking.place?.name?.toLowerCase() ?? '';
-      final venueAddress = booking.place?.address?.toLowerCase() ?? '';
-      final searchTerm = query.toLowerCase();
-
-      return venueName.contains(searchTerm) ||
-          venueAddress.contains(searchTerm) ||
-          booking.formattedDate.toLowerCase().contains(searchTerm);
-    }).toList();
-
-    searchResults.assignAll(results);
-  }
-
-  void clearSearch() {
-    searchQuery.value = '';
-    searchResults.clear();
   }
 }

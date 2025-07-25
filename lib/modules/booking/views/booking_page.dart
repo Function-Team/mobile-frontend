@@ -41,7 +41,7 @@ class BookingPage extends GetView<BookingController> {
               _buildGuestInformationSection(context),
               const SizedBox(height: 24),
               _buildPricingSummary(context, venue),
-              const SizedBox(height: 100), // Space for bottom button
+              const SizedBox(height: 100), 
             ],
           ),
         ),

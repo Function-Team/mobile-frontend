@@ -19,36 +19,54 @@ class BookingCard extends StatelessWidget {
     this.onPayNow,
   });
 
-  // Check if booking is completed
   bool get isCompleted => bookingModel.isConfirmed && bookingModel.isPaid;
+
+  String get venueName {
+    if (bookingModel.place?.name?.isNotEmpty ?? false) {
+      return bookingModel.place!.name!;
+    }
+    if (bookingModel.placeName?.isNotEmpty ?? false) {
+      return bookingModel.placeName!;
+    }
+    return 'Venue tidak tersedia';
+  }
+
+  String get venueAddress {
+    if (bookingModel.place?.address?.isNotEmpty ?? false) {
+      return bookingModel.place!.address!;
+    }
+
+    final dateFormat = DateFormat('dd MMM yyyy', 'id_ID');
+    final bookingDate = dateFormat.format(bookingModel.startDateTime);
+    return 'Booking: $bookingDate';
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 4,
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 8,
               offset: const Offset(0, 2),
             ),
           ],
         ),
         child: Column(
           children: [
-            // Status Badge at top
-            _buildStatusBadge(context),
-            
-            // Main Content
+            _buildStatusBadge(),
             Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Venue Image
+                  // Gambar
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: NetworkImageWithLoader(
@@ -59,243 +77,266 @@ class BookingCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  
-                  // Booking Details
+
+                  // Info
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          bookingModel.place?.name ?? 'Unknown Venue',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          venueName,
+                          style: const TextStyle(
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
+                            color: Colors.black87,
                           ),
-                          maxLines: 1,
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
-                        
-                        // Location
+                        Text(
+                          venueAddress,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[600],
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 8),
                         Row(
                           children: [
-                            Icon(Icons.location_on, size: 14, color: Colors.grey[600]),
+                            Icon(Icons.access_time,
+                                size: 14, color: Colors.grey[600]),
                             const SizedBox(width: 4),
                             Expanded(
                               child: Text(
-                                bookingModel.place?.address ?? 'No address',
+                                _formatBookingTime(),
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey[600],
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
-                        
-                        // Date and Time
-                        Row(
-                          children: [
-                            Icon(Icons.calendar_today, size: 14, color: Colors.grey[600]),
-                            const SizedBox(width: 4),
-                            Text(
-                              bookingModel.formattedDate,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[800],
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Icon(Icons.access_time, size: 14, color: Colors.grey[600]),
-                            const SizedBox(width: 4),
-                            Text(
-                              bookingModel.formattedTimeRange,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[800],
-                              ),
-                            ),
-                          ],
-                        ),
-                        
-                        // Payment Status for completed bookings
-                        if (isCompleted) ...[
+
+                        // ✅ NEW: Show cancellation reason if available
+                        if (bookingModel.isInCancelledSection &&
+                            bookingModel.cancelReason?.isNotEmpty == true) ...[
                           const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Icon(Icons.check_circle, size: 14, color: Colors.green),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Payment completed',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.green[700],
-                                  fontWeight: FontWeight.w500,
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.info_outline,
+                                    size: 12, color: Colors.red[600]),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    bookingModel.cancelReason!,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.red[600],
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ],
+
+                        const SizedBox(height: 12),
+
+                        // Harga + Tombol di bawah (bukan sejajar)
+                        _buildPriceAndActions(context),
                       ],
                     ),
                   ),
                 ],
               ),
             ),
-            
-            // Action Buttons
-            if (!isCompleted) _buildActionButtons(context),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStatusBadge(BuildContext context) {
+  // ✅ UPDATED: Enhanced status badge dengan detailed status untuk cancelled
+  Widget _buildStatusBadge() {
+    Color badgeColor;
     String statusText;
-    Color backgroundColor;
-    Color textColor;
 
-    if (isCompleted) {
-      statusText = 'Completed';
-      backgroundColor = Colors.green[50]!;
-      textColor = Colors.green[700]!;
+    // ✅ NEW: Enhanced status logic untuk cancelled section
+    if (bookingModel.isInCancelledSection) {
+      badgeColor = Colors.red;
+      statusText = bookingModel.detailedStatusDisplayName;
+    } else if (isCompleted) {
+      badgeColor = Colors.green;
+      statusText = 'Selesai';
+    } else if (bookingModel.isConfirmed) {
+      badgeColor = Colors.blue;
+      statusText = 'Dikonfirmasi';
+    } else if (bookingModel.isPaid) {
+      badgeColor = Colors.orange;
+      statusText = 'Menunggu Konfirmasi';
     } else {
-      statusText = bookingModel.statusDisplayName;
-      backgroundColor = bookingModel.statusColor.withOpacity(0.1);
-      textColor = bookingModel.statusColor;
+      badgeColor = Colors.grey;
+      statusText = 'Menunggu Pembayaran';
     }
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: backgroundColor,
+        color: badgeColor.withOpacity(0.1),
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(12),
           topRight: Radius.circular(12),
         ),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: textColor,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                statusText,
-                style: TextStyle(
-                  color: textColor,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-          
-          // Booking ID
-          Text(
-            '#${bookingModel.id}',
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 12,
-            ),
-          ),
-        ],
+      child: Text(
+        statusText,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: badgeColor,
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+        ),
       ),
     );
   }
 
-  Widget _buildActionButtons(BuildContext context) {
-    // Don't show action buttons for completed bookings
-    if (bookingModel.status == BookingStatus.expired || 
-        bookingModel.status == BookingStatus.cancelled ||
-        isCompleted) {
-      return const SizedBox.shrink();
-    }
+  Widget _buildPriceAndActions(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Harga di kiri
+        if (bookingModel.amount != null && bookingModel.amount! > 0)
+          Text(
+            'Rp${NumberFormat('#,###', 'id_ID').format(bookingModel.amount)}',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: bookingModel.isInCancelledSection
+                  ? Colors.grey[600]
+                  : Colors.black87,
+              decoration: bookingModel.isInCancelledSection
+                  ? TextDecoration.lineThrough
+                  : null,
+            ),
+          )
+        else
+          Text(
+            'Free',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: bookingModel.isInCancelledSection
+                  ? Colors.grey[600]
+                  : Colors.green,
+              decoration: bookingModel.isInCancelledSection
+                  ? TextDecoration.lineThrough
+                  : null,
+            ),
+          ),
 
-    // Check if booking is confirmed but not paid
-    final bool needsPayment = bookingModel.isConfirmed && !bookingModel.isPaid;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(12),
-          bottomRight: Radius.circular(12),
+        // ✅ UPDATED: Tombol aksi dengan logic untuk cancelled bookings
+        Row(
+          children: [
+            // ✅ NEW: Show different actions for cancelled bookings
+            if (bookingModel.isInCancelledSection) ...[
+              // For cancelled bookings, show rebook button if applicable
+              if (_canRebook())
+                ElevatedButton(
+                  onPressed: onViewVenue,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    minimumSize: const Size(0, 32),
+                  ),
+                  child:
+                      const Text('Book Again', style: TextStyle(fontSize: 12)),
+                ),
+            ] else ...[
+              // Original action buttons for active bookings
+              if (_shouldShowCancelButton() && onCancel != null)
+                OutlinedButton(
+                  onPressed: onCancel,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    minimumSize: const Size(0, 32),
+                  ),
+                  child: const Text('Batal', style: TextStyle(fontSize: 12)),
+                ),
+              if (_shouldShowCancelButton() && _shouldShowPayNowButton())
+                const SizedBox(width: 8),
+              if (_shouldShowPayNowButton() && onPayNow != null)
+                ElevatedButton(
+                  onPressed: onPayNow,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    minimumSize: const Size(0, 32),
+                  ),
+                  child: const Text('Bayar', style: TextStyle(fontSize: 12)),
+                ),
+            ],
+          ],
         ),
-      ),
-      child: Row(
-        children: [
-          // Pay Now button - priority for confirmed unpaid bookings
-          if (needsPayment && onPayNow != null) ...[
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: onPayNow,
-                icon: const Icon(Icons.payment, size: 16),
-                label: const Text('Pay Now'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).primaryColor,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-          ],
-
-          // View Venue button
-          if (onViewVenue != null && !needsPayment)
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: onViewVenue,
-                icon: const Icon(Icons.visibility, size: 16),
-                label: const Text('View Venue'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Theme.of(context).primaryColor,
-                  side: BorderSide(color: Theme.of(context).primaryColor),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-            ),
-          
-          // Cancel button - only show if not confirmed or if confirmed but not paid
-          if (onCancel != null && !needsPayment &&
-              (bookingModel.status == BookingStatus.pending || 
-               bookingModel.status == BookingStatus.confirmed)) ...[
-            const SizedBox(width: 8),
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: onCancel,
-                icon: const Icon(Icons.cancel, size: 16),
-                label: const Text('Cancel'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.red,
-                  side: const BorderSide(color: Colors.red),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
+      ],
     );
+  }
+
+  String _formatBookingTime() {
+    final startFormat = DateFormat('dd MMM, HH:mm', 'id_ID');
+    final endFormat = DateFormat('HH:mm', 'id_ID');
+
+    final startStr = startFormat.format(bookingModel.startDateTime);
+    final endStr = endFormat.format(bookingModel.endDateTime);
+
+    return '$startStr - $endStr';
+  }
+
+  // ✅ UPDATED: Enhanced button visibility logic
+  bool _shouldShowCancelButton() {
+    return !bookingModel.isInCancelledSection &&
+        !isCompleted &&
+        bookingModel.startDateTime.isAfter(DateTime.now());
+  }
+
+  bool _shouldShowPayNowButton() {
+    return bookingModel.isConfirmed &&
+        !bookingModel.isPaid &&
+        !bookingModel.isInCancelledSection &&
+        (bookingModel.paymentStatus == 'pending' ||
+            bookingModel.paymentStatus == null);
+  }
+
+  // ✅ NEW: Check if user can rebook after cancellation
+  bool _canRebook() {
+    // Allow rebooking if the venue is still available
+    return bookingModel.place != null;
   }
 }

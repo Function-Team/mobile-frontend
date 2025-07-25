@@ -19,8 +19,12 @@ class BookingModel {
   final bool isConfirmed;
   final DateTime? createdAt;
   final double? amount;
-  final String? paymentStatus; // Direct payment_status from API
-  final String? placeName; // Direct place_name from API
+  final String? paymentStatus;
+  final String? placeName;
+
+  final bool? isCancelled;
+  final String? cancelReason;
+  final String? cancelledBy;
 
   // Related models (populated from joins)
   final VenueModel? place;
@@ -39,31 +43,64 @@ class BookingModel {
     this.amount,
     this.paymentStatus,
     this.placeName,
+    this.isCancelled, 
+    this.cancelReason, 
+    this.cancelledBy,
     this.place,
     this.user,
     this.reviews,
     this.payment,
   });
 
-  // Computed properties
   BookingStatus get status {
-    // Check if paid (either from payment object or payment_status field)
+    // Priority 1: Check if explicitly cancelled
+    if (isCancelled == true || isBookingCancelled) {
+      return BookingStatus.cancelled;
+    }
+
+    // Priority 2: Check if paid and confirmed (completed)
     if (isConfirmed && isPaid) {
       return BookingStatus.completed;
     }
 
-    // Check if confirmed but not paid
+    // Priority 3: Check if expired (end time passed and not confirmed/paid)
+    if (endDateTime.isBefore(DateTime.now()) && (!isConfirmed || !isPaid)) {
+      return BookingStatus.expired;
+    }
+
+    // Priority 4: Check if confirmed but not paid
     if (isConfirmed) {
       return BookingStatus.confirmed;
     }
 
-    // Check if expired (end time passed and not confirmed)
-    if (endDateTime.isBefore(DateTime.now()) && !isConfirmed) {
-      return BookingStatus.expired;
-    }
-
     // Default to pending
     return BookingStatus.pending;
+  }
+
+  bool get isBookingCancelled {
+    // Check explicit cancellation flag
+    if (isCancelled == true) return true;
+
+    // Check payment status indicators
+    final cancelledPaymentStatuses = ['cancelled', 'failed', 'expired'];
+    if (paymentStatus != null &&
+        cancelledPaymentStatuses.contains(paymentStatus!.toLowerCase())) {
+      return true;
+    }
+
+    // Check payment object status
+    if (payment != null &&
+        cancelledPaymentStatuses.contains(payment!.status.toLowerCase())) {
+      return true;
+    }
+
+    return false;
+  }
+
+  bool get isInCancelledSection {
+    return status == BookingStatus.cancelled ||
+        status == BookingStatus.expired ||
+        isBookingCancelled;
   }
 
   // Helper to check if booking is paid
@@ -96,6 +133,27 @@ class BookingModel {
     }
   }
 
+  String get detailedStatusDisplayName {
+    if (isCancelled == true) {
+      if (cancelledBy != null) {
+        return cancelledBy == 'user'
+            ? 'Cancelled by You'
+            : 'Cancelled by Venue';
+      }
+      return 'Cancelled';
+    }
+
+    if (paymentStatus == 'expired') {
+      return 'Payment Expired';
+    }
+
+    if (paymentStatus == 'failed') {
+      return 'Payment Failed';
+    }
+
+    return statusDisplayName;
+  }
+
   Color get statusColor {
     switch (status) {
       case BookingStatus.completed:
@@ -116,7 +174,7 @@ class BookingModel {
   }
 
   bool get needsPayment {
-    return isConfirmed && !isPaid;
+    return isConfirmed && !isPaid && !isBookingCancelled;
   }
 
   String get paymentStatusDisplay {
@@ -185,6 +243,9 @@ class BookingModel {
       amount: parseAmount(json['amount']),
       paymentStatus: json['payment_status'],
       placeName: json['place_name'],
+      isCancelled: json['is_cancelled'] as bool?,
+      cancelReason: json['cancel_reason'] as String?,
+      cancelledBy: json['cancelled_by'] as String?, 
       place: json['place'] != null ? VenueModel.fromJson(json['place']) : null,
       user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
       reviews: json['reviews'] != null
@@ -196,17 +257,6 @@ class BookingModel {
           ? PaymentModel.fromJson(json['payment'])
           : null,
     );
-  }
-
-  void debugPrintStatus() {
-    print('=== BOOKING DEBUG #$id ===');
-    print('Place: ${place?.name ?? placeId}');
-    print('Is Confirmed: $isConfirmed');
-    print('Payment Status Field: $paymentStatus');
-    print('Payment Object: ${payment?.toJson()}');
-    print('Is Paid (computed): $isPaid');
-    print('Is Completed: ${isConfirmed && isPaid}');
-    print('=======================');
   }
 
   Map<String, dynamic> toJson() {
@@ -221,6 +271,9 @@ class BookingModel {
       'amount': amount,
       'payment_status': paymentStatus,
       'place_name': placeName,
+      'is_cancelled': isCancelled,
+      'cancel_reason': cancelReason, 
+      'cancelled_by': cancelledBy, 
     };
   }
 
@@ -246,6 +299,9 @@ class BookingModel {
     double? amount,
     String? paymentStatus,
     String? placeName,
+    bool? isCancelled,
+    String? cancelReason,
+    String? cancelledBy,
     VenueModel? place,
     UserModel? user,
     List<ReviewModel>? reviews,
@@ -262,6 +318,9 @@ class BookingModel {
       amount: amount ?? this.amount,
       paymentStatus: paymentStatus ?? this.paymentStatus,
       placeName: placeName ?? this.placeName,
+      isCancelled: isCancelled ?? this.isCancelled,
+      cancelReason: cancelReason ?? this.cancelReason,
+      cancelledBy: cancelledBy ?? this.cancelledBy,
       place: place ?? this.place,
       user: user ?? this.user,
       reviews: reviews ?? this.reviews,
@@ -270,6 +329,7 @@ class BookingModel {
   }
 }
 
+// Supporting classes tetap sama seperti model asli Anda
 class BookingCreateRequest {
   final int placeId;
   final int? userId;
@@ -302,7 +362,7 @@ class BookingCreateRequest {
   Map<String, dynamic> toJson() {
     return {
       'place_id': placeId,
-      'user_id': userId ?? 1, // Default user ID untuk testing
+      'user_id': userId ?? 1,
       'venue_name': venueName,
       'user_name': userName,
       'user_email': userEmail,
@@ -316,7 +376,6 @@ class BookingCreateRequest {
     };
   }
 
-  // Factory method untuk create dari venue dan form data
   factory BookingCreateRequest.fromVenueAndForm({
     required VenueModel venue,
     required DateTime date,
@@ -344,14 +403,13 @@ class BookingCreateRequest {
       endTime.minute,
     );
 
-    // Calculate total price
     final durationInHours =
         endDateTime.difference(startDateTime).inMinutes / 60;
     final totalPrice = (venue.price ?? 0) * durationInHours;
 
     return BookingCreateRequest(
       placeId: venue.id!,
-      userId: 1, // Default untuk testing
+      userId: 1,
       venueName: venue.name ?? 'Unknown Venue',
       userName: userName,
       userEmail: userEmail,
@@ -366,7 +424,6 @@ class BookingCreateRequest {
   }
 }
 
-// Supporting models that match your backend
 class UserModel {
   final int id;
   final String username;

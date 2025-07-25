@@ -1,14 +1,12 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
-import 'package:function_mobile/common/widgets/buttons/secondary_button.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
-import 'package:function_mobile/core/helpers/localization_helper.dart';
-import 'package:function_mobile/generated/locale_keys.g.dart';
-import 'package:function_mobile/modules/booking/controllers/booking_controller.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_detail_controller.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
+import 'package:get/get_state_manager/src/simple/get_view.dart';
 
 class BookingDetailPage extends GetView<BookingDetailController> {
   const BookingDetailPage({super.key});
@@ -16,330 +14,252 @@ class BookingDetailPage extends GetView<BookingDetailController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-        title: Text(
-          'Booking Details',
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onPrimary,
-              ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: controller.refreshBookingDetail,
-          ),
-        ],
-      ),
+      backgroundColor: Colors.grey[50],
       body: Obx(() {
         if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (controller.hasError.value) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
-                const SizedBox(height: 16),
-                Text(
-                  'Error loading booking',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  controller.errorMessage.value,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey[600]),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  onPressed: controller.fetchBookingDetail,
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Retry'),
-                ),
-              ],
-            ),
-          );
+          return _buildLoadingState();
         }
 
         final booking = controller.booking.value;
         if (booking == null) {
-          return const Center(child: Text('No booking data available'));
+          return _buildErrorState();
         }
 
-        return RefreshIndicator(
-          onRefresh: controller.refreshBookingDetail,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                _buildStatusHeader(context, booking),
-                _buildVenueInfo(context, booking),
-                _buildBookingInfo(context, booking),
-                _buildPricingSummary(context, booking),
-                if (!controller.isBookingCompleted)
-                  _buildActionButtons(context, booking),
-                const SizedBox(height: 32),
-              ],
-            ),
-          ),
-        );
+        return _buildBookingDetail(context, booking);
       }),
     );
   }
 
-  Widget _buildStatusHeader(BuildContext context, BookingModel booking) {
-    Color statusColor;
-    String statusText;
-    IconData statusIcon;
-
-    if (controller.isBookingCompleted) {
-      statusColor = Colors.green;
-      statusText = 'Completed - Paid';
-      statusIcon = Icons.check_circle;
-    } else {
-      statusColor = booking.statusColor;
-      statusText = booking.statusDisplayName;
-      statusIcon = booking.status == BookingStatus.confirmed
-          ? Icons.check_circle_outline
-          : booking.status == BookingStatus.pending
-              ? Icons.schedule
-              : Icons.cancel;
-    }
-
-    // Check if needs payment
-    final bool needsPayment =
-        booking.isConfirmed && !controller.isBookingCompleted;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      color: statusColor.withOpacity(0.1),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(statusIcon, color: statusColor, size: 24),
-              const SizedBox(width: 8),
-              Text(
-                statusText,
-                style: TextStyle(
-                  color: statusColor,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Booking ID: #${booking.id}',
-            style: TextStyle(color: Colors.grey[600], fontSize: 14),
-          ),
-          if (needsPayment) ...[
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.warning, color: Colors.orange[700], size: 16),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Payment Required',
-                    style: TextStyle(
-                      color: Colors.orange[700],
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-          const SizedBox(height: 8),
-          Text(
-            controller.timeUntilBooking,
-            style: const TextStyle(fontSize: 14),
-          ),
-        ],
+  Widget _buildLoadingState() {
+    return const Scaffold(
+      body: Center(
+        child: CircularProgressIndicator(),
       ),
     );
   }
 
-  Widget _buildVenueInfo(BuildContext context, BookingModel booking) {
-    final venue = booking.place;
-    if (venue == null) return const SizedBox.shrink();
-
-    return Container(
-      margin: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            child: NetworkImageWithLoader(
-              imageUrl: venue.firstPictureUrl ?? '',
-              height: 200,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  venue.name ?? 'Unknown Venue',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Icon(Icons.location_on, size: 16, color: Colors.grey[600]),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        venue.address ?? 'No address',
-                        style: TextStyle(color: Colors.grey[600]),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Icon(Icons.star, size: 16, color: Colors.amber),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${venue.rating?.toStringAsFixed(1) ?? '0.0'} (${venue.ratingCount ?? 0} reviews)',
-                      style: TextStyle(color: Colors.grey[600]),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: controller.viewVenueDetails,
-                    icon: const Icon(Icons.visibility),
-                    label: const Text('View Venue Details'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+  Widget _buildErrorState() {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Booking Detail')),
+      body: const Center(
+        child: Text('Booking not found'),
       ),
     );
   }
 
-  Widget _buildBookingInfo(BuildContext context, BookingModel booking) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Booking Information',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          const SizedBox(height: 16),
-          _buildInfoRow(Icons.calendar_today, 'Date', booking.formattedDate),
-          const SizedBox(height: 12),
-          _buildInfoRow(Icons.access_time, 'Time', booking.formattedTimeRange),
-          const SizedBox(height: 12),
-          _buildInfoRow(Icons.timer, 'Duration',
-              controller.bookingSummary['duration_text'] ?? ''),
-          if (booking.user != null) ...[
-            const SizedBox(height: 12),
-            _buildInfoRow(Icons.person, 'Guest Name', booking.user!.username),
-          ],
-          if (controller.isBookingCompleted && booking.payment != null) ...[
-            const SizedBox(height: 12),
-            _buildInfoRow(Icons.payment, 'Payment Status',
-                'Paid on ${DateFormat('MMM dd, yyyy').format(booking.payment!.createdAt)}'),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: Colors.grey[600]),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildBookingDetail(BuildContext context, BookingModel booking) {
+    return Scaffold(
+      appBar: _buildAppBar(context, booking),
+      body: SingleChildScrollView(
+        child: Column(
           children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
-            ),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
+            _buildHeaderSection(context, booking),
+            const SizedBox(height: 16),
+            _buildBookingInfoSection(context, booking),
+            const SizedBox(height: 16),
+            _buildVenueInfoSection(context, booking),
+            const SizedBox(height: 16),
+            _buildPricingSection(context, booking),
+            const SizedBox(height: 100),
           ],
+        ),
+      ),
+      bottomNavigationBar: _buildBottomActions(context, booking),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar(BuildContext context, BookingModel booking) {
+    return AppBar(
+      backgroundColor: Colors.white,
+      foregroundColor: Colors.black,
+      elevation: 0,
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Booking Detail',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            'ID: #${booking.id}',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.normal,
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        Container(
+          margin: const EdgeInsets.only(right: 16),
+          child: _buildStatusChip(booking),
         ),
       ],
     );
   }
 
-  Widget _buildPricingSummary(BuildContext context, BookingModel booking) {
-    final summary = controller.bookingSummary;
+  Widget _buildStatusChip(BookingModel booking) {
+    Color backgroundColor;
+    Color textColor;
+    String statusText;
+
+    if (booking.isConfirmed && booking.isPaid) {
+      backgroundColor = Colors.green;
+      textColor = Colors.white;
+      statusText = 'Completed';
+    } else if (booking.isConfirmed && !booking.isPaid) {
+      backgroundColor = Colors.orange;
+      textColor = Colors.white;
+      statusText = 'Confirmed';
+    } else if (!booking.isConfirmed && booking.isPaid) {
+      backgroundColor = Colors.blue;
+      textColor = Colors.white;
+      statusText = 'Paid';
+    } else if (booking.paymentStatus == 'cancelled') {
+      backgroundColor = Colors.red;
+      textColor = Colors.white;
+      statusText = 'Cancelled';
+    } else {
+      backgroundColor = Colors.grey;
+      textColor = Colors.white;
+      statusText = 'Pending';
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        statusText,
+        style: TextStyle(
+          color: textColor,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeaderSection(BuildContext context, BookingModel booking) {
+    final venue = booking.place;
 
     return Container(
       margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Header Image
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            child: SizedBox(
+              height: 200,
+              width: double.infinity,
+              child: venue?.firstPictureUrl != null
+                  ? NetworkImageWithLoader(
+                      imageUrl: venue!.firstPictureUrl!,
+                      fit: BoxFit.cover,
+                    )
+                  : Container(
+                      color: Colors.grey[200],
+                      child: const Icon(
+                        Icons.image,
+                        size: 50,
+                        color: Colors.grey,
+                      ),
+                    ),
+            ),
+          ),
+
+          // Venue Info
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            venue?.name ?? booking.placeName ?? 'Unknown Venue',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.location_on,
+                                size: 16,
+                                color: Colors.grey[600],
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  venue?.address ?? 'Address not available',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: controller.viewVenueDetails,
+                      icon: const Icon(Icons.visibility, size: 18),
+                      label: const Text('View'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBookingInfoSection(BuildContext context, BookingModel booking) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
+            blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
@@ -347,81 +267,203 @@ class BookingDetailPage extends GetView<BookingDetailController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const Text(
+            'Booking Information',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 20),
+          _buildInfoTile(
+            icon: Icons.calendar_today,
+            label: 'Date',
+            value: _formatDate(booking.startDateTime),
+            iconColor: Colors.blue,
+          ),
+          const SizedBox(height: 16),
+          _buildInfoTile(
+            icon: Icons.access_time,
+            label: 'Time',
+            value: _formatTimeRange(booking),
+            iconColor: Colors.green,
+          ),
+          const SizedBox(height: 16),
+          _buildInfoTile(
+            icon: Icons.timelapse,
+            label: 'Duration',
+            value: _calculateDuration(booking),
+            iconColor: Colors.orange,
+          ),
+          if (booking.createdAt != null) ...[
+            const SizedBox(height: 16),
+            _buildInfoTile(
+              icon: Icons.schedule,
+              label: 'Booked on',
+              value:
+                  DateFormat('MMM dd, yyyy - HH:mm').format(booking.createdAt!),
+              iconColor: Colors.purple,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVenueInfoSection(BuildContext context, BookingModel booking) {
+    final venue = booking.place;
+    if (venue == null) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPricingSection(BuildContext context, BookingModel booking) {
+    final amount = booking.amount ?? 0.0;
+    final venue = booking.place;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Payment Summary',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Only show price breakdown if amount > 0
+          if (amount > 0) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Duration',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                Text(
+                  _calculateDuration(booking),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+            if (venue?.price != null && venue!.price! > 0) ...[
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Rate per hour',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  Text(
+                    'Rp ${NumberFormat('#,###', 'id_ID').format(venue.price)}/hour',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 16),
+          ],
+
+          // Total amount
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Price Summary',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-              if (controller.isBookingCompleted)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.check_circle, size: 14, color: Colors.green),
-                      const SizedBox(width: 4),
-                      Text(
-                        'PAID',
-                        style: TextStyle(
-                          color: Colors.green,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
+              const Text(
+                'Total Amount',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
+              ),
+              Text(
+                amount > 0
+                    ? 'Rp ${NumberFormat('#,###', 'id_ID').format(amount)}'
+                    : 'Free',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: amount > 0 ? Colors.green[600] : Colors.blue[600],
+                ),
+              ),
             ],
           ),
+
           const SizedBox(height: 16),
-          _buildPriceRow('Base Price',
-              'IDR ${NumberFormat("#,##0", "id_ID").format(summary['base_price'] ?? 0)}'),
-          _buildPriceRow('Duration',
-              '${summary['hours']?.toStringAsFixed(1) ?? '0'} hours'),
-          _buildPriceRow('Subtotal',
-              'IDR ${NumberFormat("#,##0", "id_ID").format(summary['subtotal'] ?? 0)}'),
-          _buildPriceRow('Tax (10%)',
-              'IDR ${NumberFormat("#,##0", "id_ID").format(summary['tax'] ?? 0)}'),
-          _buildPriceRow('Service Fee',
-              'IDR ${NumberFormat("#,##0", "id_ID").format(summary['service_fee'] ?? 0)}'),
-          const Divider(height: 24),
-          _buildPriceRow(
-            'Total',
-            'IDR ${NumberFormat("#,##0", "id_ID").format(summary['total'] ?? 0)}',
-            isTotal: true,
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildPriceRow(String label, String value, {bool isTotal = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: isTotal ? 16 : 14,
-              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+          // Payment status
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: _getPaymentStatusColor(booking.paymentStatus)
+                  .withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: _getPaymentStatusColor(booking.paymentStatus)
+                    .withOpacity(0.3),
+              ),
             ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: isTotal ? 16 : 14,
-              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-              color: isTotal ? Theme.of(Get.context!).primaryColor : null,
+            child: Row(
+              children: [
+                Icon(
+                  _getPaymentStatusIcon(booking.paymentStatus),
+                  size: 20,
+                  color: _getPaymentStatusColor(booking.paymentStatus),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Payment: ${booking.paymentStatus?.toUpperCase() ?? 'UNKNOWN'}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: _getPaymentStatusColor(booking.paymentStatus),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -429,62 +471,201 @@ class BookingDetailPage extends GetView<BookingDetailController> {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context, BookingModel booking) {
-    final bool needsPayment =
-        booking.isConfirmed && !controller.isBookingCompleted;
+  Widget _buildInfoTile({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color iconColor,
+  }) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: iconColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            icon,
+            size: 20,
+            color: iconColor,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBottomActions(BuildContext context, BookingModel booking) {
+    final canCancel = !booking.isConfirmed &&
+        booking.paymentStatus != 'cancelled' &&
+        booking.paymentStatus != 'success';
+
+    final needsPayment = booking.isConfirmed &&
+        !booking.isPaid &&
+        booking.paymentStatus == 'pending';
 
     return Container(
       padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          // Pay Now button for confirmed but unpaid bookings
-          if (needsPayment) ...[
-            PrimaryButton(
-              text: 'Pay Now',
-              onPressed: () async {
-                // Use BookingController for payment
-                if (!Get.isRegistered<BookingController>()) {
-                  Get.put(BookingController());
-                }
-                final bookingController = Get.find<BookingController>();
-                await bookingController.createPaymentForBooking(booking);
-
-                // Refresh booking detail
-                await Future.delayed(const Duration(seconds: 2));
-                controller.refreshBookingDetail();
-              },
-              isLoading: true,
-              width: double.infinity,
-              leftIcon: Icons.payment,
-            ),
-            const SizedBox(height: 12),
-          ],
-
-          // Other action buttons
-          Row(
-            children: [
-              if (controller.canCancel) ...[
-                Expanded(
-                  child: SecondaryButton(
-                    text: 'Cancel Booking',
-                    onPressed: controller.showCancelConfirmationDialog,
-                    textColor: Colors.white,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: Row(
+          children: [
+            if (canCancel) ...[
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => _showCancelDialog(context),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    side: const BorderSide(color: Colors.red),
+                  ),
+                  child: const Text(
+                    'Cancel Booking',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-              ],
-              if (controller.isBookingCompleted) ...[
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: controller.shareBooking,
-                    icon: const Icon(Icons.share),
-                    label: const Text('Share'),
-                  ),
-                ),
-              ],
+              ),
+              if (needsPayment) const SizedBox(width: 12),
             ],
+            if (needsPayment) ...[
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => _proceedToPayment(booking),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: const Text(
+                    'Pay Now',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Helper methods
+  String _formatDate(DateTime dateTime) {
+    return DateFormat('EEEE, MMM dd, yyyy').format(dateTime);
+  }
+
+  String _formatTimeRange(BookingModel booking) {
+    final startTime = DateFormat('HH:mm').format(booking.startDateTime);
+    final endTime = DateFormat('HH:mm').format(booking.endDateTime);
+    return '$startTime - $endTime';
+  }
+
+  String _calculateDuration(BookingModel booking) {
+    final duration = booking.endDateTime.difference(booking.startDateTime);
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes % 60;
+
+    if (hours > 0 && minutes > 0) {
+      return '${hours}h ${minutes}m';
+    } else if (hours > 0) {
+      return '${hours}h';
+    } else {
+      return '${minutes}m';
+    }
+  }
+
+  Color _getPaymentStatusColor(String? status) {
+    switch (status?.toLowerCase()) {
+      case 'success':
+        return Colors.green;
+      case 'pending':
+        return Colors.orange;
+      case 'cancelled':
+      case 'failed':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  IconData _getPaymentStatusIcon(String? status) {
+    switch (status?.toLowerCase()) {
+      case 'success':
+        return Icons.check_circle;
+      case 'pending':
+        return Icons.access_time;
+      case 'cancelled':
+      case 'failed':
+        return Icons.cancel;
+      default:
+        return Icons.help_outline;
+    }
+  }
+
+  void _showCancelDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel Booking'),
+        content: const Text('Are you sure you want to cancel this booking?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Keep Booking'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              controller.cancelBooking();
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Yes, Cancel'),
           ),
         ],
       ),
     );
+  }
+
+  void _proceedToPayment(BookingModel booking) {
+    // Navigate to payment page
+    Get.toNamed('/payment', arguments: booking);
   }
 }
