@@ -349,6 +349,7 @@ class BookingsListPage extends GetView<BookingListController> {
                   Padding(
                     padding: const EdgeInsets.only(top: 24),
                     child: PrimaryButton(
+                        isLoading: false,
                         width: 200,
                         leftIcon: Icons.search,
                         text: 'Search Venue',

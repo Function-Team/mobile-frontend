@@ -8,10 +8,7 @@ import 'package:function_mobile/modules/booking/views/bookings_list_page.dart';
 import 'package:function_mobile/modules/chat/bindings/chat_binding.dart';
 import 'package:function_mobile/modules/chat/views/chat_page.dart';
 import 'package:function_mobile/modules/chat/views/chatting_page.dart';
-import 'package:function_mobile/modules/home/pages/capacity_selection_page.dart';
-import 'package:function_mobile/modules/home/pages/date_selection_page.dart';
 import 'package:function_mobile/modules/home/pages/search_activity_page.dart';
-import 'package:function_mobile/modules/home/pages/search_location_page.dart';
 import 'package:function_mobile/modules/favorite/views/favorites_page.dart';
 import 'package:function_mobile/modules/home/views/home_page.dart';
 import 'package:function_mobile/modules/legal/privacy_policy_page.dart';
@@ -131,9 +128,6 @@ class MyRoutes {
 
     // SearchFilter
     GetPage(name: searchActivity, page: () => SearchActivityPage()),
-    GetPage(name: searchCapacity, page: () => CapacitySelectionPage()),
-    GetPage(name: searchDate, page: () => DateSelectionPage()),
-    GetPage(name: searchLocation, page: () => SearchLocationPage()),
 
     GetPage(
       name: favorites,

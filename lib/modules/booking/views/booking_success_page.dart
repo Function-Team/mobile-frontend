@@ -108,6 +108,7 @@ class BookingSuccessPage extends StatelessWidget {
             Column(
               children: [
                 PrimaryButton(
+                  isLoading: false,
                   text: 'View Booking Details',
                   onPressed: () => Get.offAllNamed('/booking-detail'),
                   width: double.infinity,

@@ -18,11 +18,6 @@ Future<void> main() async {
   debugPaintSizeEnabled = false;
   Get.put(ApiService());
   LocalizationHelper.debugLocalization;
-  // PaymentService.initializeMidtrans(
-  //   clientKey: 'SB-Mid-client-xDq_e8A2BNHKg_je',
-  //   merchantId: 'G796043912',
-  //   enableLog: true,
-  // );
 
   runApp(
     EasyLocalization(

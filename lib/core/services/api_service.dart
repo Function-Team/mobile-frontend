@@ -11,7 +11,7 @@ class ApiService extends GetxService {
 
   ApiService() {
     _dio = dio.Dio(dio.BaseOptions(
-      baseUrl: AppConstants.baseUrl,
+      baseUrl: AppConstants.baseUrlLocal,
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
       sendTimeout: const Duration(seconds: 10),
@@ -35,7 +35,7 @@ class ApiService extends GetxService {
       logPrint: (obj) {
         print("API: $obj");
         final logString = obj.toString();
-      // Filter so response from place doesnt fully the debug console
+        // Filter so response from place doesnt fully the debug console
         if (logString.contains('*** Request ***') ||
             logString.contains('*** Response ***') ||
             logString.contains('Response Text:') ||
@@ -58,9 +58,9 @@ class ApiService extends GetxService {
           // Skip these verbose logs
           return;
         }
-        
+
         // Only show important logs
-        if (logString.contains('Error') || 
+        if (logString.contains('Error') ||
             logString.contains('Exception') ||
             logString.contains('GET ') ||
             logString.contains('POST ') ||
@@ -125,18 +125,19 @@ class ApiService extends GetxService {
         options.headers['Authorization'] = 'Bearer $token';
         print(
             "Added auth token to ${options.method} ${options.path}: Bearer ${token.substring(0, 10)}...");
-       } else {
+      } else {
         print("No auth token found for ${options.method} ${options.path}");
       }
     } catch (e) {
-      print("Warning: Could not add auth token to ${options.method} ${options.path}: $e");
+      print(
+          "Warning: Could not add auth token to ${options.method} ${options.path}: $e");
     }
 
     print("Request headers: ${options.headers}");
     print("${options.method} ${options.path}");
   }
 
-   Future<bool> _handleTokenRefresh(dio.RequestOptions failedRequest) async {
+  Future<bool> _handleTokenRefresh(dio.RequestOptions failedRequest) async {
     if (_isRefreshing) {
       // Already refreshing, add to queue
       _failedRequests.add(failedRequest);
@@ -147,7 +148,8 @@ class ApiService extends GetxService {
 
     try {
       const storage = FlutterSecureStorage();
-      final refreshToken = await storage.read(key: AppConstants.refreshTokenKey);
+      final refreshToken =
+          await storage.read(key: AppConstants.refreshTokenKey);
 
       if (refreshToken == null || refreshToken.isEmpty) {
         print("No refresh token available");
@@ -155,10 +157,13 @@ class ApiService extends GetxService {
       }
 
       print("Attempting to refresh access token...");
-      
+
       // Create a new Dio instance for refresh request to avoid interceptor loops
       final refreshDio = dio.Dio(_dio.options.copyWith(
-        headers: {"Content-Type": "application/json", "Accept": "application/json"},
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
       ));
 
       final response = await refreshDio.get(
@@ -166,25 +171,26 @@ class ApiService extends GetxService {
         queryParameters: {'refresh_token': refreshToken},
       );
 
-      if (response.statusCode == 200 && 
-          response.data['access_token'] != null && 
+      if (response.statusCode == 200 &&
+          response.data['access_token'] != null &&
           response.data['refresh_token'] != null) {
-        
         // Save new tokens
-        await storage.write(key: AppConstants.tokenKey, value: response.data['access_token']);
-        await storage.write(key: AppConstants.refreshTokenKey, value: response.data['refresh_token']);
-        
+        await storage.write(
+            key: AppConstants.tokenKey, value: response.data['access_token']);
+        await storage.write(
+            key: AppConstants.refreshTokenKey,
+            value: response.data['refresh_token']);
+
         print("Token refresh successful");
-        
+
         // Retry failed requests
         await _retryFailedRequests();
-        
+
         return true;
       } else {
         print("Token refresh failed: Invalid response");
         return false;
       }
-      
     } catch (e) {
       print("Token refresh error: $e");
       return false;
@@ -457,18 +463,22 @@ class ApiService extends GetxService {
   }
 
   Future<Map<String, dynamic>> debugToken() async {
-   try {
+    try {
       const storage = FlutterSecureStorage();
       final accessToken = await storage.read(key: AppConstants.tokenKey);
-      final refreshToken = await storage.read(key: AppConstants.refreshTokenKey);
+      final refreshToken =
+          await storage.read(key: AppConstants.refreshTokenKey);
 
       return {
         'has_access_token': accessToken != null,
         'has_refresh_token': refreshToken != null,
         'access_token_length': accessToken?.length ?? 0,
         'refresh_token_length': refreshToken?.length ?? 0,
-        'access_token_preview': accessToken != null ? accessToken.substring(0, 10) + '...' : 'none',
-        'refresh_token_preview': refreshToken != null ? refreshToken.substring(0, 10) + '...' : 'none',
+        'access_token_preview':
+            accessToken != null ? accessToken.substring(0, 10) + '...' : 'none',
+        'refresh_token_preview': refreshToken != null
+            ? refreshToken.substring(0, 10) + '...'
+            : 'none',
         'storage_keys': {
           'access_token': AppConstants.tokenKey,
           'refresh_token': AppConstants.refreshTokenKey,

@@ -88,6 +88,7 @@ class LogoutBottomSheet extends StatelessWidget {
                 const SizedBox(width: 16),
                 Expanded(
                   child: PrimaryButton(
+                    isLoading: false,
                     text: LocalizationHelper.tr(LocaleKeys.common_exit),
                     onPressed: () => Navigator.of(context).pop(true),
                     backgroundColor: Colors.red,

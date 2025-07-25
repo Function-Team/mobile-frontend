@@ -6,8 +6,6 @@ import 'package:function_mobile/modules/payment/models/payment_model.dart';
 class PaymentService {
   final ApiService _apiService = ApiService();
 
-  static const String baseUrl = 'https://railway.thefunction.id/api/';
-
   // Create payment and get Snap token
   Future<PaymentResponse> createPayment(int bookingId) async {
     try {

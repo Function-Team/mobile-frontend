@@ -5,7 +5,7 @@ import 'package:function_mobile/modules/venue/widgets/venue_card.dart';
 import 'package:get/get.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:function_mobile/generated/locale_keys.g.dart';
-import 'package:function_mobile/core/helpers/localization_helper.dart'; // TAMBAHKAN
+import 'package:function_mobile/core/helpers/localization_helper.dart';
 
 class VenueListPage extends GetView<VenueListController> {
   const VenueListPage({super.key});
@@ -14,7 +14,17 @@ class VenueListPage extends GetView<VenueListController> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: _buildSearchBar(context),
+          title: _buildSearchSummaryHeader(context),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Get.back(),
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () {},
+            ),
+          ],
         ),
         body: Obx(() {
           if (controller.isLoading.value) {
@@ -32,44 +42,43 @@ class VenueListPage extends GetView<VenueListController> {
         }));
   }
 
-  Widget _buildSearchBar(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      height: 44,
-      child: TextField(
-        controller: controller.searchController,
-        decoration: InputDecoration(
-          hintText:
-              LocalizationHelper.tr(LocaleKeys.search_searchVenueHint), // FIXED
-          prefixIcon: Obx(() =>
-              controller.isLoading.value && controller.searchQuery.isNotEmpty
-                  ? const Padding(
-                      padding: EdgeInsets.all(10.0),
-                      child: SizedBox(
-                        width: 15,
-                        height: 15,
-                      ),
-                    )
-                  : const Icon(Icons.search)),
-          suffixIcon: Obx(() => controller.searchQuery.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    controller.searchController.clear();
-                  },
-                )
-              : const SizedBox()),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide.none,
-          ),
-          filled: true,
-          fillColor: Colors.grey[200],
-          contentPadding: const EdgeInsets.symmetric(vertical: 0),
+  // Widget baru untuk menampilkan parameter pencarian di header
+  Widget _buildSearchSummaryHeader(BuildContext context) {
+    return Obx(() {
+      final summary = controller.searchSummary.value;
+      final String locationText = summary['location'] ?? 'Semua Lokasi';
+      final String venueCount = '${controller.venues.length} Properties';
+      final String dateText = summary['date'] ?? '';
+      final String capacityText = summary['capacity'] ?? '';
+
+      return GestureDetector(
+        onTap: () {}, // Kembali ke halaman pencarian
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '$locationText ($venueCount)',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            if (dateText.isNotEmpty || capacityText.isNotEmpty)
+              Text(
+                [dateText, capacityText].where((e) => e.isNotEmpty).join(', '),
+                style: Theme.of(context).textTheme.bodySmall,
+                overflow: TextOverflow.ellipsis,
+              ),
+          ],
         ),
-        onSubmitted: (value) => controller.searchVenues(value),
-      ),
-    );
+      );
+    });
   }
 
   Widget _buildFilterSection(BuildContext context) {
@@ -85,18 +94,46 @@ class VenueListPage extends GetView<VenueListController> {
               Obx(
                 () => controller.selectedCategory.isEmpty
                     ? Text(
-                        LocalizationHelper.tr(
-                            LocaleKeys.venue_allVenues), // FIXED
+                        LocalizationHelper.tr(LocaleKeys.venue_allVenues),
                         style: Theme.of(context).textTheme.titleMedium,
                       )
                     : Text(
-                        '${controller.selectedCategory.value} ${LocalizationHelper.tr(LocaleKeys.venue_venues)}', // FIXED
+                        '${controller.selectedCategory.value} ${LocalizationHelper.tr(LocaleKeys.venue_venues)}',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
               ),
-              IconButton(
-                icon: const Icon(Icons.filter_list),
-                onPressed: () => _showFilterBottomSheet(context),
+              Row(
+                children: [
+                  // Tombol Filter
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.filter_list, size: 18),
+                    label: const Text('Filter'),
+                    onPressed: () => _showFilterBottomSheet(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black87,
+                      elevation: 0,
+                      side: BorderSide(color: Colors.grey[300]!),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Tombol Sort
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.sort, size: 18),
+                    label: const Text('Sort'),
+                    onPressed: () {}, // Tambahkan fungsi sort di controller
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black87,
+                      elevation: 0,
+                      side: BorderSide(color: Colors.grey[300]!),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -108,6 +145,29 @@ class VenueListPage extends GetView<VenueListController> {
                     deleteIcon: const Icon(Icons.clear, size: 18),
                     onDeleted: () => controller.clearCategory(),
                   ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryItem(BuildContext context, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$label: ',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
           ),
         ],
       ),
