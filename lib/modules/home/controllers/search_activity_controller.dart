@@ -35,10 +35,10 @@ class SearchActivityController extends GetxController {
       allActivities.assignAll(results[0] as List<CategoryModel>);
       filteredActivities.assignAll(results[0] as List<CategoryModel>);
 
-      // just show 5 venues
+      // Tampilkan semua venue, bukan hanya 5
       final venues = results[1] as List<VenueModel>;
-      allVenues.assignAll(venues.take(5).toList());
-      filteredVenues.assignAll(venues.take(5).toList());
+      allVenues.assignAll(venues);
+      filteredVenues.assignAll(venues);
     } catch (e) {
       print('Error loading data: $e');
       errorMessage.value = 'Failed to load data: $e';
@@ -71,14 +71,14 @@ class SearchActivityController extends GetxController {
             .toList(),
       );
 
-      // BATASI HASIL FILTER VENUE MENJADI 5
+      // Tampilkan semua venue yang cocok, bukan hanya 5
       final filteredVenueList = allVenues
           .where((venue) =>
               (venue.name ?? '').toLowerCase().contains(lowercaseQuery) ||
               (venue.city?.name ?? '').toLowerCase().contains(lowercaseQuery))
           .toList();
 
-      filteredVenues.assignAll(filteredVenueList.take(5).toList());
+      filteredVenues.assignAll(filteredVenueList);
     }
   }
 

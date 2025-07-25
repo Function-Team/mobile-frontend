@@ -199,9 +199,8 @@ class SearchContainer extends StatelessWidget {
                 child: Obx(() => PrimaryButton(
                   text: 'Cari Tempat',
                   isLoading: searchController.isLoading.value,
-                  onPressed: () {
-                    searchController.performAdvancedSearch();
-                    if (onTapSearch != null) onTapSearch!();
+                  onPressed: () async {
+                    await searchController.performAdvancedSearch();
                   },
                 )),
               ),

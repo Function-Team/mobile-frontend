@@ -398,6 +398,11 @@ class SearchFilterController extends GetxController {
       // Activity filter
       if (selectedActivityId.value > 0) {
         searchParams['activity_id'] = selectedActivityId.value;
+      } 
+      // Tambahkan parameter search jika tidak ada activity_id yang dipilih
+      // Ini akan menangani kasus pencarian berdasarkan nama venue/place
+      else if (activityText.value.isNotEmpty) {
+        searchParams['search'] = activityText.value;
       }
 
       // Capacity filter
