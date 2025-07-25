@@ -5,7 +5,7 @@ import 'package:function_mobile/modules/venue/widgets/venue_card.dart';
 import 'package:get/get.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:function_mobile/generated/locale_keys.g.dart';
-import 'package:function_mobile/core/helpers/localization_helper.dart'; // TAMBAHKAN
+import 'package:function_mobile/core/helpers/localization_helper.dart';
 
 class VenueListPage extends GetView<VenueListController> {
   const VenueListPage({super.key});
@@ -14,7 +14,17 @@ class VenueListPage extends GetView<VenueListController> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: _buildSearchBar(context),
+          title: _buildSearchSummaryHeader(context),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Get.back(),
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () {},
+            ),
+          ],
         ),
         body: Obx(() {
           if (controller.isLoading.value) {
@@ -32,44 +42,43 @@ class VenueListPage extends GetView<VenueListController> {
         }));
   }
 
-  Widget _buildSearchBar(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      height: 44,
-      child: TextField(
-        controller: controller.searchController,
-        decoration: InputDecoration(
-          hintText:
-              LocalizationHelper.tr(LocaleKeys.search_searchVenueHint), // FIXED
-          prefixIcon: Obx(() =>
-              controller.isLoading.value && controller.searchQuery.isNotEmpty
-                  ? const Padding(
-                      padding: EdgeInsets.all(10.0),
-                      child: SizedBox(
-                        width: 15,
-                        height: 15,
-                      ),
-                    )
-                  : const Icon(Icons.search)),
-          suffixIcon: Obx(() => controller.searchQuery.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    controller.searchController.clear();
-                  },
-                )
-              : const SizedBox()),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide.none,
-          ),
-          filled: true,
-          fillColor: Colors.grey[200],
-          contentPadding: const EdgeInsets.symmetric(vertical: 0),
+  // Widget baru untuk menampilkan parameter pencarian di header
+  Widget _buildSearchSummaryHeader(BuildContext context) {
+    return Obx(() {
+      final summary = controller.searchSummary.value;
+      final String locationText = summary['location'] ?? 'Semua Lokasi';
+      final String venueCount = '${controller.venues.length} Properties';
+      final String dateText = summary['date'] ?? '';
+      final String capacityText = summary['capacity'] ?? '';
+
+      return GestureDetector(
+        onTap: () {}, // Kembali ke halaman pencarian
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '$locationText ($venueCount)',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            if (dateText.isNotEmpty || capacityText.isNotEmpty)
+              Text(
+                [dateText, capacityText].where((e) => e.isNotEmpty).join(', '),
+                style: Theme.of(context).textTheme.bodySmall,
+                overflow: TextOverflow.ellipsis,
+              ),
+          ],
         ),
-        onSubmitted: (value) => controller.searchVenues(value),
-      ),
-    );
+      );
+    });
   }
 
   Widget _buildFilterSection(BuildContext context) {
@@ -85,8 +94,7 @@ class VenueListPage extends GetView<VenueListController> {
               Obx(
                 () => controller.selectedCategory.isEmpty
                     ? Text(
-                        LocalizationHelper.tr(
-                            LocaleKeys.venue_allVenues),
+                        LocalizationHelper.tr(LocaleKeys.venue_allVenues),
                         style: Theme.of(context).textTheme.titleMedium,
                       )
                     : Text(
@@ -94,18 +102,41 @@ class VenueListPage extends GetView<VenueListController> {
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
               ),
-              IconButton(
-                icon: const Icon(Icons.filter_list),
-                onPressed: () => _showFilterBottomSheet(context),
+              Row(
+                children: [
+                  // Tombol Filter
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.filter_list, size: 18),
+                    label: const Text('Filter'),
+                    onPressed: () => _showFilterBottomSheet(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black87,
+                      elevation: 0,
+                      side: BorderSide(color: Colors.grey[300]!),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Tombol Sort
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.sort, size: 18),
+                    label: const Text('Sort'),
+                    onPressed: () {}, // Tambahkan fungsi sort di controller
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black87,
+                      elevation: 0,
+                      side: BorderSide(color: Colors.grey[300]!),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          
-          // Tampilkan parameter pencarian jika dari advanced search
-          Obx(() => controller.isFromAdvancedSearch.value
-              ? _buildSearchSummary(context)
-              : const SizedBox.shrink()),
-          
           Obx(
             () => controller.selectedCategory.isEmpty
                 ? const SizedBox.shrink()
@@ -118,48 +149,6 @@ class VenueListPage extends GetView<VenueListController> {
         ],
       ),
     );
-  }
-
-  // Widget baru untuk menampilkan parameter pencarian
-  Widget _buildSearchSummary(BuildContext context) {
-    return Obx(() {
-      final summary = controller.searchSummary.value;
-      if (summary.isEmpty) return const SizedBox.shrink();
-      
-      return Container(
-        margin: const EdgeInsets.only(top: 8, bottom: 8),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey[300]!),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Parameter Pencarian:',
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            const SizedBox(height: 8),
-            if (summary['activity'] != null && summary['activity'].isNotEmpty)
-              _buildSummaryItem(context, 'Aktivitas/Tempat', summary['activity']),
-            if (summary['location'] != null && summary['location'].isNotEmpty)
-              _buildSummaryItem(context, 'Lokasi', summary['location']),
-            if (summary['date'] != null && summary['date'].isNotEmpty)
-              _buildSummaryItem(context, 'Tanggal', summary['date']),
-            if (summary['startTime'] != null && summary['endTime'] != null)
-              _buildSummaryItem(context, 'Waktu', '${summary['startTime']} - ${summary['endTime']}'),
-            if (summary['startTime'] != null)
-              _buildSummaryItem(context, 'Waktu Mulai', summary['startTime']),
-            if (summary['endTime'] != null)
-              _buildSummaryItem(context, 'Waktu Selesai', summary['endTime']),
-            if (summary['capacity'] != null && summary['capacity'].isNotEmpty)
-              _buildSummaryItem(context, 'Kapasitas', summary['capacity']),
-          ],
-        ),
-      );
-    });
   }
 
   Widget _buildSummaryItem(BuildContext context, String label, String value) {

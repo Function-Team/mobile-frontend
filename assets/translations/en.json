@@ -149,7 +149,7 @@
     "schedule": "Schedule",
     "availability": "Availability",
     "capacity": "Capacity",
-    "maxCapacity": "Max Capacity",
+    "maxCapacity": "Capacity",
     "minCapacity": "Min Capacity",
     "size": "Size",
     "area": "Area",

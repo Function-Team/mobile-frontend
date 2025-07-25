@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/modules/booking/views/bookings_list_page.dart';
-import 'package:function_mobile/modules/chat/views/chat_page.dart';
+// import 'package:function_mobile/modules/chat/views/chat_page.dart'; // DIHAPUS
 import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/common/bindings/localization_binding.dart';
 import 'package:function_mobile/generated/locale_keys.g.dart';
@@ -20,8 +20,8 @@ class BottomNavView extends StatelessWidget {
     HomePage(),
     BookingsListPage(),
     FavoritesPage(),
-    ChatPage(),
-    ProfilePage(),
+    // ChatPage(), // DIHAPUS
+    ProfilePage(), // Index berubah dari 4 menjadi 3
   ];
 
   @override
@@ -31,7 +31,7 @@ class BottomNavView extends StatelessWidget {
       bottomNavigationBar: Obx(() {
         // This will rebuild when language changes
         final _ = localizationController.currentLocale.value;
-        
+
         return BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
           currentIndex: controller.currentIndex.value,
@@ -49,27 +49,20 @@ class BottomNavView extends StatelessWidget {
           items: [
             BottomNavigationBarItem(
               icon: _buildNavIcon(Icons.home_outlined, Icons.home, 0),
-              // SOLUSI: Gunakan LocalizationHelper.tr() langsung
               label: LocalizationHelper.tr(LocaleKeys.navigation_home),
             ),
             BottomNavigationBarItem(
               icon: _buildNavIcon(Icons.book_outlined, Icons.book, 1),
-              // SOLUSI: Gunakan LocalizationHelper.tr() langsung
               label: LocalizationHelper.tr(LocaleKeys.navigation_bookings),
             ),
             BottomNavigationBarItem(
               icon: _buildNavIcon(Icons.favorite_outline, Icons.favorite, 2),
-              // SOLUSI: Gunakan LocalizationHelper.tr() langsung
               label: LocalizationHelper.tr(LocaleKeys.navigation_favorites),
             ),
+            // BottomNavigationBarItem untuk chat DIHAPUS
             BottomNavigationBarItem(
-              icon: _buildNavIcon(Icons.chat_outlined, Icons.chat, 3),
-              // SOLUSI: Gunakan LocalizationHelper.tr() langsung
-              label: LocalizationHelper.tr(LocaleKeys.navigation_chat),
-            ),
-            BottomNavigationBarItem(
-              icon: _buildNavIcon(Icons.person_outline, Icons.person, 4),
-              // SOLUSI: Gunakan LocalizationHelper.tr() langsung
+              icon: _buildNavIcon(Icons.person_outline, Icons.person,
+                  3), // Index berubah dari 4 menjadi 3
               label: LocalizationHelper.tr(LocaleKeys.navigation_profile),
             ),
           ],

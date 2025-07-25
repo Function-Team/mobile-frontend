@@ -113,7 +113,7 @@ abstract class LocaleKeys {
   static const common_internetRequired = 'common.internetRequired';
   static const common_connectionFailed = 'common.connectionFailed';
   static const common_showMore = 'common.showMore';
-  static const common_seeMore = 'common.seewMore';
+  static const common_seeMore = 'common.showMore';
   static const common_monday = 'common.monday';
   static const common_tuesday = 'common.tuesday';
   static const common_wednesday = 'common.wednesday';

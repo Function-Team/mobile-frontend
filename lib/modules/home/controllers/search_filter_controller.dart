@@ -149,7 +149,7 @@ class SearchFilterController extends GetxController {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Pilih Kapasitas Maksimal',
+              'Pilih Kapasitas',
               style: Get.textTheme.headlineSmall,
             ),
             const SizedBox(height: 20),
@@ -169,7 +169,7 @@ class SearchFilterController extends GetxController {
             Obx(() => Text(
                   maxCapacity.value == 0
                       ? 'Semua kapasitas'
-                      : 'Maksimal ${maxCapacity.value} orang',
+                      : '${maxCapacity.value} orang',
                   style: Get.textTheme.bodyLarge,
                 )),
             const SizedBox(height: 20),
@@ -191,7 +191,7 @@ class SearchFilterController extends GetxController {
                     onPressed: () {
                       capacityController.text = maxCapacity.value == 0
                           ? 'Semua kapasitas'
-                          : 'Maks ${maxCapacity.value} orang';
+                          : '${maxCapacity.value} orang';
                       capacityText.value = capacityController.text;
                       Get.back();
                     },
@@ -398,7 +398,7 @@ class SearchFilterController extends GetxController {
       // Activity filter
       if (selectedActivityId.value > 0) {
         searchParams['activity_id'] = selectedActivityId.value;
-      } 
+      }
       // Tambahkan parameter search jika tidak ada activity_id yang dipilih
       // Ini akan menangani kasus pencarian berdasarkan nama venue/place
       else if (activityText.value.isNotEmpty) {
@@ -450,11 +450,13 @@ class SearchFilterController extends GetxController {
       };
 
       // Navigate to results dengan parameter lengkap
+      // Di dalam performAdvancedSearch()
       Get.toNamed(MyRoutes.venueList, arguments: {
         'searchResults': results,
         'isSearchResult': true,
         'searchSummary': searchSummary,
-        'searchQuery': activityText.value, // Tambahkan query pencarian
+        'searchQuery': activityText.value,
+        'originalSearchParams': searchParams, // Tambahkan ini
       });
     } catch (e) {
       hasError.value = true;

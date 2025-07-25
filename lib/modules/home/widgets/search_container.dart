@@ -165,7 +165,7 @@ class SearchContainer extends StatelessWidget {
             context: context,
             controller: searchController.capacityController,
             icon: Icons.people_outline,
-            hintText: 'Kapasitas maksimal',
+            hintText: 'Kapasitas',
             onTap: () => searchController.showCapacityPicker(),
             textValue: searchController.capacityText, // Tambahkan variabel Rx
           ),
@@ -190,19 +190,19 @@ class SearchContainer extends StatelessWidget {
                   ),
                 ),
               ),
-              
+
               const SizedBox(width: 8),
-              
+
               // Search Button
               Expanded(
                 flex: 2,
                 child: Obx(() => PrimaryButton(
-                  text: 'Cari Tempat',
-                  isLoading: searchController.isLoading.value,
-                  onPressed: () async {
-                    await searchController.performAdvancedSearch();
-                  },
-                )),
+                      text: 'Cari Tempat',
+                      isLoading: searchController.isLoading.value,
+                      onPressed: () async {
+                        await searchController.performAdvancedSearch();
+                      },
+                    )),
               ),
             ],
           ),
