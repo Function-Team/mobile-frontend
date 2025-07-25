@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/core/constants/app_constants.dart';
+import 'package:function_mobile/core/services/api_service.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_list_controller.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:function_mobile/modules/booking/services/booking_service.dart';
@@ -14,9 +15,11 @@ import 'package:get/get.dart';
 import 'dart:async';
 import 'package:function_mobile/modules/payment/controllers/payment_controller.dart';
 import 'package:function_mobile/common/routes/routes.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class BookingController extends GetxController {
   final BookingService _bookingService = BookingService();
+  final ApiService _apiService = ApiService();
 
   // Form data
   final Rx<DateTimeRange?> selectedDateRange = Rx<DateTimeRange?>(null);
@@ -189,72 +192,120 @@ class BookingController extends GetxController {
     Get.find<BookingListController>().refreshBookings();
   }
 
-  Future<void> saveBookingWithPayment(VenueModel venue) async {
+  // UPDATED: Create booking only (no payment)
+  Future<void> saveBookingOnly(VenueModel venue) async {
     if (!isFormValid()) return;
 
     try {
       isProcessing.value = true;
       bookingStatus.value = 'processing';
 
-      // Debug info
-      debugBookingRequest(venue);
-
-      // Create the booking request using the existing model from booking_model.dart
+      // Create booking request
       final bookingRequest = BookingCreateRequest.fromVenueAndForm(
         venue: venue,
         date: selectedDateRange.value!.start,
         startTime: startTime.value!,
         endTime: endTime.value!,
         capacity: int.parse(selectedCapacity.value),
-        specialRequests: specialRequestsController.text.trim().isNotEmpty
-            ? specialRequestsController.text.trim()
-            : null,
+        specialRequests: specialRequestsController.text.trim(),
         userName: guestNameController.text.trim(),
         userEmail: guestEmailController.text.trim(),
-        userPhone: guestPhoneController.text.trim().isNotEmpty
-            ? guestPhoneController.text.trim()
-            : null,
+        userPhone: guestPhoneController.text.trim(),
       );
 
-      // Create booking via existing service method
-      final createdBooking =
-          await _bookingService.createBooking(bookingRequest);
+      // Create booking only
+      final response = await _apiService.postRequest(
+        '/booking',
+        bookingRequest.toJson(),
+      );
 
-      if (createdBooking != null) {
+      if (response != null) {
         bookingStatus.value = 'success';
-
-        _showSuccess('Booking created! Please proceed to payment.');
-
-        // Navigate to payment
-        await proceedToPayment(createdBooking);
+        
+        _showSuccess('Booking created successfully! Waiting for admin confirmation.');
+        
+        // Clear form
+        clearForm();
+        
+        // Wait a bit for user to see the message
+        await Future.delayed(Duration(seconds: 2));
+        
+        // Go back to venue detail
+        Get.back();
+        
       } else {
         throw Exception('Failed to create booking');
       }
     } catch (e) {
       bookingStatus.value = 'failed';
+      _showError('Error: ${e.toString()}');
+    } finally {
+      isProcessing.value = false;
+    }
+  }
 
-      String errorMessage = 'Failed to create booking';
-      if (e.toString().contains('Connection refused') ||
-          e.toString().contains('SocketException') ||
-          e.toString().contains('Failed host lookup')) {
-        errorMessage =
-            'Cannot connect to server. Please check if FastAPI is running.';
-      } else if (e.toString().contains('Time slot is already booked')) {
-        errorMessage =
-            'This time slot is already booked. Please choose a different time.';
-      } else if (e.toString().contains('Validation failed') ||
-          e.toString().contains('422')) {
-        errorMessage = 'Please check your booking details and try again.';
-      } else if (e.toString().contains('409')) {
-        errorMessage =
-            'Time slot is already booked. Please choose a different time.';
-      } else if (e.toString().contains('500')) {
-        errorMessage = 'Server error occurred. Please try again later.';
-      } else {
-        errorMessage = e.toString().replaceAll('Exception: ', '');
+  // DEPRECATED: Old method that creates payment immediately
+  @Deprecated('Use saveBookingOnly instead')
+  Future<void> saveBookingWithPayment(VenueModel venue) async {
+    // This method is kept for backward compatibility but should not be used
+    print('WARNING: saveBookingWithPayment is deprecated. Use saveBookingOnly instead.');
+    await saveBookingOnly(venue);
+  }
+
+  // NEW: Create payment for confirmed booking (called from BookingListPage)
+  Future<void> createPaymentForBooking(BookingModel booking) async {
+    try {
+      isProcessing.value = true;
+      
+      // Verify booking is confirmed
+      if (!booking.isConfirmed) {
+        _showError('Booking must be confirmed by admin before payment');
+        return;
       }
-
-      _showError(errorMessage);
+      
+      // Check if payment already exists and is successful
+      if (booking.payment != null && booking.payment!.status.toLowerCase() == 'success') {
+        _showError('Payment already completed for this booking');
+        return;
+      }
+      
+      // Create payment request
+      final paymentData = {
+        'booking_id': booking.id,
+        'amount': booking.place?.price ?? 0,
+      };
+      
+      // Create payment
+      final response = await _apiService.postRequest('/payment', paymentData);
+      
+      if (response != null && response['midtrans'] != null) {
+        final snapToken = response['midtrans']['token'];
+        
+        // Open Midtrans payment URL
+        final paymentUrl = 'https://app.sandbox.midtrans.com/snap/v2/vtweb/$snapToken';
+        final Uri url = Uri.parse(paymentUrl);
+        
+        if (await canLaunchUrl(url)) {
+          await launchUrl(
+            url,
+            mode: LaunchMode.externalApplication,
+          );
+          
+          _showSuccess('Payment page opened. Complete your payment.');
+          
+          // Refresh bookings list after a delay
+          await Future.delayed(Duration(seconds: 3));
+          if (Get.isRegistered<BookingListController>()) {
+            Get.find<BookingListController>().refreshBookings();
+          }
+        } else {
+          throw Exception('Could not open payment page');
+        }
+      } else {
+        throw Exception('Failed to create payment session');
+      }
+    } catch (e) {
+      _showError('Payment Error: ${e.toString()}');
     } finally {
       isProcessing.value = false;
     }
@@ -275,26 +326,12 @@ class BookingController extends GetxController {
     print('========================');
   }
 
-  // Navigate to payment after successful booking creation
-  Future<void> proceedToPayment(BookingModel booking) async {
-    try {
-      // Navigate to payment page with booking data
-      Get.toNamed(
-        '/payment', // Use string route instead of MyRoutes.payment for now
-        arguments: booking,
-      );
-    } catch (e) {
-      _showError('Failed to proceed to payment: ${e.toString()}');
-    }
-  }
-
-  // Get booking summary for display - using venue's existing price with day calculation
+  // Get booking summary for display
   Map<String, dynamic> getBookingSummary(VenueModel venue) {
     // Calculate number of days
     int numberOfDays = 1; // Default to 1 day
     if (selectedDateRange.value != null) {
-      numberOfDays = selectedDateRange.value!.duration.inDays +
-          1; // +1 because duration.inDays doesn't count the start day
+      numberOfDays = selectedDateRange.value!.duration.inDays + 1; // +1 because duration.inDays doesn't count the start day
       if (numberOfDays <= 0) numberOfDays = 1; // Minimum 1 day
     }
 
@@ -328,8 +365,7 @@ class BookingController extends GetxController {
       'capacity': selectedCapacity.value,
       'venue_name': venue.name ?? 'Unknown Venue',
       'venue_price_per_day': pricePerDay,
-      'booking_date':
-          selectedDateRange.value?.start.toIso8601String().split('T')[0] ?? '',
+      'booking_date': selectedDateRange.value?.start.toIso8601String().split('T')[0] ?? '',
       'start_datetime': startTime.value?.format(Get.context!) ?? '',
       'end_datetime': endTime.value?.format(Get.context!) ?? '',
     };
@@ -376,9 +412,8 @@ class BookingController extends GetxController {
     bookingStatus.value = 'idle';
   }
 
-  // Get available time slots for a venue (could be enhanced with real data)
+  // Get available time slots for a venue
   List<TimeOfDay> getAvailableTimeSlots() {
-    // This is a simple implementation - in a real app, you'd fetch this from the API
     final slots = <TimeOfDay>[];
     for (int hour = 8; hour <= 22; hour++) {
       slots.add(TimeOfDay(hour: hour, minute: 0));

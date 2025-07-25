@@ -96,14 +96,14 @@ class BookingsListPage extends GetView<BookingListController> {
             fontSize: 12,
             fontWeight: FontWeight.normal,
           ),
-          isScrollable: true, // Membuat tab bisa di-scroll jika terlalu panjang
+          isScrollable: true,
           tabAlignment: TabAlignment.start,
           tabs: [
             Obx(() => Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                   child: Text(
-                    '${LocalizationHelper.tr(LocaleKeys.venue_all)} (${controller.bookings.length})',
+                    'All (${controller.bookings.length})',
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -114,7 +114,7 @@ class BookingsListPage extends GetView<BookingListController> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                   child: Text(
-                    '${LocalizationHelper.tr(LocaleKeys.venue_pending)} (${controller.pendingCount.value})',
+                    'Pending (${controller.pendingCount.value})',
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -125,7 +125,7 @@ class BookingsListPage extends GetView<BookingListController> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                   child: Text(
-                    '${LocalizationHelper.tr(LocaleKeys.venue_confirmed)} (${controller.confirmedCount.value})',
+                    'Confirmed (${controller.confirmedCount.value})',
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -136,7 +136,18 @@ class BookingsListPage extends GetView<BookingListController> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                   child: Text(
-                    '${LocalizationHelper.tr(LocaleKeys.venue_expired)} (${controller.expiredCount.value})',
+                    'Completed (${controller.completedCount.value})',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                )),
+            Obx(() => Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                  child: Text(
+                    'Expired (${controller.expiredCount.value})',
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -216,13 +227,22 @@ class BookingsListPage extends GetView<BookingListController> {
       children: [
         _buildBookingsTab(controller.bookings),
         _buildBookingsTab(controller.bookings
-            .where((b) => b.status == BookingStatus.pending)
+            .where((b) =>
+                b.status == BookingStatus.pending &&
+                !controller.isBookingCompleted(b))
             .toList()),
         _buildBookingsTab(controller.bookings
-            .where((b) => b.status == BookingStatus.confirmed)
+            .where((b) =>
+                b.status == BookingStatus.confirmed &&
+                !controller.isBookingCompleted(b))
             .toList()),
         _buildBookingsTab(controller.bookings
-            .where((b) => b.status == BookingStatus.expired)
+            .where((b) => controller.isBookingCompleted(b))
+            .toList()),
+        _buildBookingsTab(controller.bookings
+            .where((b) =>
+                b.status == BookingStatus.expired &&
+                !controller.isBookingCompleted(b))
             .toList()),
       ],
     );
@@ -272,9 +292,15 @@ class BookingsListPage extends GetView<BookingListController> {
                   padding: const EdgeInsets.only(bottom: 12),
                   child: BookingCard(
                     onTap: () => controller.goToBookingDetail(booking),
-                    onCancel: () =>
-                        controller.showCancelConfirmationDialog(booking),
+                    onCancel: controller.isBookingCompleted(booking)
+                        ? null
+                        : () =>
+                            controller.showCancelConfirmationDialog(booking),
                     onViewVenue: () => controller.goToVenueDetail(booking),
+                    onPayNow: (booking.isConfirmed &&
+                            !controller.isBookingCompleted(booking))
+                        ? () => controller.createPaymentForBooking(booking)
+                        : null,
                     bookingModel: booking,
                   ),
                 );
@@ -302,7 +328,12 @@ class BookingsListPage extends GetView<BookingListController> {
         message = 'No confirmed bookings';
         subMessage = 'Your confirmed bookings will appear here';
         break;
-      case 3: // Expired
+      case 3: // Completed
+        icon = Icons.check_circle;
+        message = 'No completed bookings';
+        subMessage = 'Your paid bookings will appear here';
+        break;
+      case 4: // Expired
         icon = Icons.access_time;
         message = 'No expired bookings';
         subMessage = 'Your expired bookings will appear here';

@@ -28,11 +28,11 @@ class VenueModel {
   final int? maxCapacity;
 
   String? get firstPictureUrl => firstPicture != null
-      ? '${AppConstants.baseUrl}/img/$firstPicture'
+      ? '${AppConstants.baseUrlLocal}/img/$firstPicture'
       : (pictures != null &&
               pictures!.isNotEmpty &&
               pictures!.first.filename != null)
-          ? '${AppConstants.baseUrl}/img/${pictures!.first.filename}'
+          ? '${AppConstants.baseUrlLocal}/img/${pictures!.first.filename}'
           : null;
 
   VenueModel({
@@ -173,7 +173,7 @@ class PictureModel {
   });
 
   String? get imageUrl => filename != null && filename!.isNotEmpty
-      ? '${AppConstants.baseUrl}/img/$filename'
+      ? '${AppConstants.baseUrlLocal}/img/$filename'
       : null;
 
   factory PictureModel.fromJson(Map<String, dynamic> json) {

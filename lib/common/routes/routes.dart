@@ -203,7 +203,7 @@ class MyRoutes {
         );
       },
     ),
-    GetPage(name: MyRoutes.paymentHistory, page: () => const PaymentHistoryPage()),
+    // GetPage(name: MyRoutes.paymentHistory, page: () => const PaymentHistoryPage()),
     GetPage(
     name: bookingSuccess,
     page: () => const BookingSuccessPage(),

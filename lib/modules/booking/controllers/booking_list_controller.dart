@@ -3,6 +3,7 @@ import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:function_mobile/modules/booking/services/booking_service.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
+import 'package:function_mobile/modules/booking/controllers/booking_controller.dart';
 import 'package:get/get.dart';
 
 class BookingListController extends GetxController
@@ -29,12 +30,13 @@ class BookingListController extends GetxController
   // Booking counts for each status
   final RxInt pendingCount = 0.obs;
   final RxInt confirmedCount = 0.obs;
+  final RxInt completedCount = 0.obs;
   final RxInt expiredCount = 0.obs;
 
   @override
   void onInit() {
     super.onInit();
-    tabController = TabController(length: 4, vsync: this);
+    tabController = TabController(length: 5, vsync: this);
     tabController.addListener(() {
       currentTabIndex.value = tabController.index;
       _filterBookingsByTab();
@@ -56,6 +58,14 @@ class BookingListController extends GetxController
 
       final fetchedBookings = await _bookingService.getUserBookings();
       bookings.assignAll(fetchedBookings);
+
+      // DEBUG: Print status of all bookings
+      print('\n=== BOOKING STATUS DEBUG ===');
+      for (var booking in bookings) {
+        booking.debugPrintStatus();
+      }
+      print('=========================\n');
+
       _updateBookingCounts();
       _filterBookingsByTab();
       _sortBookings();
@@ -75,12 +85,28 @@ class BookingListController extends GetxController
   }
 
   void _updateBookingCounts() {
-    pendingCount.value =
-        bookings.where((b) => b.status == BookingStatus.pending).length;
-    confirmedCount.value =
-        bookings.where((b) => b.status == BookingStatus.confirmed).length;
-    expiredCount.value =
-        bookings.where((b) => b.status == BookingStatus.expired).length;
+    pendingCount.value = bookings
+        .where(
+            (b) => b.status == BookingStatus.pending && !isBookingCompleted(b))
+        .length;
+
+    confirmedCount.value = bookings
+        .where((b) =>
+            b.status == BookingStatus.confirmed && !isBookingCompleted(b))
+        .length;
+
+    completedCount.value = bookings.where((b) => isBookingCompleted(b)).length;
+
+    expiredCount.value = bookings
+        .where(
+            (b) => b.status == BookingStatus.expired && !isBookingCompleted(b))
+        .length;
+  }
+
+  // Helper method to check if booking is completed
+  bool isBookingCompleted(BookingModel booking) {
+    // Use the new isPaid getter that handles both formats
+    return booking.isConfirmed && booking.isPaid;
   }
 
   void _filterBookingsByTab() {
@@ -89,17 +115,26 @@ class BookingListController extends GetxController
         filteredBookings.assignAll(bookings);
         break;
       case 1: // Pending
-        filteredBookings.assignAll(
-            bookings.where((b) => b.status == BookingStatus.pending).toList());
+        filteredBookings.assignAll(bookings
+            .where((b) =>
+                b.status == BookingStatus.pending && !isBookingCompleted(b))
+            .toList());
         break;
       case 2: // Confirmed
         filteredBookings.assignAll(bookings
-            .where((b) => b.status == BookingStatus.confirmed)
+            .where((b) =>
+                b.status == BookingStatus.confirmed && !isBookingCompleted(b))
             .toList());
         break;
-      case 3: // Expired
-        filteredBookings.assignAll(
-            bookings.where((b) => b.status == BookingStatus.expired).toList());
+      case 3: // Completed
+        filteredBookings
+            .assignAll(bookings.where((b) => isBookingCompleted(b)).toList());
+        break;
+      case 4: // Expired
+        filteredBookings.assignAll(bookings
+            .where((b) =>
+                b.status == BookingStatus.expired && !isBookingCompleted(b))
+            .toList());
         break;
     }
   }
@@ -107,10 +142,12 @@ class BookingListController extends GetxController
   void _sortBookings() {
     switch (selectedSort.value) {
       case 'date_desc':
-        filteredBookings.sort((a, b) => b.startDateTime.compareTo(a.startDateTime));
+        filteredBookings
+            .sort((a, b) => b.startDateTime.compareTo(a.startDateTime));
         break;
       case 'date_asc':
-        filteredBookings.sort((a, b) => a.startDateTime.compareTo(b.startDateTime));
+        filteredBookings
+            .sort((a, b) => a.startDateTime.compareTo(b.startDateTime));
         break;
       case 'venue_name':
         filteredBookings.sort(
@@ -145,6 +182,12 @@ class BookingListController extends GetxController
   }
 
   void showCancelConfirmationDialog(BookingModel booking) {
+    // Don't allow cancellation for completed bookings
+    if (isBookingCompleted(booking)) {
+      _showError('Cannot cancel a completed booking');
+      return;
+    }
+
     Get.dialog(
       AlertDialog(
         title: const Text('Cancel Booking'),
@@ -172,33 +215,64 @@ class BookingListController extends GetxController
   List<BookingModel> getUpcomingBookings() {
     final now = DateTime.now();
     return bookings.where((booking) {
-      final bookingDateTime = DateTime(
-        int.parse(booking.startTime.split(':')[0]),
-        int.parse(booking.startTime.split(':')[1]),
-      );
+      final bookingDateTime = booking.startDateTime;
       return bookingDateTime.isAfter(now) &&
           (booking.status == BookingStatus.confirmed ||
-              booking.status == BookingStatus.pending);
+              booking.status == BookingStatus.pending) &&
+          !isBookingCompleted(booking);
     }).toList();
   }
 
   List<BookingModel> getPastBookings() {
     final now = DateTime.now();
     return bookings.where((booking) {
-      final bookingDateTime = DateTime(
-        int.parse(booking.endTime.split(':')[0]),
-        int.parse(booking.endTime.split(':')[1]),
-      );
-      return bookingDateTime.isBefore(now);
+      final bookingDateTime = booking.endDateTime;
+      return bookingDateTime.isBefore(now) || isBookingCompleted(booking);
     }).toList();
   }
 
   List<BookingModel> getBookingsForDate(DateTime date) {
     return bookings
-        .where((booking) => booking.startDateTime.year == date.year &&
+        .where((booking) =>
+            booking.startDateTime.year == date.year &&
             booking.startDateTime.month == date.month &&
             booking.startDateTime.day == date.day)
         .toList();
+  }
+
+  // Payment method
+  Future<void> createPaymentForBooking(BookingModel booking) async {
+    if (!booking.isConfirmed) {
+      _showError('Booking must be confirmed by admin before payment');
+      return;
+    }
+
+    if (isBookingCompleted(booking)) {
+      _showError('This booking is already paid');
+      return;
+    }
+
+    // Use BookingController's payment method
+    if (Get.isRegistered<BookingController>()) {
+      final bookingController = Get.find<BookingController>();
+      await bookingController.createPaymentForBooking(booking);
+
+      // Refresh bookings after payment attempt
+      await Future.delayed(const Duration(seconds: 2));
+      await refreshBookings();
+    } else {
+      // If BookingController is not registered, create it temporarily
+      Get.put(BookingController());
+      final bookingController = Get.find<BookingController>();
+      await bookingController.createPaymentForBooking(booking);
+
+      // Refresh bookings after payment attempt
+      await Future.delayed(const Duration(seconds: 2));
+      await refreshBookings();
+
+      // Clean up
+      Get.delete<BookingController>();
+    }
   }
 
   // Navigation methods
