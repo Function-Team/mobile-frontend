@@ -37,6 +37,12 @@ class BookingDetailController extends GetxController {
     }
   }
 
+  // Check if booking is completed
+  bool get isBookingCompleted {
+    if (booking.value == null) return false;
+    return booking.value!.isConfirmed && booking.value!.isPaid;
+  }
+
   Future<void> fetchBookingDetail() async {
     try {
       isLoading.value = true;
@@ -63,14 +69,22 @@ class BookingDetailController extends GetxController {
   Future<void> cancelBooking() async {
     if (booking.value == null) return;
 
+    // Don't allow cancellation for completed bookings
+    if (isBookingCompleted) {
+      _showError('Cannot cancel a completed booking');
+      return;
+    }
+
     try {
       isCancelling.value = true;
 
       await _bookingService.cancelBooking(booking.value!.id);
 
       // Update booking list
-      final bookingListController = Get.find<BookingListController>();
-      bookingListController.fetchBookings();
+      if (Get.isRegistered<BookingListController>()) {
+        final bookingListController = Get.find<BookingListController>();
+        bookingListController.fetchBookings();
+      }
 
       _showSuccess('Booking cancelled successfully!');
 
@@ -85,6 +99,12 @@ class BookingDetailController extends GetxController {
   }
 
   void showCancelConfirmationDialog() {
+    // Don't show cancel dialog for completed bookings
+    if (isBookingCompleted) {
+      _showError('Cannot cancel a completed booking');
+      return;
+    }
+
     Get.dialog(
       AlertDialog(
         title: const Text('Cancel Booking'),
@@ -150,18 +170,6 @@ class BookingDetailController extends GetxController {
     );
   }
 
-  // void contactVenueOwner() {
-  //   if (booking.value?.place?.host?.user?.id != null) {
-  //     // Navigate to chat with venue owner
-  //     Get.toNamed(MyRoutes., arguments: {
-  //       'hostId': booking.value!.place!.host!.user!.id,
-  //       'venueName': booking.value!.place!.name,
-  //     });
-  //   } else {
-  //     _showError('Unable to contact venue owner at this time');
-  //   }
-  // }
-
   void viewVenueDetails() {
     if (booking.value?.place?.id != null) {
       Get.toNamed(MyRoutes.venueDetail, arguments: {
@@ -178,8 +186,9 @@ Booking Details:
 Venue: ${booking.value!.place?.name ?? 'Unknown'}
 Date: ${booking.value!.formattedDate}
 Time: ${booking.value!.formattedTimeRange}
-Status: ${booking.value!.statusDisplayName}
+Status: ${isBookingCompleted ? 'Completed' : booking.value!.statusDisplayName}
 Booking ID: #${booking.value!.id}
+${isBookingCompleted ? 'Payment: Paid' : ''}
       ''';
 
       // You can use the share_plus package here
@@ -189,14 +198,11 @@ Booking ID: #${booking.value!.id}
     }
   }
 
-  // void rescheduleBooking() {
-  //   if (booking.value != null) {
-  //     // Navigate to reschedule page with current booking data
-  //     Get.toNamed('/reschedule-booking', arguments: booking.value);
-  //   }
-  // }
-
   void downloadBookingReceipt() {
+    if (!isBookingCompleted) {
+      _showError('Receipt only available for completed bookings');
+      return;
+    }
     // Implement PDF generation and download
     _showSuccess('Receipt download started');
   }
@@ -219,6 +225,11 @@ Booking ID: #${booking.value!.id}
               booking.value?.status == BookingStatus.confirmed) {
             _showSuccess('Your booking has been confirmed by the venue!');
           }
+          
+          // Check if payment was completed
+          if (isBookingCompleted && booking.value?.payment != null) {
+            _showSuccess('Payment completed successfully!');
+          }
         } else {
           // If booking is null, it might have been cancelled by admin
           hasError.value = true;
@@ -236,7 +247,7 @@ Booking ID: #${booking.value!.id}
     }
   }
 
-// Auto-refresh timer to check for status updates
+  // Auto-refresh timer to check for status updates
   void startStatusCheckTimer() {
     // Check every 30 seconds for updates
     Timer.periodic(const Duration(seconds: 30), (timer) {
@@ -251,12 +262,12 @@ Booking ID: #${booking.value!.id}
 
   bool get canCancel {
     if (booking.value == null) return false;
+    
+    // Cannot cancel completed bookings
+    if (isBookingCompleted) return false;
 
     final now = DateTime.now();
-    final bookingDateTime = DateTime(
-      int.parse(booking.value!.startTime.split(':')[0]),
-      int.parse(booking.value!.startTime.split(':')[1]),
-    );
+    final bookingDateTime = booking.value!.startDateTime;
 
     return (booking.value!.status == BookingStatus.pending ||
             booking.value!.status == BookingStatus.confirmed) &&
@@ -267,12 +278,12 @@ Booking ID: #${booking.value!.id}
 
   bool get canReschedule {
     if (booking.value == null) return false;
+    
+    // Cannot reschedule completed bookings
+    if (isBookingCompleted) return false;
 
     final now = DateTime.now();
-    final bookingDateTime = DateTime(
-      int.parse(booking.value!.startTime.split(':')[0]),
-      int.parse(booking.value!.startTime.split(':')[1]),
-    );
+    final bookingDateTime = booking.value!.startDateTime;
 
     return (booking.value!.status == BookingStatus.confirmed ||
             booking.value!.status == BookingStatus.pending) &&
@@ -286,22 +297,21 @@ Booking ID: #${booking.value!.id}
     if (booking.value == null) return false;
 
     final now = DateTime.now();
-    final bookingEndDateTime = DateTime(
-      int.parse(booking.value!.endTime.split(':')[0]),
-      int.parse(booking.value!.endTime.split(':')[1]),
-    );
+    final bookingEndDateTime = booking.value!.endDateTime;
 
-    return bookingEndDateTime.isBefore(now);
+    return bookingEndDateTime.isBefore(now) && !isBookingCompleted;
   }
 
   String get timeUntilBooking {
     if (booking.value == null) return '';
+    
+    // Show payment status for completed bookings
+    if (isBookingCompleted) {
+      return 'Booking completed - Paid';
+    }
 
     final now = DateTime.now();
-    final bookingDateTime = DateTime(
-      int.parse(booking.value!.startTime.split(':')[0]),
-      int.parse(booking.value!.startTime.split(':')[1]),
-    );
+    final bookingDateTime = booking.value!.startDateTime;
 
     if (bookingDateTime.isBefore(now)) {
       return 'Past booking';
@@ -340,6 +350,9 @@ Booking ID: #${booking.value!.id}
       'service_fee': serviceFee,
       'total': total,
       'duration_text': _formatDuration(duration),
+      'is_paid': isBookingCompleted,
+      'payment_status': booking.value?.payment?.status ?? 'pending',
+      'payment_amount': booking.value?.payment?.amount ?? 0,
     };
   }
 

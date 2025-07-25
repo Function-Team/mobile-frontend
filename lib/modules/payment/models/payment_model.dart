@@ -1,30 +1,31 @@
+import 'package:flutter/material.dart';
+import 'package:function_mobile/modules/payment/models/payment_model.dart'
+    as payment;
+
 class PaymentModel {
   final int? id;
   final int bookingId;
-  final String? status;
-  final bool isComplete;
-  final DateTime? createdAt;
   final double? amount;
+  final String status;
+  final DateTime? createdAt;
 
   PaymentModel({
     this.id,
     required this.bookingId,
-    this.status,
-    this.isComplete = false,
-    this.createdAt,
     this.amount,
+    required this.status,
+    this.createdAt,
   });
 
   factory PaymentModel.fromJson(Map<String, dynamic> json) {
     return PaymentModel(
       id: json['id'],
       bookingId: json['booking_id'],
-      status: json['status'],
-      isComplete: json['is_complete'] ?? false,
-      createdAt: json['created_at'] != null 
-        ? DateTime.parse(json['created_at']) 
-        : null,
       amount: json['amount']?.toDouble(),
+      status: json['status'] ?? 'pending',
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : null,
     );
   }
 
@@ -32,60 +33,76 @@ class PaymentModel {
     return {
       'id': id,
       'booking_id': bookingId,
-      'status': status,
-      'is_complete': isComplete,
-      'created_at': createdAt?.toIso8601String(),
       'amount': amount,
+      'status': status,
+      'created_at': createdAt?.toIso8601String(),
     };
   }
 }
 
 class PaymentCreateRequest {
   final int bookingId;
+  final double? amount;
 
-  PaymentCreateRequest({required this.bookingId});
+  PaymentCreateRequest({
+    required this.bookingId,
+    this.amount,
+  });
 
   Map<String, dynamic> toJson() {
-    return {
-      'booking_id': bookingId,
-    };
+    final json = {'booking_id': bookingId};
+    final amt = amount;
+    if (amt != null) {
+      json['amount'] = amt.toInt();
+    }
+    return json;
   }
 }
 
 class PaymentResponse {
-  final PaymentModel payment;
-  final MidtransResponse midtrans;
+  final int? bookingId;
+  final double? amount;
+  final String? status;
+  final String? createdAt;
+  final String? snapToken;
+  final double? baseAmount;
+  final double? totalAmount;
 
   PaymentResponse({
-    required this.payment,
-    required this.midtrans,
+    this.bookingId,
+    this.amount,
+    this.status,
+    this.createdAt,
+    this.snapToken,
+    this.baseAmount,
+    this.totalAmount,
   });
 
   factory PaymentResponse.fromJson(Map<String, dynamic> json) {
+    final payment = json['payment'];
     return PaymentResponse(
-      payment: PaymentModel.fromJson(json['database']),
-      midtrans: MidtransResponse.fromJson(json['midtrans']),
+      bookingId: payment['database']?['booking_id'],
+      amount: (payment['database']?['amount'] as num?)?.toDouble(),
+      status: payment['database']?['status'],
+      createdAt: payment['database']?['created_at'],
+      snapToken: payment['midtrans']?['token'],
+      baseAmount:
+          (payment['pricing_breakdown']?['base_amount'] as num?)?.toDouble(),
+      totalAmount:
+          (payment['pricing_breakdown']?['total_amount'] as num?)?.toDouble(),
     );
   }
+
+  payment.PaymentModel get paymentModel => payment.PaymentModel(
+        id: null,
+        bookingId: bookingId ?? 0,
+        amount: amount,
+        status: status ?? 'pending',
+        createdAt: createdAt != null ? DateTime.tryParse(createdAt!) : null,
+      );
 }
 
-class MidtransResponse {
-  final String token;
-  final String redirectUrl;
-
-  MidtransResponse({
-    required this.token,
-    required this.redirectUrl,
-  });
-
-  factory MidtransResponse.fromJson(Map<String, dynamic> json) {
-    return MidtransResponse(
-      token: json['token'] ?? '',
-      redirectUrl: json['redirect_url'] ?? '',
-    );
-  }
-}
-
+// Simple enum for payment status
 enum PaymentStatus {
   pending,
   success,
@@ -95,39 +112,61 @@ enum PaymentStatus {
 }
 
 extension PaymentStatusExtension on PaymentStatus {
-  String get value {
-    switch (this) {
-      case PaymentStatus.pending:
-        return 'pending';
-      case PaymentStatus.success:
-        return 'success';
-      case PaymentStatus.failed:
-        return 'failed';
-      case PaymentStatus.expired:
-        return 'expired';
-      case PaymentStatus.cancelled:
-        return 'cancelled';
+  static PaymentStatus? fromString(String value) {
+    switch (value.toLowerCase()) {
+      case 'success':
+        return PaymentStatus.success;
+      case 'failed':
+        return PaymentStatus.failed;
+      case 'pending':
+        return PaymentStatus.pending;
+      default:
+        return null;
     }
   }
 
-  static PaymentStatus? fromString(String? status) {
-    if (status == null) return null;
-    switch (status.toLowerCase()) {
-      case 'pending':
-        return PaymentStatus.pending;
-      case 'success':
-      case 'settlement':
-        return PaymentStatus.success;
-      case 'failed':
-      case 'failure':
-        return PaymentStatus.failed;
-      case 'expired':
-        return PaymentStatus.expired;
-      case 'cancelled':
-      case 'cancel':
-        return PaymentStatus.cancelled;
+  Color get color {
+    switch (this) {
+      case PaymentStatus.success:
+        return Colors.green;
+      case PaymentStatus.pending:
+        return Colors.orange;
+      case PaymentStatus.failed:
+      case PaymentStatus.cancelled:
+        return Colors.red;
+      case PaymentStatus.expired:
+        return Colors.grey;
+    }
+  }
+
+  String get displayText {
+    switch (this) {
+      case PaymentStatus.success:
+        return 'Success';
+      case PaymentStatus.pending:
+        return 'Pending';
+      case PaymentStatus.failed:
+        return 'Failed';
+      case PaymentStatus.cancelled:
+        return 'Cancelled';
+      case PaymentStatus.expired:
+        return 'Expired';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case PaymentStatus.success:
+        return Icons.check_circle;
+      case PaymentStatus.failed:
+        return Icons.error;
+      case PaymentStatus.expired:
+        return Icons.schedule;
+      case PaymentStatus.cancelled:
+        return Icons.cancel;
+      case PaymentStatus.pending:
       default:
-        return PaymentStatus.pending;
+        return Icons.pending;
     }
   }
 }

@@ -6,19 +6,19 @@ import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 
 class BookingFormWidget extends StatelessWidget {
   final BookingController controller;
-  final VenueModel venue; // Add venue as required parameter
+  final VenueModel venue;
 
   const BookingFormWidget({
     super.key, 
     required this.controller,
-    required this.venue, // Make venue required
+    required this.venue,
   });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Payment Summary Card
+        // Price Summary Card
         Container(
           padding: const EdgeInsets.all(16),
           margin: const EdgeInsets.only(bottom: 16),
@@ -33,7 +33,7 @@ class BookingFormWidget extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Total Amount',
+                    'Estimated Total',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -62,22 +62,71 @@ class BookingFormWidget extends StatelessWidget {
           ),
         ),
 
-        // Book and Pay Button
+        // Confirm Booking Button (No payment)
         Obx(() {
           return PrimaryButton(
             isLoading: controller.isProcessing.value,
             text: controller.isProcessing.value 
               ? 'Creating Booking...' 
-              : 'Book & Pay Now',
+              : 'Confirm Booking',
             onPressed: controller.isProcessing.value 
               ? null 
-              : () => _handleBookingAndPayment(context, controller, venue),
+              : () => _handleBookingConfirmation(context, controller, venue),
             width: double.infinity,
             leftIcon: controller.isProcessing.value 
               ? Icons.hourglass_empty 
-              : Icons.payment,
+              : Icons.check_circle,
           );
         }),
+        
+        const SizedBox(height: 16),
+        
+        // Important Notice
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.blue.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.blue.withOpacity(0.3)),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.info_outline,
+                size: 18,
+                color: Colors.blue[700],
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Booking Process',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue[900],
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '1. Your booking will be sent to the venue admin\n'
+                      '2. Wait for admin confirmation (usually within 24 hours)\n'
+                      '3. Once confirmed, you can proceed with payment',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.blue[800],
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
         
         const SizedBox(height: 12),
         
@@ -86,14 +135,14 @@ class BookingFormWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(
-              Icons.info_outline,
+              Icons.check_box,
               size: 16,
               color: Colors.grey[600],
             ),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'By continuing, you agree to our Terms of Service and Privacy Policy. You will be redirected to a secure payment page.',
+                'By continuing, you agree to our Terms of Service and Privacy Policy.',
                 style: TextStyle(
                   fontSize: 12,
                   color: Colors.grey[600],
@@ -107,7 +156,7 @@ class BookingFormWidget extends StatelessWidget {
     );
   }
 
-  void _handleBookingAndPayment(BuildContext context, BookingController controller, VenueModel venue) async {
+  void _handleBookingConfirmation(BuildContext context, BookingController controller, VenueModel venue) async {
     // Validate form first
     if (!controller.isFormValid()) {
       return;
@@ -117,8 +166,8 @@ class BookingFormWidget extends StatelessWidget {
     final bool confirmed = await _showBookingConfirmation(context, controller, venue);
     
     if (confirmed) {
-      // Use the payment-enabled booking method
-      await controller.saveBookingWithPayment(venue);
+      // Use the new method that only creates booking
+      await controller.saveBookingOnly(venue);
     }
   }
 
@@ -139,26 +188,26 @@ class BookingFormWidget extends StatelessWidget {
                 _buildConfirmationItem('Venue', venue.name ?? 'Unknown'),
                 _buildConfirmationItem('Date', _formatDate(controller.selectedDateRange.value?.start)),
                 _buildConfirmationItem('Time', _formatTimeRange(context, controller)),
-                _buildConfirmationItem('Capacity', controller.selectedCapacity.value),
-                _buildConfirmationItem('Total', 'Rp ${_formatCurrency(_calculateTotalPrice(context, controller, venue))}'),
+                _buildConfirmationItem('Capacity', '${controller.selectedCapacity.value} people'),
+                _buildConfirmationItem('Guest Name', controller.guestNameController.text),
+                _buildConfirmationItem('Total Price', 'Rp ${_formatCurrency(_calculateTotalPrice(context, controller, venue))}'),
                 const SizedBox(height: 16),
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.blue[200]!),
+                    color: Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(6),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.payment, color: Colors.blue[700], size: 20),
+                      Icon(Icons.schedule, size: 16, color: Colors.orange[700]),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'You will be redirected to a secure payment page after confirmation.',
+                          'This booking will require admin approval',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.blue[700],
+                            color: Colors.orange[700],
                           ),
                         ),
                       ),
@@ -175,11 +224,7 @@ class BookingFormWidget extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Confirm & Pay'),
+              child: const Text('Confirm'),
             ),
           ],
         );
@@ -220,7 +265,6 @@ class BookingFormWidget extends StatelessWidget {
   }
 
   double _calculateTotalPrice(BuildContext context, BookingController controller, VenueModel venue) {
-    // Use the existing method from controller if available
     final summary = controller.getBookingSummary(venue);
     return summary['total']?.toDouble() ?? 0.0;
   }
