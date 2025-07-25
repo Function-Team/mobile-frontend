@@ -18,7 +18,7 @@ class BottomNavView extends StatelessWidget {
 
   final List<Widget> pages = [
     HomePage(),
-    BookingsListPage(),
+    BookingListPage(),
     FavoritesPage(),
     // ChatPage(), // DIHAPUS
     ProfilePage(), // Index berubah dari 4 menjadi 3

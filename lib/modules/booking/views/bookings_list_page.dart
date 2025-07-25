@@ -1,218 +1,114 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
-import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
-import 'package:function_mobile/core/helpers/localization_helper.dart';
-import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_list_controller.dart';
-import 'package:function_mobile/modules/booking/widgets/booking_card.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
-import 'package:function_mobile/modules/navigation/controllers/bottom_nav_controller.dart';
+import 'package:function_mobile/modules/booking/widgets/booking_card.dart';
 import 'package:get/get.dart';
 
-class BookingsListPage extends GetView<BookingListController> {
-  const BookingsListPage({super.key});
+class BookingListPage extends GetView<BookingListController> {
+  const BookingListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: _buildAppBar(context),
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return _buildLoadingState();
-        }
-
-        if (controller.hasError.value) {
-          return _buildErrorState();
-        }
-
-        return _buildBookingsList(context);
-      }),
-    );
-  }
-
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
-    return AppBar(
-      title: Text(
-        LocalizationHelper.tr(LocaleKeys.booking_myBookings),
-        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onPrimary,
-              fontWeight: FontWeight.bold,
-            ),
-      ),
-      backgroundColor: Theme.of(context).colorScheme.primary,
-      foregroundColor: Theme.of(context).colorScheme.onPrimary,
-      elevation: 0,
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.search),
-          onPressed: () => _showSearchDialog(context),
-        ),
-        PopupMenuButton<String>(
-          icon: const Icon(Icons.sort),
-          onSelected: (String value) {
-            controller.setSortOption(value);
-          },
-          itemBuilder: (BuildContext context) => [
-            const PopupMenuItem(
-              value: 'date_desc',
-              child: Text('Latest First'),
-            ),
-            const PopupMenuItem(
-              value: 'date_asc',
-              child: Text('Oldest First'),
-            ),
-            const PopupMenuItem(
-              value: 'venue_name',
-              child: Text('Venue Name'),
-            ),
-            const PopupMenuItem(
-              value: 'status',
-              child: Text('Status'),
-            ),
-          ],
-        ),
-      ],
-      bottom: _buildTabBar(),
-    );
-  }
-
-  PreferredSizeWidget _buildTabBar() {
-    return PreferredSize(
-      preferredSize: const Size.fromHeight(48),
-      child: Container(
-        color: Theme.of(Get.context!).colorScheme.primary,
-        child: TabBar(
-          controller: controller.tabController,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white70,
-          indicatorColor: Colors.white,
-          indicatorWeight: 3,
-          labelStyle: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-          ),
-          unselectedLabelStyle: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.normal,
-          ),
-          isScrollable: true,
-          tabAlignment: TabAlignment.start,
-          tabs: [
-            Obx(() => Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-                  child: Text(
-                    'All (${controller.bookings.length})',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                )),
-            Obx(() => Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-                  child: Text(
-                    'Pending (${controller.pendingCount.value})',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                )),
-            Obx(() => Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-                  child: Text(
-                    'Confirmed (${controller.confirmedCount.value})',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                )),
-            Obx(() => Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-                  child: Text(
-                    'Completed (${controller.completedCount.value})',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                )),
-            Obx(() => Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-                  child: Text(
-                    'Expired (${controller.expiredCount.value})',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                )),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLoadingState() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      appBar: _buildAppBar(),
+      body: Column(
         children: [
-          CircularProgressIndicator(),
-          SizedBox(height: 16),
-          Text('Loading your bookings...'),
+          _buildTabBar(),
+          Expanded(
+            child: _buildBookingList(),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildErrorState() {
-    return RefreshIndicator(
-      onRefresh: controller.refreshBookings,
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.white,
+      foregroundColor: Colors.black,
+      elevation: 0,
+      title: const Text(
+        'My Bookings',
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      actions: [
+        IconButton(
+          onPressed: controller.refreshBookings,
+          icon: const Icon(Icons.refresh),
+        ),
+        const SizedBox(width: 8),
+      ],
+    );
+  }
+
+  Widget _buildTabBar() {
+    return Container(
+      color: Colors.white,
       child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Container(
-          height: MediaQuery.of(Get.context!).size.height * 0.7,
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Obx(() => Row(
+              children: List.generate(
+                controller.tabTitles.length,
+                (index) => _buildTabButton(index),
+              ),
+            )),
+      ),
+    );
+  }
+
+  Widget _buildTabButton(int index) {
+    // ✅ FIXED: Single Obx per button, clean access
+    final isSelected = controller.currentTabIndex.value == index;
+    final count = controller.getTabCount(index);
+
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      child: Material(
+        color: isSelected ? Colors.blue : Colors.grey[100],
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          onTap: () => controller.changeTab(index),
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 64,
-                  color: Colors.grey[400],
-                ),
-                const SizedBox(height: 16),
                 Text(
-                  'Failed to load bookings',
+                  controller.tabTitles[index],
                   style: TextStyle(
-                    fontSize: 18,
+                    color: isSelected ? Colors.white : Colors.grey[700],
                     fontWeight: FontWeight.w600,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  controller.errorMessage.value,
-                  style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey[500],
                   ),
-                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  onPressed: controller.refreshBookings,
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Try Again'),
-                ),
+                if (count > 0) ...[
+                  const SizedBox(width: 6),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? Colors.white.withOpacity(0.2)
+                          : Colors.grey[300],
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      count.toString(),
+                      style: TextStyle(
+                        color: isSelected ? Colors.white : Colors.grey[600],
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -221,91 +117,68 @@ class BookingsListPage extends GetView<BookingListController> {
     );
   }
 
-  Widget _buildBookingsList(BuildContext context) {
-    return TabBarView(
-      controller: controller.tabController,
-      children: [
-        _buildBookingsTab(controller.bookings),
-        _buildBookingsTab(controller.bookings
-            .where((b) =>
-                b.status == BookingStatus.pending &&
-                !controller.isBookingCompleted(b))
-            .toList()),
-        _buildBookingsTab(controller.bookings
-            .where((b) =>
-                b.status == BookingStatus.confirmed &&
-                !controller.isBookingCompleted(b))
-            .toList()),
-        _buildBookingsTab(controller.bookings
-            .where((b) => controller.isBookingCompleted(b))
-            .toList()),
-        _buildBookingsTab(controller.bookings
-            .where((b) =>
-                b.status == BookingStatus.expired &&
-                !controller.isBookingCompleted(b))
-            .toList()),
-      ],
-    );
+  Widget _buildBookingList() {
+    return Obx(() {
+      if (controller.isLoading.value) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      if (controller.hasError.value) {
+        return _buildErrorState();
+      }
+
+      if (controller.filteredBookings.isEmpty) {
+        return _buildEmptyState();
+      }
+
+      return RefreshIndicator(
+        onRefresh: controller.refreshBookings,
+        child: ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: controller.filteredBookings.length,
+          itemBuilder: (context, index) {
+            final booking = controller.filteredBookings[index];
+            return BookingCard(
+              bookingModel: booking,
+              onTap: () => _navigateToBookingDetail(booking),
+              onCancel: booking.isInCancelledSection
+                  ? null
+                  : () => controller.showCancelConfirmationDialog(booking),
+              onViewVenue: () => _navigateToVenueDetail(booking),
+              onPayNow: (booking.needsPayment && !booking.isInCancelledSection)
+                  ? () => controller.createPaymentForBooking(booking)
+                  : null,
+            );
+          },
+        ),
+      );
+    });
   }
 
-  Widget _buildBookingsTab(List<BookingModel> bookings) {
-    if (bookings.isEmpty) {
-      return _buildEmptyState();
-    }
-
-    return RefreshIndicator(
-      onRefresh: controller.refreshBookings,
+  Widget _buildErrorState() {
+    return Center(
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Booking count and filter info
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            color: Colors.white,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Obx(() => Text(
-                      controller.getBookingCountText(),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.grey,
-                      ),
-                    )),
-                TextButton.icon(
-                  onPressed: () => _showFilterDialog(Get.context!),
-                  icon: const Icon(Icons.filter_list, size: 18),
-                  label: const Text('Filter'),
-                ),
-              ],
-            ),
+          Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          Text(
+            'Failed to load bookings',
+            style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[600]),
           ),
-
-          // Bookings list
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: bookings.length,
-              itemBuilder: (context, index) {
-                final booking = bookings[index];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: BookingCard(
-                    onTap: () => controller.goToBookingDetail(booking),
-                    onCancel: controller.isBookingCompleted(booking)
-                        ? null
-                        : () =>
-                            controller.showCancelConfirmationDialog(booking),
-                    onViewVenue: () => controller.goToVenueDetail(booking),
-                    onPayNow: (booking.isConfirmed &&
-                            !controller.isBookingCompleted(booking))
-                        ? () => controller.createPaymentForBooking(booking)
-                        : null,
-                    bookingModel: booking,
-                  ),
-                );
-              },
-            ),
+          const SizedBox(height: 8),
+          Text(
+            controller.errorMessage.value,
+            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: controller.refreshBookings,
+            child: const Text('Retry'),
           ),
         ],
       ),
@@ -313,212 +186,82 @@ class BookingsListPage extends GetView<BookingListController> {
   }
 
   Widget _buildEmptyState() {
+    String title;
     String message;
-    String subMessage;
     IconData icon;
 
     switch (controller.currentTabIndex.value) {
-      case 1: // Pending
-        icon = Icons.schedule;
-        message = 'No pending bookings';
-        subMessage = 'Your pending bookings will appear here';
+      case 0:
+        title = 'No Bookings Yet';
+        message = 'Start exploring venues and make your first booking!';
+        icon = Icons.calendar_today;
         break;
-      case 2: // Confirmed
-        icon = Icons.check_circle_outline;
-        message = 'No confirmed bookings';
-        subMessage = 'Your confirmed bookings will appear here';
+      case 1:
+        title = 'No Pending Bookings';
+        message = 'All your bookings have been processed.';
+        icon = Icons.pending;
         break;
-      case 3: // Completed
+      case 2:
+        title = 'No Confirmed Bookings';
+        message = 'No bookings are waiting for payment.';
         icon = Icons.check_circle;
-        message = 'No completed bookings';
-        subMessage = 'Your paid bookings will appear here';
         break;
-      case 4: // Expired
-        icon = Icons.access_time;
-        message = 'No expired bookings';
-        subMessage = 'Your expired bookings will appear here';
+      case 3:
+        title = 'No Completed Bookings';
+        message = 'Complete a booking to see it here.';
+        icon = Icons.done_all;
         break;
-      default: // All
-        icon = Icons.event_busy;
-        message = 'No bookings yet';
-        subMessage = 'Start booking amazing venues!';
+      case 4:
+        title = 'No Cancelled Bookings';
+        message = 'You haven\'t cancelled any bookings yet.';
+        icon = Icons.cancel;
+        break;
+      default:
+        title = 'No Bookings';
+        message = 'No bookings found.';
+        icon = Icons.search_off;
     }
 
-    return RefreshIndicator(
-      onRefresh: controller.refreshBookings,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Container(
-          height: MediaQuery.of(Get.context!).size.height * 0.6,
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  icon,
-                  size: 64,
-                  color: Colors.grey[400],
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  message,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  subMessage,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[500],
-                  ),
-                ),
-                if (controller.currentTabIndex.value == 0)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 24),
-                    child: PrimaryButton(
-                        isLoading: false,
-                        width: 200,
-                        leftIcon: Icons.search,
-                        text: 'Search Venue',
-                        onPressed: () {
-                          Get.offAllNamed(MyRoutes.bottomNav);
-                          Get.find<BottomNavController>().changePage(0);
-                        }),
-                  ),
-              ],
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 64, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[600]),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            message,
+            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+            textAlign: TextAlign.center,
+          ),
+          if (controller.currentTabIndex.value == 0) ...[
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () => Get.offAllNamed('/home'),
+              child: const Text('Explore Venues'),
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showSearchDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Search Bookings'),
-        content: TextField(
-          autofocus: true,
-          decoration: const InputDecoration(
-            hintText: 'Search by venue name, location, or date...',
-            prefixIcon: Icon(Icons.search),
-          ),
-          onChanged: controller.searchBookings,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              controller.clearSearch();
-              Get.back();
-            },
-            child: const Text('Clear'),
-          ),
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Close'),
-          ),
+          ],
         ],
       ),
     );
   }
 
-  void _showFilterDialog(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Filter & Sort',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => Get.back(),
-                  icon: const Icon(Icons.close),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Sort by',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Obx(() => Column(
-                  children: [
-                    RadioListTile<String>(
-                      title: const Text('Latest First'),
-                      value: 'date_desc',
-                      groupValue: controller.selectedSort.value,
-                      onChanged: (value) {
-                        if (value != null) {
-                          controller.setSortOption(value);
-                        }
-                      },
-                    ),
-                    RadioListTile<String>(
-                      title: const Text('Oldest First'),
-                      value: 'date_asc',
-                      groupValue: controller.selectedSort.value,
-                      onChanged: (value) {
-                        if (value != null) {
-                          controller.setSortOption(value);
-                        }
-                      },
-                    ),
-                    RadioListTile<String>(
-                      title: const Text('Venue Name'),
-                      value: 'venue_name',
-                      groupValue: controller.selectedSort.value,
-                      onChanged: (value) {
-                        if (value != null) {
-                          controller.setSortOption(value);
-                        }
-                      },
-                    ),
-                    RadioListTile<String>(
-                      title: const Text('Status'),
-                      value: 'status',
-                      groupValue: controller.selectedSort.value,
-                      onChanged: (value) {
-                        if (value != null) {
-                          controller.setSortOption(value);
-                        }
-                      },
-                    ),
-                  ],
-                )),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Get.back(),
-                child: const Text('Apply'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  void _navigateToBookingDetail(BookingModel booking) {
+    Get.toNamed(MyRoutes.bookingDetail, arguments: booking.id);
+  }
+
+  void _navigateToVenueDetail(BookingModel booking) {
+    if (booking.place?.id != null) {
+      Get.toNamed(MyRoutes.venueDetail, arguments: {
+        'venueId': booking.place!.id,
+      });
+    }
   }
 }

@@ -172,11 +172,22 @@ class PictureModel {
     this.placeId,
   });
 
-  String? get imageUrl => filename != null && filename!.isNotEmpty
-      ? '${AppConstants.baseUrlLocal}/img/$filename'
-      : null;
+  String? get imageUrl {
+    print("PictureModel - Filename: $filename, PlaceId: $placeId");
+    
+    if (filename == null || filename!.isEmpty) {
+      print("PictureModel - No filename provided");
+      return null;
+    }
+
+    final fullUrl = '${AppConstants.baseUrlLocal}/img/$filename';
+    print("PictureModel - Constructed URL: $fullUrl");
+    
+    return fullUrl;
+  }
 
   factory PictureModel.fromJson(Map<String, dynamic> json) {
+    print("📦 PictureModel - Parsing JSON: $json");
     return PictureModel(
       id: json['id'],
       filename: json['filename'],

@@ -3,7 +3,6 @@ import 'package:function_mobile/modules/booking/bindings/booking_binding.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:function_mobile/modules/booking/views/booking_detail.dart';
 import 'package:function_mobile/modules/booking/views/booking_page.dart';
-import 'package:function_mobile/modules/booking/views/booking_success_page.dart';
 import 'package:function_mobile/modules/booking/views/bookings_list_page.dart';
 import 'package:function_mobile/modules/chat/bindings/chat_binding.dart';
 import 'package:function_mobile/modules/chat/views/chat_page.dart';
@@ -23,7 +22,6 @@ import 'package:function_mobile/modules/payment/views/payment_status_page.dart';
 // import 'package:function_mobile/modules/payment/views/payment_failed_page.dart';
 // import 'package:function_mobile/modules/payment/views/payment_history_page.dart';
 // import 'package:function_mobile/modules/payment/views/payment_page.dart';
-// import 'package:function_mobile/modules/payment/views/payment_success_page.dart';
 import 'package:function_mobile/modules/profile/views/edit_profile_page.dart';
 import 'package:function_mobile/modules/splash/views/splash_screen.dart';
 import 'package:function_mobile/modules/venue/views/venue_detail_page.dart';
@@ -93,8 +91,6 @@ class MyRoutes {
   static const String payment = '/payment';
   static const String paymentStatus = '/payment-status';
   static const String paymentHistory = '/payment-history';
-  static const String bookingSuccess = '/booking-success';
-  // static const String bookingDetail = '/booking-detail';
 
   // Define the routes for the app
 
@@ -119,7 +115,7 @@ class MyRoutes {
         binding: BookingBinding()),
     GetPage(
       name: bookingList,
-      page: () => BookingsListPage(),
+      page: () => BookingListPage(),
     ),
     GetPage(
         name: bookingDetail,
@@ -204,9 +200,5 @@ class MyRoutes {
       },
     ),
     // GetPage(name: MyRoutes.paymentHistory, page: () => const PaymentHistoryPage()),
-    GetPage(
-    name: bookingSuccess,
-    page: () => const BookingSuccessPage(),
-  ),
   ];
 }

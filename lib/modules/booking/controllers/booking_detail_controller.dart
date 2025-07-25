@@ -1,11 +1,12 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
+import 'package:function_mobile/core/services/api_service.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_list_controller.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:function_mobile/modules/booking/services/booking_service.dart';
+import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:get/get.dart';
 
 class BookingDetailController extends GetxController {
@@ -18,7 +19,6 @@ class BookingDetailController extends GetxController {
   final RxString errorMessage = ''.obs;
 
   // Action states
-  final RxBool isConfirming = false.obs;
   final RxBool isCancelling = false.obs;
 
   int? bookingId;
@@ -28,8 +28,7 @@ class BookingDetailController extends GetxController {
     super.onInit();
     bookingId = int.tryParse(Get.arguments?.toString() ?? '');
     if (bookingId != null) {
-      fetchBookingDetail();
-      startStatusCheckTimer(); // Start auto-refresh
+      loadBookingDetails();
     } else {
       hasError.value = true;
       errorMessage.value = 'Invalid booking ID';
@@ -43,16 +42,29 @@ class BookingDetailController extends GetxController {
     return booking.value!.isConfirmed && booking.value!.isPaid;
   }
 
-  Future<void> fetchBookingDetail() async {
+  Future<void> loadBookingDetails() async {
     try {
       isLoading.value = true;
       hasError.value = false;
       errorMessage.value = '';
 
-      final fetchedBooking = await _bookingService.getBookingById(bookingId!);
+      print("🔍 Loading booking details for ID: $bookingId");
 
-      if (fetchedBooking != null) {
-        booking.value = fetchedBooking;
+      final result = await _bookingService.getBookingById(bookingId!);
+      if (result != null) {
+        print("📦 Raw booking data: ${result.place?.name ?? result.placeName}");
+
+        // Apply enrichment like in BookingCard if needed
+        BookingModel enrichedBooking = result;
+        if (_needsPlaceEnrichment(result)) {
+          print("Enriching booking with place details...");
+          enrichedBooking = await _enrichBookingWithPlaceDetails(result);
+        }
+
+        booking.value = enrichedBooking;
+        print(
+            "Booking loaded: ${enrichedBooking.place?.name ?? enrichedBooking.placeName}");
+        print("📍 Address: ${enrichedBooking.place?.address ?? 'No address'}");
       } else {
         hasError.value = true;
         errorMessage.value = 'Booking not found';
@@ -60,9 +72,38 @@ class BookingDetailController extends GetxController {
     } catch (e) {
       hasError.value = true;
       errorMessage.value = 'Failed to load booking details: ${e.toString()}';
-      print('Error fetching booking detail: $e');
+      print('Error loading booking detail: $e');
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  // Helper methods for place enrichment (same as BookingService)
+  bool _needsPlaceEnrichment(BookingModel booking) {
+    return booking.place == null ||
+        booking.place?.address == null ||
+        booking.place!.address!.isEmpty;
+  }
+
+  Future<BookingModel> _enrichBookingWithPlaceDetails(
+      BookingModel booking) async {
+    try {
+      if (booking.placeId == null) {
+        print('Cannot enrich booking ${booking.id}: placeId is null');
+        return booking;
+      }
+
+      final apiService = Get.find<ApiService>();
+      final placeResponse =
+          await apiService.getRequest('/place/${booking.placeId}');
+      print(
+          'Fetched place details for booking ${booking.id}: ${placeResponse['name']}');
+
+      final venueModel = VenueModel.fromJson(placeResponse);
+      return booking.copyWith(place: venueModel);
+    } catch (e) {
+      print('Error enriching booking ${booking.id} with place details: $e');
+      return booking;
     }
   }
 
@@ -178,35 +219,6 @@ class BookingDetailController extends GetxController {
     }
   }
 
-  void shareBooking() {
-    if (booking.value != null) {
-      // Implement sharing functionality
-      final bookingInfo = '''
-Booking Details:
-Venue: ${booking.value!.place?.name ?? 'Unknown'}
-Date: ${booking.value!.formattedDate}
-Time: ${booking.value!.formattedTimeRange}
-Status: ${isBookingCompleted ? 'Completed' : booking.value!.statusDisplayName}
-Booking ID: #${booking.value!.id}
-${isBookingCompleted ? 'Payment: Paid' : ''}
-      ''';
-
-      // You can use the share_plus package here
-      // Share.share(bookingInfo);
-
-      _showSuccess('Booking details copied to clipboard');
-    }
-  }
-
-  void downloadBookingReceipt() {
-    if (!isBookingCompleted) {
-      _showError('Receipt only available for completed bookings');
-      return;
-    }
-    // Implement PDF generation and download
-    _showSuccess('Receipt download started');
-  }
-
   Future<void> refreshBookingDetail() async {
     if (bookingId != null) {
       try {
@@ -225,7 +237,7 @@ ${isBookingCompleted ? 'Payment: Paid' : ''}
               booking.value?.status == BookingStatus.confirmed) {
             _showSuccess('Your booking has been confirmed by the venue!');
           }
-          
+
           // Check if payment was completed
           if (isBookingCompleted && booking.value?.payment != null) {
             _showSuccess('Payment completed successfully!');
@@ -262,7 +274,7 @@ ${isBookingCompleted ? 'Payment: Paid' : ''}
 
   bool get canCancel {
     if (booking.value == null) return false;
-    
+
     // Cannot cancel completed bookings
     if (isBookingCompleted) return false;
 
@@ -272,13 +284,12 @@ ${isBookingCompleted ? 'Payment: Paid' : ''}
     return (booking.value!.status == BookingStatus.pending ||
             booking.value!.status == BookingStatus.confirmed) &&
         bookingDateTime.isAfter(now) &&
-        !isConfirming.value &&
         !isCancelling.value;
   }
 
   bool get canReschedule {
     if (booking.value == null) return false;
-    
+
     // Cannot reschedule completed bookings
     if (isBookingCompleted) return false;
 
@@ -289,7 +300,6 @@ ${isBookingCompleted ? 'Payment: Paid' : ''}
             booking.value!.status == BookingStatus.pending) &&
         bookingDateTime.isAfter(
             now.add(const Duration(hours: 24))) && // At least 24 hours notice
-        !isConfirming.value &&
         !isCancelling.value;
   }
 
@@ -304,7 +314,7 @@ ${isBookingCompleted ? 'Payment: Paid' : ''}
 
   String get timeUntilBooking {
     if (booking.value == null) return '';
-    
+
     // Show payment status for completed bookings
     if (isBookingCompleted) {
       return 'Booking completed - Paid';
