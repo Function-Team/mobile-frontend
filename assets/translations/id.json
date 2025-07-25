@@ -16,16 +16,87 @@
     "viewProfile": "Lihat Profile"
   },
   "faq": {
-    "title": "FAQ",
-    "subtitle": "Pertanyaan yang sering diajukan"
-  },
+  "title": "Pertanyaan Yang Sering Diajukan",
+  "subtitle": "Temukan jawaban dari pertanyaan anda",
+  "search_placeholder": "Cari di FAQ...",
+  "categories": {
+    "payment": {
+      "title": "Pembayaran & Penagihan",
+      "payment_methods": {
+        "question": "Metode pembayaran apa saja yang tersedia?",
+        "answer": "Kami menerima transfer bank utama (BRI, BCA, Mandiri), dompet digital (GoPay, OVO, DANA, ShopeePay, QRIS), dan lainnya. Semua pembayaran diproses secara aman melalui saluran terenkripsi."
+      },
+      "payment_failed": {
+        "question": "Apa yang harus dilakukan jika pembayaran gagal?",
+        "answer": "Jika pembayaran Anda gagal, periksa kembali detail kartu, pastikan saldo mencukupi, lalu coba lagi. Jika masalah berlanjut, hubungi bank Anda atau coba metode pembayaran lain. Anda juga dapat menghubungi tim dukungan kami untuk bantuan lebih lanjut."
+      }
+    },
+    "booking": {
+      "title": "Pemesanan & Reservasi",
+      "how_to_book": {
+        "question": "Bagaimana cara melakukan pemesanan?",
+        "answer": "Untuk memesan, pilih layanan yang tersedia, tentukan tanggal dan waktu yang Anda inginkan, isi data yang diperlukan, lalu lanjutkan ke pembayaran. Anda akan menerima konfirmasi setelah pemesanan berhasil."
+      },
+      "booking_confirmation": {
+        "question": "Bagaimana saya menerima konfirmasi pemesanan?",
+        "answer": "Konfirmasi akan dikirimkan langsung melalui notifikasi. Konfirmasi tersebut mencakup detail pesanan, lokasi, dan waktu. Anda juga bisa melihat semua pesanan di bagian 'Pemesanan Saya'."
+      }
+    },
+    "cancellation": {
+      "title": "Pembatalan",
+      "how_to_cancel": {
+        "question": "Bagaimana cara membatalkan pemesanan?",
+        "answer": "Masuk ke menu 'Pemesanan Saya', pilih pesanan yang ingin dibatalkan, lalu ketuk 'Batalkan Pemesanan'. Ikuti langkah-langkah untuk menyelesaikan proses pembatalan."
+      },
+      "cancellation_policy": {
+        "question": "Bagaimana kebijakan pembatalannya?",
+        "answer": "Pembatalan gratis tersedia selama pesanan belum dikonfirmasi oleh admin."
+      }
+    },
+    "account": {
+      "title": "Akun & Profil",
+      "create_account": {
+        "question": "Bagaimana cara membuat akun?",
+        "answer": "Ketuk 'Daftar' di layar pembuka, masukkan email dan nomor ponsel Anda, buat kata sandi yang aman, lalu verifikasi email Anda."
+      },
+      "update_profile": {
+        "question": "Bagaimana cara mengubah informasi profil saya?",
+        "answer": "Masuk ke menu 'Profil', pilih 'Edit Profil', perbarui informasi yang diperlukan, lalu simpan perubahan. Anda bisa mengubah nama, nomor ponsel, preferensi, dan pengaturan notifikasi."
+      }
+    },
+    "general": {
+      "title": "Umum",
+      "app_features": {
+        "question": "Fitur utama apa saja yang tersedia di aplikasi ini?",
+        "answer": "Aplikasi ini menyediakan manajemen pemesanan yang mudah, notifikasi real-time, pembayaran aman, riwayat pemesanan, chat dukungan pelanggan, dan dukungan multi-bahasa. Anda juga bisa melacak status pemesanan secara langsung."
+      },
+      "contact_support": {
+        "question": "Bagaimana cara menghubungi dukungan pelanggan?",
+        "answer": "Anda bisa menghubungi tim dukungan kami melalui WhatsApp atau kirim email ke support@Function.com. Jam operasional kami: pukul 09.00 – 21.00, Senin sampai Minggu."
+      },
+      "app_updates": {
+        "question": "Bagaimana cara memperbarui aplikasi?",
+        "answer": "Aktifkan pembaruan otomatis di pengaturan perangkat Anda, atau periksa manual di App Store (iOS) atau Google Play Store (Android). Kami rutin merilis pembaruan dengan fitur dan peningkatan terbaru."
+      }
+    }
+  }
+},
+
   "contact_support": {
     "title": "Hubungi Dukungan",
     "subtitle": "Dapatkan bantuan untuk akun Anda"
   },
   "follow_us": {
     "title": "Ikuti Kami",
-    "subtitle": "Terhubung dengan kami di media sosial"
+    "subtitle": "Tetap terhubung dan dapatkan update terbaru dari kami!",
+    "menuSubtitle": "Terhubung dengan kami di media sosial",
+    "instagram": "Instagram",
+    "linkedin": "LinkedIn",
+    "instagramHandle": "@function.venue",
+    "linkedinHandle": "Function Team",
+    "openPlatform": "Buka {platform}?",
+    "openPlatformMessage": "Ini akan membuka {platform} di browser atau aplikasi Anda. Anda akan meninggalkan aplikasi ini sementara.",
+    "errorOpening": "Tidak dapat membuka {platform}. Silakan coba lagi atau periksa apakah aplikasi sudah terinstal."
   },
   "common": {
     "change": "Ubah",
@@ -43,6 +114,7 @@
     "edit": "Edit",
     "exit": "Keluar",
     "delete": "Hapus",
+    "open": "Buka",
     "close": "Tutup",
     "back": "Kembali",
     "next": "Lanjut",

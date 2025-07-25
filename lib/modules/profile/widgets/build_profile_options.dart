@@ -3,6 +3,7 @@ import 'package:function_mobile/common/widgets/texts/tr_text.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/profile/views/faq_page.dart';
+import 'package:function_mobile/modules/profile/widgets/follow_us_bottomsheets.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/profile/controllers/profile_options_controller.dart';
 
@@ -16,7 +17,8 @@ Widget buildProfileOptions(BuildContext context) {
         context: context,
         icon: Icons.account_balance_wallet_outlined,
         title: LocalizationHelper.tr(LocaleKeys.profile_payment_methods),
-        subtitle: LocalizationHelper.tr(LocaleKeys.profile_payment_methods_subtitle),
+        subtitle:
+            LocalizationHelper.tr(LocaleKeys.profile_payment_methods_subtitle),
         onTap: () {
           // Handle PAYMENT METHODS
         },
@@ -26,7 +28,8 @@ Widget buildProfileOptions(BuildContext context) {
         context: context,
         icon: Icons.person_outline,
         title: LocalizationHelper.tr(LocaleKeys.profile_your_details),
-        subtitle: LocalizationHelper.tr(LocaleKeys.profile_your_details_subtitle),
+        subtitle:
+            LocalizationHelper.tr(LocaleKeys.profile_your_details_subtitle),
         onTap: () {
           // Handle your details
         },
@@ -62,7 +65,7 @@ Widget buildProfileOptions(BuildContext context) {
         title: LocalizationHelper.tr(LocaleKeys.follow_us_title),
         subtitle: LocalizationHelper.tr(LocaleKeys.follow_us_subtitle),
         onTap: () {
-          // TODO: Navigate to follow us page
+          FollowUsBottomSheet.show(context);
         },
       ),
       _buildOptionTile(
