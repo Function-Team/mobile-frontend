@@ -208,12 +208,14 @@ class HostModel {
   final int? id;
   final int? userId;
   final String? bio;
+  final String? phone;
   final UserModel? user;
 
   HostModel({
     this.id,
     this.userId,
     this.bio,
+    this.phone,
     this.user,
   });
 
@@ -222,6 +224,7 @@ class HostModel {
       id: json['id'],
       userId: json['user_id'],
       bio: json['bio'],
+      phone: json['phone'],
       user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
     );
   }
@@ -231,7 +234,33 @@ class HostModel {
       'id': id,
       'user_id': userId,
       'bio': bio,
+      'phone': phone,
+      'user': user?.toJson(),
     };
+  }
+  // Get host display name - prioritas: user.username > "Host"
+  String get displayName {
+    return user?.username ?? 'Host';
+  }
+
+  // Check if phone number is available
+  bool get hasPhone {
+    return phone != null && phone!.isNotEmpty;
+  }
+
+  String? get formattedPhone {
+    if (!hasPhone) return null;
+    
+    // Indonesian phone number formatting
+    final digits = phone!.replaceAll(RegExp(r'\D'), '');
+    
+    if (digits.startsWith('62')) {
+      return '+${digits.substring(0, 2)} ${digits.substring(2, 5)} ${digits.substring(5, 9)} ${digits.substring(9)}';
+    } else if (digits.startsWith('0')) {
+      return '+62 ${digits.substring(1, 4)} ${digits.substring(4, 8)} ${digits.substring(8)}';
+    }
+    
+    return phone; // Return original if no formatting applied
   }
 }
 

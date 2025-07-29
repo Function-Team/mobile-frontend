@@ -17,7 +17,7 @@ class DetailBottomSheets extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Booking Details',
+              Text(LocalizationHelper.tr(LocaleKeys.booking_bookingDetails),
                   style: Theme.of(context).textTheme.headlineMedium),
               IconButton(
                   onPressed: () {

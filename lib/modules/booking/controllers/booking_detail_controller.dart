@@ -2,11 +2,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/core/services/api_service.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_list_controller.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:function_mobile/modules/booking/services/booking_service.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
+import 'package:function_mobile/modules/venue/services/whatsapp_contact_service.dart';
 import 'package:get/get.dart';
 
 class BookingDetailController extends GetxController {
@@ -145,22 +148,28 @@ class BookingDetailController extends GetxController {
       _showError('Cannot cancel a completed booking');
       return;
     }
-
     Get.dialog(
       AlertDialog(
-        title: const Text('Cancel Booking'),
+        title: Text(LocalizationHelper.tr(LocaleKeys.booking_cancelBooking)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Are you sure you want to cancel this booking?'),
+            Text(LocalizationHelper.tr(
+                LocaleKeys.booking_cancelConfirmationMessage)),
             const SizedBox(height: 8),
             Text(
-              'Venue: ${booking.value?.place?.name ?? 'Unknown'}',
+              LocalizationHelper.trArgs(LocaleKeys.booking_venueInfo, {
+                'venueName': booking.value?.place?.name ??
+                    LocalizationHelper.tr(LocaleKeys.common_unknown)
+              }),
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             Text(
-              'Date: ${booking.value?.formattedDate ?? 'Unknown'}',
+              LocalizationHelper.trArgs(LocaleKeys.booking_dateInfo, {
+                'date': booking.value?.formattedDate ??
+                    LocalizationHelper.tr(LocaleKeys.common_unknown)
+              }),
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 12),
@@ -170,20 +179,20 @@ class BookingDetailController extends GetxController {
                 color: Colors.red.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Important:',
-                    style: TextStyle(
+                    LocalizationHelper.tr(LocaleKeys.common_important),
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.red,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
-                    '• This action cannot be undone\n• Refund policy may apply\n• Contact venue owner for details',
-                    style: TextStyle(
+                    LocalizationHelper.tr(LocaleKeys.booking_cancelWarningText),
+                    style: const TextStyle(
                       fontSize: 13,
                       color: Colors.red,
                     ),
@@ -196,15 +205,14 @@ class BookingDetailController extends GetxController {
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: const Text('Keep Booking'),
+            child: Text(LocalizationHelper.tr(LocaleKeys.booking_keepBooking)),
           ),
           TextButton(
             onPressed: () {
-              Get.back();
-              cancelBooking();
+            cancelBooking();
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Yes, Cancel'),
+            child: Text(LocalizationHelper.tr(LocaleKeys.booking_yesCancel)),
           ),
         ],
       ),
@@ -400,4 +408,9 @@ class BookingDetailController extends GetxController {
       );
     }
   }
+
+  //whatsapp
+  Future<void> contactHost() async {
+  WhatsAppContactService.contactHostFromBooking(booking: booking.value!);
+}
 }

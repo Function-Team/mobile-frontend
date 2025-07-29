@@ -18,7 +18,7 @@ class SearchActivityPage extends StatelessWidget {
           controller: controller.searchController,
           autofocus: true,
           decoration: InputDecoration(
-            hintText: LocalizationHelper.tr(LocaleKeys.search_selectActivity),
+            hintText: LocalizationHelper.tr(LocaleKeys.search_searchHint),
             border: InputBorder.none,
             suffixIcon: IconButton(
               icon: const Icon(Icons.close),
@@ -35,8 +35,85 @@ class SearchActivityPage extends StatelessWidget {
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
-          return const Center(
-            child: CircularProgressIndicator(),
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(height: 16),
+                Text(LocalizationHelper.tr(LocaleKeys.common_loading)),
+              ],
+            ),
+          );
+        }
+
+        if (controller.errorMessage.value.isNotEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: Colors.grey[400],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  LocalizationHelper.tr(LocaleKeys.common_error),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  controller.errorMessage.value,
+                  style: TextStyle(
+                    color: Colors.grey[500],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: controller.refreshData,
+                  child:
+                      Text(LocalizationHelper.tr(LocaleKeys.common_tryAgain)),
+                ),
+              ],
+            ),
+          );
+        }
+
+        if (controller.filteredActivities.isEmpty &&
+            controller.filteredVenues.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.search_off,
+                  size: 64,
+                  color: Colors.grey[400],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  LocalizationHelper.tr(LocaleKeys.search_noResultsFound),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  LocalizationHelper.tr(LocaleKeys.search_tryDifferentSearch),
+                  style: TextStyle(
+                    color: Colors.grey[500],
+                  ),
+                ),
+              ],
+            ),
           );
         }
 
@@ -44,32 +121,42 @@ class SearchActivityPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  LocalizationHelper.tr(LocaleKeys.search_selectActivity),
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-              ),
               // Activities section
-              Column(
-                children: controller.filteredActivities
-                    .map((activity) => _buildActivityItem(activity, controller))
-                    .toList(),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  'Venues',
-                  style: Theme.of(context).textTheme.titleLarge,
+              if (controller.filteredActivities.isNotEmpty) ...[
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    LocalizationHelper.tr(LocaleKeys.search_category),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
                 ),
-              ),
+                Column(
+                  children: controller.filteredActivities
+                      .map((activity) =>
+                          _buildActivityItem(activity, controller))
+                      .toList(),
+                ),
+              ],
+
               // Venues section
-              Column(
-                children: controller.filteredVenues
-                    .map((venue) => _buildVenueItem(venue, controller))
-                    .toList(),
-              ),
+              if (controller.filteredVenues.isNotEmpty) ...[
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    LocalizationHelper.tr(LocaleKeys.venue_venues),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                ),
+                Column(
+                  children: controller.filteredVenues
+                      .map((venue) => _buildVenueItem(venue, controller))
+                      .toList(),
+                ),
+              ],
             ],
           ),
         );
@@ -81,7 +168,9 @@ class SearchActivityPage extends StatelessWidget {
       CategoryModel activity, SearchActivityController controller) {
     return ListTile(
       leading: Icon(Icons.work, color: Colors.grey[600]),
-      title: Text(activity.name ?? 'Unknown Activity'),
+      title: Text(
+          activity.name ?? LocalizationHelper.tr(LocaleKeys.common_unknown)),
+      subtitle: Text(LocalizationHelper.tr(LocaleKeys.search_category)),
       onTap: () => controller.onActivitySelected(activity),
     );
   }
@@ -98,8 +187,19 @@ class SearchActivityPage extends StatelessWidget {
             ? const Icon(Icons.place)
             : null,
       ),
-      title: Text(venue.name ?? 'Unknown Venue'),
-      subtitle: Text(venue.city?.name ?? ''),
+      title: Text(venue.name ??
+          LocalizationHelper.tr(LocaleKeys.location_unknownVenue)),
+      subtitle: Text(
+          venue.city?.name ?? LocalizationHelper.tr(LocaleKeys.common_unknown)),
+      trailing: venue.price != null
+          ? Text(
+              'Rp ${venue.price!.toStringAsFixed(0)}/hr',
+              style: TextStyle(
+                color: Colors.green[600],
+                fontWeight: FontWeight.w600,
+              ),
+            )
+          : null,
       onTap: () => controller.onVenueSelected(venue),
     );
   }

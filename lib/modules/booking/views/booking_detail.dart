@@ -1,8 +1,11 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_detail_controller.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
+import 'package:function_mobile/modules/venue/widgets/venue_detail/contact_host_widget.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
@@ -40,9 +43,10 @@ class BookingDetailPage extends GetView<BookingDetailController> {
 
   Widget _buildErrorState() {
     return Scaffold(
-      appBar: AppBar(title: const Text('Booking Detail')),
-      body: const Center(
-        child: Text('Booking not found'),
+      appBar: AppBar(
+          title: Text(LocalizationHelper.tr(LocaleKeys.booking_bookingDetail))),
+      body: Center(
+        child: Text(LocalizationHelper.tr(LocaleKeys.booking_bookingNotFound)),
       ),
     );
   }
@@ -57,9 +61,10 @@ class BookingDetailPage extends GetView<BookingDetailController> {
             const SizedBox(height: 16),
             _buildBookingInfoSection(context, booking),
             const SizedBox(height: 16),
-            _buildVenueInfoSection(context, booking),
+            _buildContactSection(context, booking),
             const SizedBox(height: 16),
             _buildPricingSection(context, booking),
+            const SizedBox(height: 100),
             const SizedBox(height: 100),
           ],
         ),
@@ -310,23 +315,13 @@ class BookingDetailPage extends GetView<BookingDetailController> {
     );
   }
 
-  Widget _buildVenueInfoSection(BuildContext context, BookingModel booking) {
-    final venue = booking.place;
-    if (venue == null) return const SizedBox.shrink();
-
+  Widget _buildContactSection(BuildContext context, BookingModel booking) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: ContactHostWidget(
+        booking: booking,
+        style: ContactHostStyle.button,
+        customText: 'Need help? Contact Host',
       ),
     );
   }
@@ -644,20 +639,21 @@ class BookingDetailPage extends GetView<BookingDetailController> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Cancel Booking'),
-        content: const Text('Are you sure you want to cancel this booking?'),
+        title: Text(LocalizationHelper.tr(LocaleKeys.booking_cancelBooking)),
+        content: Text(LocalizationHelper.tr(
+            LocaleKeys.booking_cancelConfirmationMessage)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Keep Booking'),
+            child: Text(LocalizationHelper.tr(LocaleKeys.booking_keepBooking)),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              controller.cancelBooking();
+              controller.showCancelConfirmationDialog();
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Yes, Cancel'),
+            child: Text(LocalizationHelper.tr(LocaleKeys.booking_yesCancel)),
           ),
         ],
       ),

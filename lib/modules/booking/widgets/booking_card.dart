@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:intl/intl.dart';
 
@@ -28,7 +30,7 @@ class BookingCard extends StatelessWidget {
     if (bookingModel.placeName?.isNotEmpty ?? false) {
       return bookingModel.placeName!;
     }
-    return 'Venue tidak tersedia';
+    return LocalizationHelper.tr(LocaleKeys.location_venueNotAvailable);
   }
 
   String get venueAddress {
@@ -120,8 +122,6 @@ class BookingCard extends StatelessWidget {
                             ),
                           ],
                         ),
-
-                        // ✅ NEW: Show cancellation reason if available
                         if (bookingModel.isInCancelledSection &&
                             bookingModel.cancelReason?.isNotEmpty == true) ...[
                           const SizedBox(height: 8),
@@ -152,10 +152,7 @@ class BookingCard extends StatelessWidget {
                             ),
                           ),
                         ],
-
                         const SizedBox(height: 12),
-
-                        // Harga + Tombol di bawah (bukan sejajar)
                         _buildPriceAndActions(context),
                       ],
                     ),
@@ -169,27 +166,27 @@ class BookingCard extends StatelessWidget {
     );
   }
 
-  // ✅ UPDATED: Enhanced status badge dengan detailed status untuk cancelled
   Widget _buildStatusBadge() {
     Color badgeColor;
     String statusText;
 
-    // ✅ NEW: Enhanced status logic untuk cancelled section
     if (bookingModel.isInCancelledSection) {
       badgeColor = Colors.red;
       statusText = bookingModel.detailedStatusDisplayName;
     } else if (isCompleted) {
       badgeColor = Colors.green;
-      statusText = 'Selesai';
+      statusText = LocalizationHelper.tr(LocaleKeys.booking_status_completed);
     } else if (bookingModel.isConfirmed) {
       badgeColor = Colors.blue;
-      statusText = 'Dikonfirmasi';
+      statusText = LocalizationHelper.tr(LocaleKeys.booking_status_confirmed);
     } else if (bookingModel.isPaid) {
       badgeColor = Colors.orange;
-      statusText = 'Menunggu Konfirmasi';
+      statusText =
+          LocalizationHelper.tr(LocaleKeys.booking_waitingConfirmation);
     } else {
       badgeColor = Colors.grey;
-      statusText = 'Menunggu Pembayaran';
+      statusText =
+          LocalizationHelper.tr(LocaleKeys.booking_waitingConfirmation);
     }
 
     return Container(
@@ -219,7 +216,6 @@ class BookingCard extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Harga di kiri
         if (bookingModel.amount != null && bookingModel.amount! > 0)
           Text(
             'Rp${NumberFormat('#,###', 'id_ID').format(bookingModel.amount)}',
@@ -236,7 +232,7 @@ class BookingCard extends StatelessWidget {
           )
         else
           Text(
-            'Free',
+            LocalizationHelper.tr(LocaleKeys.common_free),
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -248,13 +244,9 @@ class BookingCard extends StatelessWidget {
                   : null,
             ),
           ),
-
-        // ✅ UPDATED: Tombol aksi dengan logic untuk cancelled bookings
         Row(
           children: [
-            // ✅ NEW: Show different actions for cancelled bookings
             if (bookingModel.isInCancelledSection) ...[
-              // For cancelled bookings, show rebook button if applicable
               if (_canRebook())
                 ElevatedButton(
                   onPressed: onViewVenue,
@@ -267,11 +259,11 @@ class BookingCard extends StatelessWidget {
                     ),
                     minimumSize: const Size(0, 32),
                   ),
-                  child:
-                      const Text('Book Again', style: TextStyle(fontSize: 12)),
+                  child: Text(
+                      LocalizationHelper.tr(LocaleKeys.booking_bookAgain),
+                      style: const TextStyle(fontSize: 12)),
                 ),
             ] else ...[
-              // Original action buttons for active bookings
               if (_shouldShowCancelButton() && onCancel != null)
                 OutlinedButton(
                   onPressed: onCancel,
@@ -284,7 +276,8 @@ class BookingCard extends StatelessWidget {
                     ),
                     minimumSize: const Size(0, 32),
                   ),
-                  child: const Text('Batal', style: TextStyle(fontSize: 12)),
+                  child: Text(LocalizationHelper.tr(LocaleKeys.booking_cancel),
+                      style: const TextStyle(fontSize: 12)),
                 ),
               if (_shouldShowCancelButton() && _shouldShowPayNowButton())
                 const SizedBox(width: 8),
@@ -300,7 +293,8 @@ class BookingCard extends StatelessWidget {
                     ),
                     minimumSize: const Size(0, 32),
                   ),
-                  child: const Text('Bayar', style: TextStyle(fontSize: 12)),
+                  child: Text(LocalizationHelper.tr(LocaleKeys.common_pay),
+                      style: TextStyle(fontSize: 12)),
                 ),
             ],
           ],
@@ -319,7 +313,6 @@ class BookingCard extends StatelessWidget {
     return '$startStr - $endStr';
   }
 
-  // ✅ UPDATED: Enhanced button visibility logic
   bool _shouldShowCancelButton() {
     return !bookingModel.isInCancelledSection &&
         !isCompleted &&
@@ -334,7 +327,6 @@ class BookingCard extends StatelessWidget {
             bookingModel.paymentStatus == null);
   }
 
-  // ✅ NEW: Check if user can rebook after cancellation
   bool _canRebook() {
     // Allow rebooking if the venue is still available
     return bookingModel.place != null;

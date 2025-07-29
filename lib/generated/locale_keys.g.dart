@@ -23,32 +23,55 @@ abstract class LocaleKeys {
   static const faq = 'faq';
   static const faq_search_placeholder = 'faq.search_placeholder';
   static const faq_categories_payment_title = 'faq.categories.payment.title';
-  static const faq_categories_payment_payment_methods_question = 'faq.categories.payment.payment_methods.question';
-  static const faq_categories_payment_payment_methods_answer = 'faq.categories.payment.payment_methods.answer';
-  static const faq_categories_payment_payment_failed_question = 'faq.categories.payment.payment_failed.question';
-  static const faq_categories_payment_payment_failed_answer = 'faq.categories.payment.payment_failed.answer';
+  static const faq_categories_payment_payment_methods_question =
+      'faq.categories.payment.payment_methods.question';
+  static const faq_categories_payment_payment_methods_answer =
+      'faq.categories.payment.payment_methods.answer';
+  static const faq_categories_payment_payment_failed_question =
+      'faq.categories.payment.payment_failed.question';
+  static const faq_categories_payment_payment_failed_answer =
+      'faq.categories.payment.payment_failed.answer';
   static const faq_categories_booking_title = 'faq.categories.booking.title';
-  static const faq_categories_booking_how_to_book_question = 'faq.categories.booking.how_to_book.question';
-  static const faq_categories_booking_how_to_book_answer = 'faq.categories.booking.how_to_book.answer';
-  static const faq_categories_booking_booking_confirmation_question = 'faq.categories.booking.booking_confirmation.question';
-  static const faq_categories_booking_booking_confirmation_answer = 'faq.categories.booking.booking_confirmation.answer';
-  static const faq_categories_cancellation_title = 'faq.categories.cancellation.title';
-  static const faq_categories_cancellation_how_to_cancel_question = 'faq.categories.cancellation.how_to_cancel.question';
-  static const faq_categories_cancellation_how_to_cancel_answer = 'faq.categories.cancellation.how_to_cancel.answer';
-  static const faq_categories_cancellation_cancellation_policy_question = 'faq.categories.cancellation.cancellation_policy.question';
-  static const faq_categories_cancellation_cancellation_policy_answer = 'faq.categories.cancellation.cancellation_policy.answer';
+  static const faq_categories_booking_how_to_book_question =
+      'faq.categories.booking.how_to_book.question';
+  static const faq_categories_booking_how_to_book_answer =
+      'faq.categories.booking.how_to_book.answer';
+  static const faq_categories_booking_booking_confirmation_question =
+      'faq.categories.booking.booking_confirmation.question';
+  static const faq_categories_booking_booking_confirmation_answer =
+      'faq.categories.booking.booking_confirmation.answer';
+  static const faq_categories_cancellation_title =
+      'faq.categories.cancellation.title';
+  static const faq_categories_cancellation_how_to_cancel_question =
+      'faq.categories.cancellation.how_to_cancel.question';
+  static const faq_categories_cancellation_how_to_cancel_answer =
+      'faq.categories.cancellation.how_to_cancel.answer';
+  static const faq_categories_cancellation_cancellation_policy_question =
+      'faq.categories.cancellation.cancellation_policy.question';
+  static const faq_categories_cancellation_cancellation_policy_answer =
+      'faq.categories.cancellation.cancellation_policy.answer';
   static const faq_categories_account_title = 'faq.categories.account.title';
-  static const faq_categories_account_create_account_question = 'faq.categories.account.create_account.question';
-  static const faq_categories_account_create_account_answer = 'faq.categories.account.create_account.answer';
-  static const faq_categories_account_update_profile_question = 'faq.categories.account.update_profile.question';
-  static const faq_categories_account_update_profile_answer = 'faq.categories.account.update_profile.answer';
-  static const faq_categories_general_title = 'faq.categories.general.title'; 
-  static const faq_categories_general_app_features_question = 'faq.categories.general.app_features.question';
-  static const faq_categories_general_app_features_answer = 'faq.categories.general.app_features.answer';
-  static const faq_categories_general_contact_support_question = 'faq.categories.general.contact_support.question';
-  static const faq_categories_general_contact_support_answer = 'faq.categories.general.contact_support.answer';
-  static const faq_categories_general_app_updates_question = 'faq.categories.general.app_updates.question';
-  static const faq_categories_general_app_updates_answer = 'faq.categories.general.app_updates.answer';
+  static const faq_categories_account_create_account_question =
+      'faq.categories.account.create_account.question';
+  static const faq_categories_account_create_account_answer =
+      'faq.categories.account.create_account.answer';
+  static const faq_categories_account_update_profile_question =
+      'faq.categories.account.update_profile.question';
+  static const faq_categories_account_update_profile_answer =
+      'faq.categories.account.update_profile.answer';
+  static const faq_categories_general_title = 'faq.categories.general.title';
+  static const faq_categories_general_app_features_question =
+      'faq.categories.general.app_features.question';
+  static const faq_categories_general_app_features_answer =
+      'faq.categories.general.app_features.answer';
+  static const faq_categories_general_contact_support_question =
+      'faq.categories.general.contact_support.question';
+  static const faq_categories_general_contact_support_answer =
+      'faq.categories.general.contact_support.answer';
+  static const faq_categories_general_app_updates_question =
+      'faq.categories.general.app_updates.question';
+  static const faq_categories_general_app_updates_answer =
+      'faq.categories.general.app_updates.answer';
   static const faq_no_results_found = 'faq.no_results_found';
   static const faq_try_different_keywords = 'faq.try_different_keywords';
   static const faq_questions_count = 'faq.questions_count';
@@ -127,11 +150,13 @@ abstract class LocaleKeys {
   static const common_saveChange = 'common.saveChange';
   static const common_hello = 'common.hello';
   static const common_unknown = 'common.unknown';
+  static const common_important = 'common.important';
   static const common_error = 'common.error';
   static const common_success = 'common.success';
   static const common_loading = 'common.loading';
   static const common_cancel = 'common.cancel';
   static const common_confirm = 'common.confirm';
+  static const common_pay = 'common.pay';
   static const common_yes = 'common.yes';
   static const common_no = 'common.no';
   static const common_save = 'common.save';
@@ -162,6 +187,20 @@ abstract class LocaleKeys {
   static const common_saturday = 'common.saturday';
   static const common_sunday = 'common.sunday';
   static const common = 'common';
+  static const common_date = 'common.date';
+static const common_time = 'common.time';
+static const common_venue = 'common.venue';
+static const common_capacity = 'common.capacity';
+static const common_view = 'common.view';
+static const common_free = 'common.free';
+static const common_serviceFee = 'common.serviceFee';
+static const common_tax = 'common.tax';
+static const common_total = 'common.total';
+static const common_basePrice = 'common.basePrice';
+static const common_discount = 'common.discount';
+static const common_taxes = 'common.taxes';
+static const common_totalPrice = 'common.totalPrice';
+static const common_people = 'common.people';
   static const booking_details = 'booking.details';
   static const booking_bookingDetails = 'booking.bookingDetails';
   static const booking_paymentPending = 'booking.paymentPending';
@@ -189,6 +228,8 @@ abstract class LocaleKeys {
   static const booking_bookingFailed = 'booking.bookingFailed';
   static const booking_paymentRequired = 'booking.paymentRequired';
   static const booking_paymentStatus = 'booking.paymentStatus';
+  static const booking_cancel = 'booking.cancel';
+  static const booking_bookAgain = 'booking.bookAgain';
   static const booking_paymentMethod = 'booking.paymentMethod';
   static const booking_makeBooking = 'booking.makeBooking';
   static const booking_bookNow = 'booking.bookNow';
@@ -215,6 +256,52 @@ abstract class LocaleKeys {
   static const booking_discount = 'booking.discount';
   static const booking_contactHost = 'booking.contactHost';
   static const booking_cancelling = 'booking.cancelling';
+  static const booking_bookVenue = 'booking.bookVenue';
+  static const booking_bookingDetail = 'booking.bookingDetail';
+  static const booking_bookingNotFound = 'booking.bookingNotFound';
+  static const booking_viewBookingDetails = 'booking.viewBookingDetails';
+  static const booking_cancelConfirmationMessage =
+      'booking.cancelConfirmationMessage';
+  static const booking_venueInfo = 'booking.venueInfo';
+  static const booking_dateInfo = 'booking.dateInfo';
+  static const booking_keepBooking = 'booking.keepBooking';
+  static const booking_yesCancel = 'booking.yesCancel';
+  static const booking_cancelWarningText = 'booking.cancelWarningText';
+  static const booking_bookingInformation = 'booking.bookingInformation';
+  static const booking_paymentSummary = 'booking.paymentSummary';
+  static const booking_viewVenueDetails = 'booking.viewVenueDetails';
+  static const booking_cancelBookingConfirm = 'booking.cancelBookingConfirm';
+  static const booking_payNow = 'booking.payNow';
+  static const booking_processingPayment = 'booking.processingPayment';
+  static const booking_cancelPayment = 'booking.cancelPayment';
+  static const booking_status_completed = 'booking.status.completed';
+  static const booking_status_confirmed = 'booking.status.confirmed';
+  static const booking_status_paid = 'booking.status.paid';
+  static const booking_status_pending = 'booking.status.pending';
+  static const booking_status_cancelled = 'booking.status.cancelled';
+  static const booking_waitingConfirmation = 'booking.waitingConfirmation';
+  static const booking_waitingPayment = 'booking.waitingPayment';
+  static const booking_bookingCompletedPaid = 'booking.bookingCompletedPaid';
+  static const booking_cancelledByYou = 'booking.cancelledByYou';
+  static const booking_cancelledByVenue = 'booking.cancelledByVenue';
+  static const booking_paymentExpired = 'booking.paymentExpired';
+  static const booking_paymentFailed = 'booking.paymentFailed';
+  static const booking_cannotCancelCompleted = 'booking.cannotCancelCompleted';
+  static const booking_alreadyCancelled = 'booking.alreadyCancelled';
+  static const booking_bookingMayCancelled = 'booking.bookingMayCancelled';
+  static const booking_cancelledByAdmin = 'booking.cancelledByAdmin';
+  static const booking_allBookings = 'booking.allBookings';
+static const booking_pendingBookings = 'booking.pendingBookings';
+static const booking_confirmedBookings = 'booking.confirmedBookings';
+static const booking_completedBookings = 'booking.completedBookings';
+static const booking_cancelledBookings = 'booking.cancelledBookings';
+static const booking_selectDates = 'booking.selectDates';
+static const booking_selectCapacity = 'booking.selectCapacity';
+static const booking_confirmBooking = 'booking.confirmBooking';
+static const booking_venuePrice = 'booking.venuePrice';
+static const booking_totalAmount = 'booking.totalAmount';
+static const booking_bookedOn = 'booking.bookedOn';
+static const booking_ratePerHour = 'booking.ratePerHour';
   static const venue_details = 'venue.details';
   static const venue_venueDetails = 'venue.venueDetails';
   static const venue_price = 'venue.price';
@@ -360,6 +447,13 @@ abstract class LocaleKeys {
   static const search_selectActivity = 'search.selectActivity';
   static const search_selectCapacity = 'search.selectCapacity';
   static const search = 'search';
+  static const search_sortDateDesc = 'search.sortDateDesc';
+static const search_sortDateAsc = 'search.sortDateAsc';
+static const search_sortVenueName = 'search.sortVenueName';
+static const search_sortStatus = 'search.sortStatus';
+static const success_bookingCancelledSuccessfully = 'success.bookingCancelledSuccessfully';
+static const success_bookingConfirmedByVenue = 'success.bookingConfirmedByVenue';
+static const success_paymentCompletedSuccessfully = 'success.paymentCompletedSuccessfully';
   static const errors_unknown = 'errors.unknown';
   static const errors_unknownError = 'errors.unknownError';
   static const errors_networkError = 'errors.networkError';
@@ -415,6 +509,52 @@ abstract class LocaleKeys {
   static const errors_tooManyRequests = 'errors.tooManyRequests';
   static const errors_rateLimitExceeded = 'errors.rateLimitExceeded';
   static const errors = 'errors';
+  static const errors_invalidBookingId = 'errors.invalidBookingId';
+static const errors_cannotCancelCompletedBooking = 'errors.cannotCancelCompletedBooking';
+static const errors_bookingAlreadyCancelled = 'errors.bookingAlreadyCancelled';
+static const errors_bookingMustBeConfirmed = 'errors.bookingMustBeConfirmed';
+static const errors_bookingAlreadyPaid = 'errors.bookingAlreadyPaid';
+static const errors_cannotPayCancelledBooking = 'errors.cannotPayCancelledBooking';
+static const errors_failedToLoadBookings = 'errors.failedToLoadBookings';
+static const errors_failedToCancelBooking = 'errors.failedToCancelBooking';
+static const errors_failedToCreatePayment = 'errors.failedToCreatePayment';
+  static const payment_paymentStatus = 'payment.paymentStatus';
+  static const payment_paymentSuccessful = 'payment.paymentSuccessful';
+  static const payment_paymentSuccessDescription =
+      'payment.paymentSuccessDescription';
+  static const payment_paymentPending = 'payment.paymentPending';
+  static const payment_paymentPendingDescription =
+      'payment.paymentPendingDescription';
+  static const payment_paymentFailed = 'payment.paymentFailed';
+  static const payment_paymentFailedDescription =
+      'payment.paymentFailedDescription';
+  static const payment_paymentCancelled = 'payment.paymentCancelled';
+  static const payment_paymentCancelledDescription =
+      'payment.paymentCancelledDescription';
+  static const payment_paymentExpired = 'payment.paymentExpired';
+  static const payment_paymentExpiredDescription =
+      'payment.paymentExpiredDescription';
+  static const payment = 'payment';
+  static const payment_payment = 'payment.payment';
+static const payment_preparingPayment = 'payment.preparingPayment';
+static const payment_paymentInitializationFailed = 'payment.paymentInitializationFailed';
+static const payment_tryAgain = 'payment.tryAgain';
+static const payment_goBack = 'payment.goBack';
+static const payment_paymentMethods = 'payment.paymentMethods';
+static const payment_creditDebitCard = 'payment.creditDebitCard';
+static const payment_bankTransfer = 'payment.bankTransfer';
+static const payment_eWallet = 'payment.eWallet';
+static const payment_convenienceStore = 'payment.convenienceStore';
+static const payment_creditCardSubtitle = 'payment.creditCardSubtitle';
+static const payment_bankTransferSubtitle = 'payment.bankTransferSubtitle';
+static const payment_eWalletSubtitle = 'payment.eWalletSubtitle';
+static const payment_convenienceStoreSubtitle = 'payment.convenienceStoreSubtitle';
+static const payment_cancelPaymentConfirm = 'payment.cancelPaymentConfirm';
+static const payment_continuePayment = 'payment.continuePayment';
+static const payment_checkStatus = 'payment.checkStatus';
+static const payment_useDifferentMethod = 'payment.useDifferentMethod';
+static const payment_backToHome = 'payment.backToHome';
+static const payment_startNewBooking = 'payment.startNewBooking';
   static const auth_login = 'auth.login';
   static const auth_register = 'auth.register';
   static const auth_logout = 'auth.logout';
@@ -488,4 +628,20 @@ abstract class LocaleKeys {
   static const favorites_noFavorites = 'favorites.noFavorites';
   static const favorites_startExploring = 'favorites.startExploring';
   static const favorites_exploreVenues = 'favorites.exploreVenues';
+  static const time_daysSingular = 'time.daysSingular';
+static const time_daysPlural = 'time.daysPlural';
+static const time_hoursSingular = 'time.hoursSingular';
+static const time_hoursPlural = 'time.hoursPlural';
+static const time_minutesSingular = 'time.minutesSingular';
+static const time_minutesPlural = 'time.minutesPlural';
+static const time_pastBooking = 'time.pastBooking';
+static const time_toGo = 'time.toGo';
+static const location_addressNotAvailable = 'location.addressNotAvailable';
+static const location_unknownVenue = 'location.unknownVenue';
+static const location_venueNotAvailable = 'location.venueNotAvailable';
+static const contact_whatsapp = 'contact.whatsapp';
+static const contact_phone_unavailable = 'contact.phone_unavailable';
+static const contact_whatsapp_message = 'contact.whatsapp_message';
+static const contact_confirmation_title = 'contact.confirmation.title';
+static const contact_confirmation_send_to = 'contact.confirmation.send_to';
 }

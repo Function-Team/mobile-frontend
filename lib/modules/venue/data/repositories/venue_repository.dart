@@ -25,15 +25,18 @@ class VenueRepository {
     try {
       final response = await _apiService.getRequest('/place/$id');
 
+      // ✅ ADD DETAILED DEBUG LOG
+      print('=== FULL API RESPONSE FOR PLACE $id ===');
+      print('Response type: ${response.runtimeType}');
+      print('Response content: $response');
+      print('Host data in response: ${response['host']}');
+      print('=======================================');
+
       if (response is Map<String, dynamic>) {
         return VenueModel.fromJson(response);
-      } else {
-        throw Exception('Failed to load venue. Status: ${response.statusCode}');
       }
     } catch (e) {
-      // Log error
-      print('Error fetching venue with id $id: $e');
-      // Return null rather than throwing
+      print('Error fetching venue: $e');
       return null;
     }
   }

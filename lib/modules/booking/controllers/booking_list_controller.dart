@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_controller.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:function_mobile/modules/booking/services/booking_service.dart';
@@ -188,42 +190,43 @@ class BookingListController extends GetxController {
   Future<void> cancelBooking(BookingModel booking) async {
     try {
       if (isBookingCompleted(booking)) {
-        showError('Cannot cancel a completed booking');
+        showError(LocalizationHelper.tr(LocaleKeys.booking_cannotCancelCompleted));
         return;
       }
 
       if (booking.isInCancelledSection) {
-        showError('This booking is already cancelled');
+        showError(LocalizationHelper.tr(LocaleKeys.booking_alreadyCancelled));
         return;
       }
 
       await _bookingService.cancelBooking(booking.id);
       await refreshBookings();
-      showSuccess('Booking cancelled successfully!');
+      showSuccess(LocalizationHelper.tr(LocaleKeys.success_bookingCancelledSuccessfully));
     } catch (e) {
-      showError('Failed to cancel booking: ${e.toString()}');
+      showError(LocalizationHelper.trArgs(LocaleKeys.errors_failedToCancelBooking, {'error': e.toString()}));
+
     }
   }
 
   void showCancelConfirmationDialog(BookingModel booking) {
     if (isBookingCompleted(booking)) {
-      showError('Cannot cancel a completed booking');
+      showError(LocalizationHelper.tr(LocaleKeys.booking_cannotCancelCompleted));
       return;
     }
 
     if (booking.isInCancelledSection) {
-      showError('This booking is already cancelled');
+      showError(LocalizationHelper.tr(LocaleKeys.booking_alreadyCancelled));
       return;
     }
 
     Get.dialog(
       AlertDialog(
-        title: const Text('Cancel Booking'),
+        title: Text(LocalizationHelper.tr(LocaleKeys.booking_cancelBooking)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Are you sure you want to cancel this booking?'),
+            Text(LocalizationHelper.tr(LocaleKeys.booking_cancelConfirmationMessage)),
             const SizedBox(height: 8),
             Text(
               'Venue: ${booking.place?.name ?? booking.placeName ?? 'Unknown'}',
@@ -237,17 +240,17 @@ class BookingListController extends GetxController {
         ),
         actions: [
           TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Keep Booking'),
-          ),
-          TextButton(
-            onPressed: () {
-              Get.back();
-              cancelBooking(booking);
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Yes, Cancel'),
-          ),
+          onPressed: () => Get.back(),
+          child: Text(LocalizationHelper.tr(LocaleKeys.booking_keepBooking)),
+        ),
+        TextButton(
+          onPressed: () {
+            Get.back();
+            cancelBooking(booking);
+          },
+          style: TextButton.styleFrom(foregroundColor: Colors.red),
+          child: Text(LocalizationHelper.tr(LocaleKeys.booking_yesCancel)),
+        ),
         ],
       ),
     );
@@ -255,17 +258,17 @@ class BookingListController extends GetxController {
 
   Future<void> createPaymentForBooking(BookingModel booking) async {
     if (!booking.isConfirmed) {
-      showError('Booking must be confirmed by admin before payment');
+      showError(LocalizationHelper.tr(LocaleKeys.errors_bookingMustBeConfirmed));
       return;
     }
 
     if (isBookingCompleted(booking)) {
-      showError('This booking is already paid');
+      showError(LocalizationHelper.tr(LocaleKeys.errors_bookingAlreadyPaid));
       return;
     }
 
     if (booking.isInCancelledSection) {
-      showError('Cannot make payment for cancelled booking');
+      showError(LocalizationHelper.tr(LocaleKeys.errors_cannotPayCancelledBooking));
       return;
     }
 
@@ -282,7 +285,7 @@ class BookingListController extends GetxController {
       await Future.delayed(const Duration(seconds: 2));
       await refreshBookings();
     } catch (e) {
-      showError('Failed to create payment: ${e.toString()}');
+      showError(LocalizationHelper.trArgs(LocaleKeys.errors_failedToCreatePayment, {'error': e.toString()}));
     }
   }
 
