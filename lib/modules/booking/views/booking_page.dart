@@ -21,7 +21,7 @@ class BookingPage extends GetView<BookingController> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Theme.of(context).colorScheme.onPrimary,
-        title: Text('Book Venue',
+        title: Text(LocalizationHelper.tr(LocaleKeys.booking_bookVenue),
             style: Theme.of(context)
                 .textTheme
                 .headlineMedium
@@ -41,7 +41,7 @@ class BookingPage extends GetView<BookingController> {
               _buildGuestInformationSection(context),
               const SizedBox(height: 24),
               _buildPricingSummary(context, venue),
-              const SizedBox(height: 100), 
+              const SizedBox(height: 100),
             ],
           ),
         ),
@@ -140,7 +140,7 @@ class BookingPage extends GetView<BookingController> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Booking Details',
+                LocalizationHelper.tr(LocaleKeys.booking_bookingDetails),
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -268,7 +268,8 @@ class BookingPage extends GetView<BookingController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(LocalizationHelper.tr(LocaleKeys.booking_guestInformation),
+          Text(
+            LocalizationHelper.tr(LocaleKeys.booking_guestInformation),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -291,7 +292,8 @@ class BookingPage extends GetView<BookingController> {
           const SizedBox(height: 16),
           PrimaryTextField(
             label: LocalizationHelper.tr(LocaleKeys.auth_phoneNumber),
-            hintText: LocalizationHelper.tr(LocaleKeys.booking_enterPhoneNumber),
+            hintText:
+                LocalizationHelper.tr(LocaleKeys.booking_enterPhoneNumber),
             controller: controller.guestPhoneController,
             keyboardType: TextInputType.phone,
             prefixIcon: const Icon(Icons.phone),
@@ -299,7 +301,8 @@ class BookingPage extends GetView<BookingController> {
           const SizedBox(height: 16),
           PrimaryTextField(
             label: LocalizationHelper.tr(LocaleKeys.booking_specialRequests),
-            hintText: LocalizationHelper.tr(LocaleKeys.booking_specialRequestsHint),
+            hintText:
+                LocalizationHelper.tr(LocaleKeys.booking_specialRequestsHint),
             controller: controller.specialRequestsController,
             maxLines: 3,
             prefixIcon: const Icon(Icons.note_add),
@@ -328,7 +331,7 @@ class BookingPage extends GetView<BookingController> {
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
-              ),  
+              ),
             ],
           ),
           const SizedBox(height: 16),

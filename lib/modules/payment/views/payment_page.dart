@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/payment/controllers/payment_controller.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
@@ -7,13 +9,13 @@ import 'package:function_mobile/common/widgets/buttons/outline_button.dart';
 
 class PaymentPage extends StatelessWidget {
   final BookingModel booking;
-  
+
   const PaymentPage({super.key, required this.booking});
 
   @override
   Widget build(BuildContext context) {
     final PaymentController controller = Get.put(PaymentController());
-    
+
     // Initialize payment when page loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (controller.currentPayment.value == null) {
@@ -42,11 +44,11 @@ class PaymentPage extends StatelessWidget {
         if (controller.isLoading.value) {
           return _buildLoadingState();
         }
-        
+
         if (controller.errorMessage.value.isNotEmpty) {
           return _buildErrorState(controller);
         }
-        
+
         return _buildPaymentContent(context, controller);
       }),
     );
@@ -121,7 +123,8 @@ class PaymentPage extends StatelessWidget {
     );
   }
 
-  Widget _buildPaymentContent(BuildContext context, PaymentController controller) {
+  Widget _buildPaymentContent(
+      BuildContext context, PaymentController controller) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -150,8 +153,8 @@ class PaymentPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Booking Details',
+          Text(
+            LocalizationHelper.tr(LocaleKeys.booking_bookingDetails),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -159,13 +162,16 @@ class PaymentPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _buildInfoRow(Icons.location_on, 'Venue', booking.place?.name ?? 'Unknown Venue'),
+          _buildInfoRow(Icons.location_on, 'Venue',
+              booking.place?.name ?? 'Unknown Venue'),
           const SizedBox(height: 12),
-          _buildInfoRow(Icons.calendar_today, 'Date', _formatDate(booking.startDateTime)),
+          _buildInfoRow(
+              Icons.calendar_today, 'Date', _formatDate(booking.startDateTime)),
           const SizedBox(height: 12),
           _buildInfoRow(Icons.access_time, 'Time', _formatTimeRange()),
           const SizedBox(height: 12),
-          _buildInfoRow(Icons.people, 'Capacity', 'Booking confirmed'), // Remove capacity display since it's not in model
+          _buildInfoRow(Icons.people, 'Capacity',
+              'Booking confirmed'), // Remove capacity display since it's not in model
         ],
       ),
     );
@@ -200,7 +206,7 @@ class PaymentPage extends StatelessWidget {
 
   Widget _buildPaymentSummary(PaymentController controller) {
     final amount = booking.place?.price?.toDouble() ?? 0.0;
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -363,22 +369,23 @@ class PaymentPage extends StatelessWidget {
     );
   }
 
-  Widget _buildPaymentActions(BuildContext context, PaymentController controller) {
+  Widget _buildPaymentActions(
+      BuildContext context, PaymentController controller) {
     return Obx(() {
       return Column(
         children: [
           PrimaryButton(
             isLoading: controller.isPaymentProcessing.value,
-            text: controller.isPaymentProcessing.value 
-              ? 'Processing Payment...' 
-              : 'Pay Now',
-            onPressed: controller.isPaymentProcessing.value 
-              ? null 
-              : () => controller.startPaymentProcess(),
+            text: controller.isPaymentProcessing.value
+                ? 'Processing Payment...'
+                : 'Pay Now',
+            onPressed: controller.isPaymentProcessing.value
+                ? null
+                : () => controller.startPaymentProcess(),
             width: double.infinity,
-            leftIcon: controller.isPaymentProcessing.value 
-              ? Icons.hourglass_empty 
-              : Icons.payment,
+            leftIcon: controller.isPaymentProcessing.value
+                ? Icons.hourglass_empty
+                : Icons.payment,
           ),
           const SizedBox(height: 12),
           OutlineButton(
@@ -392,7 +399,8 @@ class PaymentPage extends StatelessWidget {
     });
   }
 
-  void _showExitConfirmation(BuildContext context, PaymentController controller) {
+  void _showExitConfirmation(
+      BuildContext context, PaymentController controller) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -430,7 +438,7 @@ class PaymentPage extends StatelessWidget {
   String _formatTimeRange() {
     final start = booking.startDateTime;
     final end = booking.endDateTime;
-    
+
     return '${_formatTime(start)} - ${_formatTime(end)}';
   }
 
@@ -442,8 +450,8 @@ class PaymentPage extends StatelessWidget {
 
   String _formatCurrency(double amount) {
     return amount.toStringAsFixed(0).replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]},',
-    );
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]},',
+        );
   }
 }

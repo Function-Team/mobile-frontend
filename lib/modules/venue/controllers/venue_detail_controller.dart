@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
+import 'package:function_mobile/modules/venue/services/whatsapp_contact_service.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:function_mobile/modules/venue/data/repositories/venue_repository.dart';
@@ -225,20 +226,18 @@ class VenueDetailController extends GetxController {
 
   void openGallery(BuildContext context, {int initialIndex = 0}) {
     if (venueImages.isEmpty) {
-        print('No images available for gallery');
-        return;
+      print('No images available for gallery');
+      return;
     }
 
     if (initialIndex < 0 || initialIndex >= venueImages.length) {
-        print('Invalid image index: $initialIndex, using 0');
-        initialIndex = 0;
+      print('Invalid image index: $initialIndex, using 0');
+      initialIndex = 0;
     }
 
-    Get.toNamed(MyRoutes.imageGallery, arguments: {
-        'images': venueImages,
-        'initialIndex': initialIndex
-    });
-}
+    Get.toNamed(MyRoutes.imageGallery,
+        arguments: {'images': venueImages, 'initialIndex': initialIndex});
+  }
 
   //  Method for opening gallery with specific index
   void openImageAtIndex(BuildContext context, int index) {
@@ -253,11 +252,9 @@ class VenueDetailController extends GetxController {
     }
 
     print('Opening gallery at index $index');
-    
-    Get.toNamed(MyRoutes.imageGallery, arguments: {
-      'images': venueImages,
-      'initialIndex': index
-    });
+
+    Get.toNamed(MyRoutes.imageGallery,
+        arguments: {'images': venueImages, 'initialIndex': index});
   }
 
 }

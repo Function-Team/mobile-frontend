@@ -5,8 +5,11 @@ import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 import 'package:function_mobile/common/widgets/buttons/secondary_button.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
+import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
+import 'package:function_mobile/modules/venue/services/whatsapp_contact_service.dart';
 import 'package:function_mobile/modules/venue/widgets/category_chip.dart';
 import 'package:function_mobile/modules/venue/widgets/venue_detail/about_detail.dart';
+import 'package:function_mobile/modules/venue/widgets/venue_detail/contact_host_widget.dart';
 import 'package:function_mobile/modules/venue/widgets/venue_detail/facilities_section.dart';
 import 'package:function_mobile/modules/venue/widgets/venue_detail/image_gallery.dart';
 import 'package:get/get.dart';
@@ -15,6 +18,7 @@ import 'package:function_mobile/modules/venue/controllers/venue_detail_controlle
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class VenueDetailPage extends StatelessWidget {
   const VenueDetailPage({super.key});
@@ -38,9 +42,9 @@ class VenueDetailPage extends StatelessWidget {
                 Text(controller.errorMessage.value),
                 const SizedBox(height: 16),
                 PrimaryButton(
-
-                  isLoading: false,
-                    text: LocalizationHelper.tr(LocaleKeys.common_retry), // FIXED
+                    isLoading: false,
+                    text:
+                        LocalizationHelper.tr(LocaleKeys.common_retry), // FIXED
                     onPressed: controller.retryLoading),
               ],
             ),
@@ -243,12 +247,13 @@ class VenueDetailPage extends StatelessWidget {
               children: [
                 CategoryChip(
                   label: controller.venue.value?.category?.name ??
-                      LocalizationHelper.tr(LocaleKeys.venue_category_uncategorized), 
+                      LocalizationHelper.tr(
+                          LocaleKeys.venue_category_uncategorized),
                   color: Colors.blue,
                 ),
                 CategoryChip(
                   label:
-                      '1-${controller.venue.value?.maxCapacity ?? LocalizationHelper.tr(LocaleKeys.venue_capacity_unknown)}', 
+                      '1-${controller.venue.value?.maxCapacity ?? LocalizationHelper.tr(LocaleKeys.venue_capacity_unknown)}',
                   color: Colors.blue,
                   icon: Icons.groups_2,
                 ),
@@ -294,7 +299,8 @@ class VenueDetailPage extends StatelessWidget {
                 ),
                 Text(
                   controller.venue.value?.description ??
-                      LocalizationHelper.tr(LocaleKeys.venue_description_default),
+                      LocalizationHelper.tr(
+                          LocaleKeys.venue_description_default),
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey[700],
@@ -306,61 +312,64 @@ class VenueDetailPage extends StatelessWidget {
           const SizedBox(height: 10),
           // Venue Owner
           Padding(
-            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  LocalizationHelper.tr(LocaleKeys.venue_venueOwner),
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+            padding: const EdgeInsets.all(16),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey[200]!),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: Colors.blue[100],
+                        radius: 20,
+                        child: Text(
+                          (controller.venue.value?.host?.user?.username
+                                      ?.isNotEmpty ??
+                                  false)
+                              ? controller.venue.value!.host!.user!.username![0]
+                                  .toUpperCase()
+                              : 'H',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        controller.venue.value?.host?.user?.username ??
+                            LocalizationHelper.tr(
+                                LocaleKeys.venue_owner_defaultName),
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 16,
-                          backgroundColor: Colors.blue,
-                          child: Text(
-                            (controller.venue.value?.host?.user?.username
-                                        ?.isNotEmpty ??
-                                    false)
-                                ? controller
-                                    .venue.value!.host!.user!.username![0]
-                                    .toUpperCase()
-                                : 'V',
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          controller.venue.value?.host?.user?.username ??
-                              LocalizationHelper.tr(LocaleKeys.venue_owner_defaultName),
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                    PrimaryButton(
+                  Obx(() {
+                    final venue = controller.venue.value;
 
-                      isLoading: false,
-                      text: LocalizationHelper.tr(LocaleKeys.venue_contact), // FIXED
-                      onPressed: () {},
-                      width: 120,
-                      height: 42,
-                    ),
-                  ],
-                ),
-              ],
+                    return venue != null
+                        ? ContactHostWidget(
+                            venue: venue,
+                            style: ContactHostStyle.button,
+                            customText: 'Contact',
+                          )
+                        : const SizedBox(
+                            width: 80,
+                            height: 42,
+                            child: Center(
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          );
+                  }),
+                ],
+              ),
             ),
           ),
         ],
@@ -374,7 +383,38 @@ class VenueDetailPage extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(top: 16),
       child: GestureDetector(
-        onTap: () {
+        onTap: () async {
+          // Ambil venue dari controller
+          final venue = controller.venue.value;
+
+          if (venue?.address != null) {
+            // Encode alamat untuk URL
+            final encodedAddress = Uri.encodeComponent(venue!.address!);
+            final googleMapsUrl =
+                'https://www.google.com/maps/search/?api=1&query=$encodedAddress';
+
+            final uri = Uri.parse(googleMapsUrl);
+
+            try {
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              } else {
+                // Show error jika gagal
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Could not open Google Maps')),
+                  );
+                }
+              }
+            } catch (e) {
+              // Handle error
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error: ${e.toString()}')),
+                );
+              }
+            }
+          }
         },
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -393,7 +433,8 @@ class VenueDetailPage extends StatelessWidget {
                   children: [
                     Text(
                       controller.venue.value?.address ??
-                          LocalizationHelper.tr(LocaleKeys.venue_noLocationData),
+                          LocalizationHelper.tr(
+                              LocaleKeys.venue_noLocationData),
                       style: const TextStyle(fontSize: 14, color: Colors.black),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -403,15 +444,32 @@ class VenueDetailPage extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               IconButton(
-                  onPressed: () {
-                    // ! Still Error
-                    // controller.launchUrlWithSnackbar(
-                    //     controller.venue.value!.mapsUrl ?? "", context);
-                  },
-                  icon: Icon(
-                    Icons.location_on,
-                    color: Theme.of(context).colorScheme.primary,
-                  ))
+                onPressed: () async {
+                  // Sama dengan GestureDetector onTap di atas
+                  final venue = controller.venue.value;
+
+                  if (venue?.address != null) {
+                    final encodedAddress = Uri.encodeComponent(venue!.address!);
+                    final googleMapsUrl =
+                        'https://www.google.com/maps/search/?api=1&query=$encodedAddress';
+
+                    final uri = Uri.parse(googleMapsUrl);
+
+                    try {
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri,
+                            mode: LaunchMode.externalApplication);
+                      }
+                    } catch (e) {
+                      print('Error launching maps: $e');
+                    }
+                  }
+                },
+                icon: Icon(
+                  Icons.location_on,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
             ],
           ),
         ),
@@ -446,8 +504,7 @@ class VenueDetailPage extends StatelessWidget {
               ),
               CustomTextButton(
                 text: LocalizationHelper.tr(LocaleKeys.common_showMore),
-                onTap: () {
-                },
+                onTap: () {},
                 icon: Icons.arrow_forward,
                 isrightIcon: true,
               ),
@@ -455,19 +512,26 @@ class VenueDetailPage extends StatelessWidget {
           ),
           Column(
             children: [
-              _buildScheduleItem(LocalizationHelper.tr(LocaleKeys.common_monday),
+              _buildScheduleItem(
+                  LocalizationHelper.tr(LocaleKeys.common_monday),
                   '7:00 - 21:00'),
-              _buildScheduleItem(LocalizationHelper.tr(LocaleKeys.common_tuesday),
+              _buildScheduleItem(
+                  LocalizationHelper.tr(LocaleKeys.common_tuesday),
                   '7:00 - 21:00'),
-              _buildScheduleItem(LocalizationHelper.tr(LocaleKeys.common_wednesday),
+              _buildScheduleItem(
+                  LocalizationHelper.tr(LocaleKeys.common_wednesday),
                   '7:00 - 21:00'),
-              _buildScheduleItem(LocalizationHelper.tr(LocaleKeys.common_thursday),
+              _buildScheduleItem(
+                  LocalizationHelper.tr(LocaleKeys.common_thursday),
                   '7:00 - 21:00'),
-              _buildScheduleItem(LocalizationHelper.tr(LocaleKeys.common_friday),
+              _buildScheduleItem(
+                  LocalizationHelper.tr(LocaleKeys.common_friday),
                   '7:00 - 21:00'),
-              _buildScheduleItem(LocalizationHelper.tr(LocaleKeys.common_saturday),
+              _buildScheduleItem(
+                  LocalizationHelper.tr(LocaleKeys.common_saturday),
                   '7:00 - 21:00'),
-              _buildScheduleItem(LocalizationHelper.tr(LocaleKeys.common_sunday),
+              _buildScheduleItem(
+                  LocalizationHelper.tr(LocaleKeys.common_sunday),
                   LocalizationHelper.tr(LocaleKeys.venue_closed)),
             ],
           ),
@@ -533,7 +597,7 @@ class VenueDetailPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      LocalizationHelper.tr(LocaleKeys.venue_startFrom), 
+                      LocalizationHelper.tr(LocaleKeys.venue_startFrom),
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[700],
@@ -579,7 +643,8 @@ class VenueDetailPage extends StatelessWidget {
                     } else {
                       CustomSnackbar.show(
                         context: context,
-                        message: LocalizationHelper.tr(LocaleKeys.errors_venueUnavailable), 
+                        message: LocalizationHelper.tr(
+                            LocaleKeys.errors_venueUnavailable),
                         type: SnackbarType.error,
                       );
                     }

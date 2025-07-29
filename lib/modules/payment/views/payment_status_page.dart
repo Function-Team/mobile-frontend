@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/payment/controllers/payment_controller.dart';
 import 'package:function_mobile/modules/payment/models/payment_model.dart';
@@ -23,13 +25,13 @@ class PaymentStatusPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text(
-          'Payment Status',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
-          ),
-        ),
+        title: Text(
+  LocalizationHelper.tr(LocaleKeys.payment_paymentStatus),
+  style: const TextStyle(
+    fontWeight: FontWeight.bold,
+    color: Colors.black87,
+  ),
+),
         backgroundColor: Colors.white,
         elevation: 0,
         automaticallyImplyLeading: false,
@@ -93,42 +95,37 @@ class PaymentStatusPage extends StatelessWidget {
   }
 
   Widget _buildStatusInfo(BuildContext context, PaymentStatus status) {
-    String title;
-    String description;
-    Color titleColor;
+  String title;
+  String description;
+  Color titleColor;
 
-    switch (status) {
-      case PaymentStatus.success:
-        title = 'Payment Successful!';
-        description =
-            'Your booking has been confirmed. You will receive a confirmation email shortly.';
-        titleColor = Colors.green;
-        break;
-      case PaymentStatus.pending:
-        title = 'Payment Pending';
-        description =
-            'Your payment is being processed. We will notify you once it\'s completed.';
-        titleColor = Colors.orange;
-        break;
-      case PaymentStatus.failed:
-        title = 'Payment Failed';
-        description =
-            'Your payment could not be processed. Please try again or use a different payment method.';
-        titleColor = Colors.red;
-        break;
-      case PaymentStatus.cancelled:
-        title = 'Payment Cancelled';
-        description =
-            'Your payment has been cancelled. No charges have been made to your account.';
-        titleColor = Colors.red;
-        break;
-      case PaymentStatus.expired:
-        title = 'Payment Expired';
-        description =
-            'Your payment session has expired. Please start a new booking to continue.';
-        titleColor = Colors.grey;
-        break;
-    }
+  switch (status) {
+    case PaymentStatus.success:
+      title = LocalizationHelper.tr(LocaleKeys.payment_paymentSuccessful);
+      description = LocalizationHelper.tr(LocaleKeys.payment_paymentSuccessDescription);
+      titleColor = Colors.green;
+      break;
+    case PaymentStatus.pending:
+      title = LocalizationHelper.tr(LocaleKeys.payment_paymentPending);
+      description = LocalizationHelper.tr(LocaleKeys.payment_paymentPendingDescription);
+      titleColor = Colors.orange;
+      break;
+    case PaymentStatus.failed:
+      title = LocalizationHelper.tr(LocaleKeys.payment_paymentFailed);
+      description = LocalizationHelper.tr(LocaleKeys.payment_paymentFailedDescription);
+      titleColor = Colors.red;
+      break;
+    case PaymentStatus.cancelled:
+      title = LocalizationHelper.tr(LocaleKeys.payment_paymentCancelled);
+      description = LocalizationHelper.tr(LocaleKeys.payment_paymentCancelledDescription);
+      titleColor = Colors.red;
+      break;
+    case PaymentStatus.expired:
+      title = LocalizationHelper.tr(LocaleKeys.payment_paymentExpired);
+      description = LocalizationHelper.tr(LocaleKeys.payment_paymentExpiredDescription);
+      titleColor = Colors.grey;
+      break;
+  }
 
     return Column(
       children: [
@@ -208,7 +205,7 @@ class PaymentStatusPage extends StatelessWidget {
           children: [
             PrimaryButton(
               isLoading: controller.isLoading.value,
-              text: 'View Booking Details',
+              text: LocalizationHelper.tr(LocaleKeys.booking_viewBookingDetails),
               onPressed: () => Get.offAllNamed('/booking-detail'),
               width: double.infinity,
               leftIcon: Icons.receipt_long,
