@@ -1,7 +1,6 @@
-import 'package:function_mobile/core/constants/app_constants.dart';
+import 'package:function_mobile/core/constant/app_constant.dart';
 import 'package:function_mobile/core/services/secure_storage_service.dart';
 import 'package:function_mobile/core/services/api_service.dart';
-import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 import 'package:function_mobile/modules/auth/models/auth_model.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart' as dio;
@@ -589,7 +588,6 @@ class AuthService extends GetxService {
       // Extract data from token
       final email = tokenInfo['sub'] as String?;
       final userId = tokenInfo['id'] as int?;
-      final isAdmin = tokenInfo['is_admin'] as bool? ?? false;
 
       if (email == null || userId == null) {
         print('AuthService: Missing required user data in token');
