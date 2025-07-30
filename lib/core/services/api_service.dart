@@ -11,7 +11,7 @@ class ApiService extends GetxService {
 
   ApiService() {
     _dio = dio.Dio(dio.BaseOptions(
-      baseUrl: AppConstants.baseUrlLocal,
+      baseUrl: AppConstants.baseUrl,
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
       sendTimeout: const Duration(seconds: 10),
