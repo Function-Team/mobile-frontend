@@ -134,15 +134,18 @@ class LoginPage extends StatelessWidget {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                                color: authController.passwordLoginError.isNotEmpty
-                                    ? Colors.red
-                                    : Colors.grey[300]!),
+                                color:
+                                    authController.passwordLoginError.isNotEmpty
+                                        ? Colors.red
+                                        : Colors.grey[300]!),
                             color: Colors.grey[50],
                           ),
                           child: TextField(
                             controller: authController.passwordLoginController,
-                            obscureText: authController.obscureLoginPassword.value,
-                            onChanged: authController.validatePasswordLoginField,
+                            obscureText:
+                                authController.obscureLoginPassword.value,
+                            onChanged:
+                                authController.validatePasswordLoginField,
                             decoration: InputDecoration(
                               hintText: 'Enter your password',
                               hintStyle: TextStyle(
@@ -158,7 +161,8 @@ class LoginPage extends StatelessWidget {
                                 ),
                               ),
                               suffixIcon: GestureDetector(
-                                onTap: authController.toggleLoginPasswordVisibility,
+                                onTap: authController
+                                    .toggleLoginPasswordVisibility,
                                 child: Container(
                                   padding: EdgeInsets.all(12),
                                   child: Icon(
@@ -199,7 +203,7 @@ class LoginPage extends StatelessWidget {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: authController.goToForgotPassword,
+                    onPressed: () {},
                     child: Text(
                       'Forgot Password?',
                       style: TextStyle(
