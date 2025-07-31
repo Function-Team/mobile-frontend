@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:function_mobile/core/constants/app_constants.dart';
+import 'package:function_mobile/core/constant/app_constant.dart';
 
 class VenueModel {
   final int? id;

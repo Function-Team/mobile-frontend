@@ -1,11 +1,8 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
-import 'package:function_mobile/core/constants/app_constants.dart';
 import 'package:function_mobile/core/services/api_service.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_list_controller.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
-import 'package:function_mobile/modules/booking/services/booking_service.dart';
 import 'package:function_mobile/modules/booking/widgets/change_booking_bottom_sheets.dart';
 import 'package:function_mobile/modules/booking/widgets/detail_bottom_sheets.dart';
 import 'package:function_mobile/modules/navigation/controllers/bottom_nav_controller.dart';
@@ -13,12 +10,9 @@ import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:get/get.dart';
 import 'dart:async';
-import 'package:function_mobile/modules/payment/controllers/payment_controller.dart';
-import 'package:function_mobile/common/routes/routes.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class BookingController extends GetxController {
-  final BookingService _bookingService = BookingService();
   final ApiService _apiService = ApiService();
 
   // Form data

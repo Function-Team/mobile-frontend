@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -7,17 +8,21 @@ import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/theme/app_theme.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
-import 'package:function_mobile/modules/payment/services/payment_service.dart';
+import 'package:function_mobile/firebase_options.dart';
 import 'package:function_mobile/core/services/api_service.dart';
+import 'package:function_mobile/core/services/notification_service.dart';
 import 'package:get/get.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
-  await dotenv.load(fileName: '.env');
-  debugPaintSizeEnabled = false;
+  await dotenv.load(fileName: ".env");
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  
+  // Initialize services
   Get.put(ApiService());
   LocalizationHelper.debugLocalization;
+  Get.put(NotificationService());
 
   runApp(
     EasyLocalization(

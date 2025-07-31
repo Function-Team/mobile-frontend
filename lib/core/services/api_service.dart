@@ -1,8 +1,7 @@
+import 'package:function_mobile/core/constant/app_constant.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:function_mobile/core/constants/app_constants.dart';
-import 'package:http/http.dart';
 
 class ApiService extends GetxService {
   late final dio.Dio _dio;

@@ -1,3 +1,4 @@
+import 'package:function_mobile/core/constant/app_constant.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:function_mobile/core/services/api_service.dart';
 import 'package:function_mobile/core/services/secure_storage_service.dart';
@@ -440,10 +441,14 @@ class AuthService extends GetxService {
     try {
       print('AuthService: Checking verification status for: $email');
 
+      final email = tokenInfo['sub'] as String?;
+      final userId = tokenInfo['id'] as int?;
+
       final response = await _apiService.postRequest(
         '/check-verification',
         {'email': email},
       );
+
 
       if (response != null && response['is_verified'] != null) {
         return response['is_verified'] as bool;
