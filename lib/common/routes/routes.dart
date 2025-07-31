@@ -1,3 +1,4 @@
+import 'package:function_mobile/modules/auth/views/email_verification_page.dart';
 import 'package:function_mobile/modules/auth/views/signup_page.dart';
 import 'package:function_mobile/modules/booking/bindings/booking_binding.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
@@ -44,6 +45,7 @@ class MyRoutes {
   // Auth
   static const String login = '/login';
   static const String signup = '/signup';
+  static const String emailVerification = '/emailVerification';
 
   // Home
   static const String home = '/homePage';
@@ -104,6 +106,7 @@ class MyRoutes {
     // Auth (no AuthBinding needed - controllers are in AppBinding)
     GetPage(name: login, page: () => LoginPage()),
     GetPage(name: signup, page: () => SignupPage()),
+    GetPage(name: emailVerification, page: () => EmailVerificationPage()),
 
     // Home (no HomeBinding needed - controllers are in AppBinding)
     GetPage(name: home, page: () => HomePage()),

@@ -8,14 +8,16 @@ class VenueRepository {
   Future<List<VenueModel>> getVenues() async {
     try {
       final response = await _apiService.getRequest('/place');
+
       if (response is List) {
+
         return response.map((json) => VenueModel.fromJson(json)).toList();
       } else {
         throw Exception(
             'Failed to load venues. Status: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching venues: $e');
+      print(' Error fetching venues: $e');
       return [];
     }
   }
@@ -25,45 +27,12 @@ class VenueRepository {
     try {
       final response = await _apiService.getRequest('/place/$id');
 
-      // ✅ ADD DETAILED DEBUG LOG
-      print('=== FULL API RESPONSE FOR PLACE $id ===');
-      print('Response type: ${response.runtimeType}');
-      print('Response content: $response');
-      print('Host data in response: ${response['host']}');
-      print('=======================================');
-
       if (response is Map<String, dynamic>) {
         return VenueModel.fromJson(response);
       }
     } catch (e) {
       print('Error fetching venue: $e');
       return null;
-    }
-  }
-
-  //Get venue image
-  Future<List<PictureModel>> getVenueImages(int venueId) async {
-    try {
-      final response = await _apiService.getRequest('/img?place_id=$venueId');
-      print('Response for venue images: $response');
-
-      if (response is List) {
-        final images =
-            response.map((json) => PictureModel.fromJson(json)).toList();
-
-        // Tambahkan log untuk debugging
-        for (var img in images) {
-          print('Image filename: ${img.filename}, URL: ${img.imageUrl}');
-        }
-
-        return images;
-      } else {
-        print('Invalid response format for images: $response');
-        return [];
-      }
-    } catch (e) {
-      print('Error fetching images for venue $venueId: $e');
-      return [];
     }
   }
 
@@ -104,7 +73,6 @@ class VenueRepository {
         queryParams['reverse'] = reverseSort.toString();
       }
 
-      // Bangun query string manual
       String queryString = '';
       if (queryParams.isNotEmpty) {
         queryString =
@@ -141,28 +109,7 @@ class VenueRepository {
             'Failed to load reviews. Status: ${response.statusCode}');
       }
     } catch (e) {
-      // Log error
       print('Error fetching reviews for venue $venueId: $e');
-      // Return empty list rather than throwing
-      return [];
-    }
-  }
-
-  // Get venue facilities
-  Future<List<FacilityModel>> getVenueFacilities(int venueId) async {
-    try {
-      final response =
-          await _apiService.getRequest('/facility?venue_id=$venueId');
-
-      if (response is List) {
-        return response.map((json) => FacilityModel.fromJson(json)).toList();
-      } else {
-        throw Exception(
-            'Failed to load facilities. Status: ${response.statusCode}');
-      }
-    } catch (e) {
-      // Log error
-      print('Error fetching facilities for venue $venueId: $e');
       // Return empty list rather than throwing
       return [];
     }
@@ -223,12 +170,74 @@ class VenueRepository {
       if (response is List) {
         return response.map((json) => CategoryModel.fromJson(json)).toList();
       } else {
-        throw Exception(
-            'Failed to load activities. Status: ${response.statusCode}');
+        print('Invalid response format for activities: $response');
+        return [];
       }
     } catch (e) {
       print('Error fetching activities: $e');
       return [];
     }
+  }
+
+  Future<List<FacilityModel>> getFacilities() async {
+    try {
+      final response = await _apiService.getRequest('/facility');
+      if (response is List) {
+        return response.map((json) => FacilityModel.fromJson(json)).toList();
+      } else {
+        print('Invalid response format for facilities: $response');
+        return [];
+      }
+    } catch (e) {
+      print('Error fetching facilities: $e');
+      return [];
+    }
+  }
+
+  Future<List<CategoryModel>> getCategories() async {
+    try {
+      final response = await _apiService.getRequest('/category');
+      if (response is List) {
+        return response.map((json) => CategoryModel.fromJson(json)).toList();
+      } else {
+        print('Invalid response format for categories: $response');
+        return [];
+      }
+    } catch (e) {
+      print('Error fetching categories: $e');
+      return [];
+    }
+  }
+
+  // Testing method untuk debug ketiga endpoint
+  Future<void> debugActivityFacilityCategory() async {
+    print('=== DEBUG ACTIVITY, FACILITY, CATEGORY ===');
+
+    try {
+      // Test Activity
+      final activities = await getActivities();
+      print('Activities count: ${activities.length}');
+      if (activities.isNotEmpty) {
+        print('First activity: ${activities[0].toJson()}');
+      }
+
+      // Test Facility
+      final facilities = await getFacilities();
+      print('Facilities count: ${facilities.length}');
+      if (facilities.isNotEmpty) {
+        print('First facility: ${facilities[0].toJson()}');
+      }
+
+      // Test Category
+      final categories = await getCategories();
+      print('Categories count: ${categories.length}');
+      if (categories.isNotEmpty) {
+        print('First category: ${categories[0].toJson()}');
+      }
+    } catch (e) {
+      print('Debug error: $e');
+    }
+
+    print('==========================================');
   }
 }

@@ -415,6 +415,80 @@ class AuthService extends GetxService {
     }
   }
 
+  Future<void> resendVerificationEmail(String email) async {
+  try {
+    
+    final response = await _apiService.postRequest(
+      '/resend-verification',
+      {'email': email},
+    );
+
+    if (response != null && response['message'] != null) {
+      print('AuthService: Verification email resent successfully');
+    } else {
+      throw Exception('Failed to resend verification email');
+    }
+  } on dio.DioException catch (e) {
+    print('DioException during resend verification: ${e.response?.statusCode} - ${e.response?.data}');
+    
+    if (e.response?.statusCode == 400) {
+      final errorData = e.response?.data;
+      if (errorData != null && errorData['detail'] != null) {
+        throw Exception(errorData['detail'].toString());
+      }
+    } else if (e.response?.statusCode == 404) {
+      // If endpoint doesn't exist, show helpful message
+      throw Exception('Please contact support to resend verification email, or try signing up again.');
+    } else if (e.response?.statusCode == 429) {
+      throw Exception('Too many requests. Please wait before trying again.');
+    }
+    
+    throw Exception('Unable to resend verification email. Please try again later or contact support.');
+  } catch (e) {
+    print('General error during resend verification: $e');
+    
+    if (e.toString().startsWith('Exception:')) {
+      rethrow;
+    }
+    
+    throw Exception('An unexpected error occurred. Please try again.');
+  }
+}
+
+// Check email verification status by trying to login
+Future<bool> checkEmailVerificationStatus(String email) async {
+  try {
+    // We can check verification status by trying to get user info
+    // Or we can create a specific endpoint for this
+    // For now, let's use a generic approach by attempting to fetch user data
+    
+    final response = await _apiService.postRequest(
+      '/check-verification', // Backend might need to create this endpoint
+      {'email': email},
+    );
+
+    if (response != null && response['is_verified'] != null) {
+      return response['is_verified'] as bool;
+    }
+    
+    return false;
+  } on dio.DioException catch (e) {
+    print('DioException during verification check: ${e.response?.statusCode} - ${e.response?.data}');
+    
+    if (e.response?.statusCode == 404) {
+      // User not found
+      return false;
+    }
+    
+    // For other errors, assume not verified
+    return false;
+  } catch (e) {
+    print('General error during verification status check: $e');
+    return false;
+  }
+}
+
+
   Future<Map<String, String>> getAuthHeaders() async {
     final token = await getToken();
     return {

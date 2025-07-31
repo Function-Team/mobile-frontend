@@ -12,7 +12,6 @@ class VenueDetailController extends GetxController {
   final FavoritesController _favoritesController =
       Get.find<FavoritesController>();
 
-  // Add this property
   final RxBool isFavorite = false.obs;
 
   // Observable variables
@@ -24,6 +23,9 @@ class VenueDetailController extends GetxController {
   final RxList<PictureModel> venueImages = <PictureModel>[].obs;
   final RxBool isLoadingImages = true.obs;
   final RxInt currentImageIndex = 0.obs;
+
+  final RxList<CategoryModel> activities = <CategoryModel>[].obs;
+  final RxBool isLoadingActivities = true.obs;
 
   final RxList<ReviewModel> reviews = <ReviewModel>[].obs;
   final RxBool isLoadingReviews = true.obs;
@@ -54,12 +56,10 @@ class VenueDetailController extends GetxController {
     checkFavoriteStatus(venueId);
   }
 
-  // Add this method
   Future<void> checkFavoriteStatus(int venueId) async {
     isFavorite.value = await _favoritesController.isFavorite(venueId);
   }
 
-  // Add this method
   Future<void> toggleFavorite() async {
     if (venue.value?.id != null) {
       await _favoritesController.toggleFavorite(venue.value!.id!);
@@ -79,11 +79,10 @@ class VenueDetailController extends GetxController {
       if (venueData != null) {
         venue.value = venueData;
 
-        await Future.wait([
-          loadVenueReviews(venueId),
-          loadVenueFacilities(venueId),
-          loadVenueImages(venueId),
-        ]);
+        _extractVenueImages();
+        _extractVenueFacilities();
+        _extractVenueActivities();
+        await loadVenueReviews(venueId);
       } else {
         hasError.value = true;
         errorMessage.value = 'Failed to load venue details';
@@ -108,85 +107,234 @@ class VenueDetailController extends GetxController {
     }
   }
 
-  // Di dalam VenueDetailController
-  Future<void> loadVenueImages(int venueId) async {
+  void _extractVenueImages() {
     try {
       isLoadingImages.value = true;
-      final imagesData = await _venueRepository.getVenueImages(venueId);
-      print("Images data received: $imagesData");
+      venueImages.clear();
 
-      // Periksa apakah data gambar kosong
-      if (imagesData.isEmpty) {
-        print("Tidak ada gambar yang diterima dari API");
-        // Jika tidak ada gambar dari API, coba gunakan gambar dari venue
-        if (venue.value?.firstPictureUrl != null &&
-            venue.value!.firstPictureUrl!.isNotEmpty) {
-          // Buat PictureModel dari firstPictureUrl
-          final mainImage = PictureModel(
-              id: 0, filename: venue.value?.firstPicture, placeId: venueId);
-          venueImages.add(mainImage);
-          print(
-              "Menggunakan gambar utama dari venue: ${venue.value?.firstPictureUrl}");
-        }
-      } else {
-        // Pastikan semua gambar memiliki URL yang valid
-        final validImages = imagesData
+      // Priority 1: Use pictures array from backend (proper way)
+      if (venue.value?.pictures != null && venue.value!.pictures!.isNotEmpty) {
+        final validImages = venue.value!.pictures!
             .where((img) =>
-                img.imageUrl != null &&
-                img.imageUrl!.isNotEmpty &&
-                img.imageUrl != "file:///")
+                img.filename != null &&
+                img.filename!.isNotEmpty &&
+                img.filename != 'null' &&
+                img.filename!.trim().isNotEmpty)
             .toList();
 
-        if (validImages.isEmpty && venue.value?.firstPictureUrl != null) {
-          // Jika tidak ada gambar valid, gunakan gambar utama
-          final mainImage = PictureModel(
-              id: 0, filename: venue.value?.firstPicture, placeId: venueId);
-          venueImages.add(mainImage);
-          print(
-              "Menggunakan gambar utama dari venue: ${venue.value?.firstPictureUrl}");
-        } else {
+        if (validImages.isNotEmpty) {
           venueImages.assignAll(validImages);
+          print('✅ Loaded ${validImages.length} images from pictures array');
+          return;
         }
       }
-    } catch (e) {
-      print('Error loading venue images: $e');
-      // Tangani kesalahan dengan menambahkan gambar dari venue jika tersedia
-      if (venue.value?.firstPictureUrl != null &&
-          venue.value!.firstPictureUrl!.isNotEmpty) {
+
+      // Priority 2: Use first_picture as fallback
+      if (venue.value?.firstPicture != null &&
+          venue.value!.firstPicture!.isNotEmpty &&
+          venue.value!.firstPicture != 'null') {
         final mainImage = PictureModel(
-            id: 0, filename: venue.value?.firstPicture, placeId: venueId);
+          id: 0,
+          filename: venue.value!.firstPicture,
+          placeId: venue.value?.id,
+        );
         venueImages.add(mainImage);
         print(
-            "Menggunakan gambar utama dari venue setelah error: ${venue.value?.firstPictureUrl}");
+            '✅ Using first_picture as fallback: ${venue.value!.firstPicture}');
+        return;
       }
+
+      // No valid images found
+      print('⚠️ No valid images found for venue ${venue.value?.id}');
+    } catch (e) {
+      print('❌ Error extracting venue images: $e');
+      venueImages.clear();
     } finally {
       isLoadingImages.value = false;
     }
   }
 
-  Future<void> loadVenueFacilities(int venueId) async {
+  void _extractVenueFacilities() {
     try {
       isLoadingFacilities.value = true;
-      final facilitiesData = await _venueRepository.getVenueFacilities(venueId);
+      facilities.clear();
 
-      // Assign icons to facilities based on their names
-      final facilitiesWithIcons = facilitiesData.map((facility) {
-        if (facility.name != null && facilityIcons.containsKey(facility.name)) {
+      // Priority 1: Use facilities array from backend (proper way)
+      if (venue.value?.facilities != null &&
+          venue.value!.facilities!.isNotEmpty) {
+        final facilitiesWithIcons = venue.value!.facilities!.map((facility) {
+          // Find matching icon (case-insensitive and flexible matching)
+          IconData? icon = _findFacilityIcon(facility.name);
+
           return FacilityModel(
             id: facility.id,
             name: facility.name,
-            isAvailable: facility.isAvailable,
-            icon: facilityIcons[facility.name],
+            isAvailable: facility.isAvailable ?? true,
+            icon: icon,
           );
-        }
-        return facility;
-      }).toList();
+        }).toList();
 
-      facilities.assignAll(facilitiesWithIcons);
+        facilities.assignAll(facilitiesWithIcons);
+        print(
+            'Loaded ${facilitiesWithIcons.length} facilities from facilities array');
+        return;
+      }
+
+      // Priority 2: Fallback to facility_ids (legacy support)
+      if (venue.value?.facilityIds != null &&
+          venue.value!.facilityIds!.isNotEmpty) {
+        print('Using facility_ids fallback for venue ${venue.value?.id}');
+
+        final placeholderFacilities = venue.value!.facilityIds!.map((id) {
+          String facilityName = _getFacilityNameById(id);
+          IconData? icon = _findFacilityIcon(facilityName);
+
+          return FacilityModel(
+            id: id,
+            name: facilityName,
+            isAvailable: true,
+            icon: icon,
+          );
+        }).toList();
+
+        facilities.assignAll(placeholderFacilities);
+        print('Created ${placeholderFacilities.length} facilities from IDs');
+        return;
+      }
+
+      // No facilities found
+      print('No facilities available for venue ${venue.value?.id}');
     } catch (e) {
-      print('Error loading facilities: $e');
+      print('Error extracting venue facilities: $e');
+      facilities.clear();
     } finally {
       isLoadingFacilities.value = false;
+    }
+  }
+
+  void _extractVenueActivities() {
+  try {
+    isLoadingActivities.value = true;
+    activities.clear();
+
+    // Priority 1: Use activities array from backend (proper way)
+    if (venue.value?.activities != null && venue.value!.activities!.isNotEmpty) {
+      // Convert ActivityModel to CategoryModel for compatibility
+      final convertedActivities = venue.value!.activities!.map((activity) {
+        return CategoryModel(
+          id: activity.id,
+          name: activity.name,
+        );
+      }).toList();
+      
+      activities.assignAll(convertedActivities);
+      print('✅ Loaded ${activities.length} activities from activities array');
+      
+      // Debug print
+      for (var activity in activities) {
+        print('   - ${activity.name} (ID: ${activity.id})');
+      }
+      return;
+    }
+
+    // Priority 2: Check if activityIds array exists (backward compatibility)
+    if (venue.value?.activityIds != null && venue.value!.activityIds!.isNotEmpty) {
+      print('ℹ️ Using activityIds fallback for venue ${venue.value?.id}');
+      
+      // Create placeholder activities from IDs
+      final placeholderActivities = venue.value!.activityIds!.map((id) {
+        return CategoryModel(
+          id: id,
+          name: 'Activity $id', // Placeholder name
+        );
+      }).toList();
+      
+      activities.assignAll(placeholderActivities);
+      return;
+    }
+
+    // Priority 3: Single activityId (legacy support)
+    if (venue.value?.activityId != null) {
+      print('ℹ️ Using single activityId fallback');
+      final activity = CategoryModel(
+        id: venue.value!.activityId,
+        name: 'Activity ${venue.value!.activityId}',
+      );
+      activities.add(activity);
+      return;
+    }
+
+    print('ℹ️ No activities available for venue ${venue.value?.id}');
+  } catch (e) {
+    print('❌ Error extracting venue activities: $e');
+    activities.clear();
+  } finally {
+    isLoadingActivities.value = false;
+  }
+}
+
+  IconData? _findFacilityIcon(String? facilityName) {
+    if (facilityName == null || facilityName.isEmpty) return Icons.help_outline;
+
+    // Direct match first
+    if (facilityIcons.containsKey(facilityName)) {
+      return facilityIcons[facilityName];
+    }
+
+    // Case-insensitive search
+    final lowerName = facilityName.toLowerCase();
+    for (var entry in facilityIcons.entries) {
+      if (entry.key.toLowerCase() == lowerName) {
+        return entry.value;
+      }
+    }
+
+    // Partial matching for common cases
+    if (lowerName.contains('wifi') || lowerName.contains('internet')) {
+      return Icons.wifi;
+    } else if (lowerName.contains('chair') || lowerName.contains('seat')) {
+      return Icons.chair;
+    } else if (lowerName.contains('table')) {
+      return Icons.table_bar;
+    } else if (lowerName.contains('park')) {
+      return Icons.local_parking;
+    } else if (lowerName.contains('ac') || lowerName.contains('air')) {
+      return Icons.ac_unit;
+    } else if (lowerName.contains('toilet') ||
+        lowerName.contains('restroom') ||
+        lowerName.contains('wc')) {
+      return Icons.wc;
+    }
+
+    // Default icon if no match found
+    return Icons.check_circle_outline;
+  }
+
+  // IMPROVED: Enhanced facility ID to name mapping
+  String _getFacilityNameById(int id) {
+    switch (id) {
+      case 1:
+        return 'Wifi';
+      case 2:
+        return 'Chairs';
+      case 3:
+        return 'Restroom';
+      case 4:
+        return 'Tables';
+      case 5:
+        return 'Parking';
+      case 6:
+        return 'AC';
+      case 7:
+        return 'Projector';
+      case 8:
+        return 'Speaker';
+      case 9:
+        return 'Kitchen';
+      case 10:
+        return 'Security';
+      default:
+        return 'Facility $id';
     }
   }
 
@@ -201,18 +349,6 @@ class VenueDetailController extends GetxController {
           type: SnackbarType.error);
     }
   }
-
-  // void contactHost() {
-  //   if (venue.value?.host?.id != null) {
-  //     Get.toNamed('/chat', arguments: {'hostId': venue.value!.host!.id});
-  //   } else {
-  //     Get.snackbar(
-  //       'Error',
-  //       'Cannot contact host at the moment',
-  //       snackPosition: SnackPosition.BOTTOM,
-  //     );
-  //   }
-  // }
 
   // Retry loading data
   void retryLoading() {
@@ -256,5 +392,4 @@ class VenueDetailController extends GetxController {
     Get.toNamed(MyRoutes.imageGallery,
         arguments: {'images': venueImages, 'initialIndex': index});
   }
-
 }

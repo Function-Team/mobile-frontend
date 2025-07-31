@@ -149,9 +149,8 @@ class AuthController extends GetxController {
   }
 
   void validateConfirmPasswordSignUpField(String value) {
-    confirmPasswordSignUpError.value = validateConfirmPassword(
-            passwordSignUpController.text, value) ??
-        '';
+    confirmPasswordSignUpError.value =
+        validateConfirmPassword(passwordSignUpController.text, value) ?? '';
   }
 
   // Submit validation for login
@@ -171,8 +170,7 @@ class AuthController extends GetxController {
     final emailError = validateSignUpEmail(emailSignUpController.text);
     final passwordError = validatePassword(passwordSignUpController.text);
     final confirmPasswordError = validateConfirmPassword(
-        passwordSignUpController.text,
-        confirmSignUpPasswordController.text);
+        passwordSignUpController.text, confirmSignUpPasswordController.text);
 
     usernameSignUpError.value = usernameError ?? '';
     emailSignUpError.value = emailError ?? '';
@@ -183,6 +181,47 @@ class AuthController extends GetxController {
         emailError == null &&
         passwordError == null &&
         confirmPasswordError == null;
+  }
+
+  // email verification
+  Future<void> resendVerificationEmail() async {
+    if (emailSignUpController.text.trim().isEmpty) {
+      throw Exception('Email address is required');
+    }
+
+    isLoading.value = true;
+    try {
+      await _authService
+          .resendVerificationEmail(emailSignUpController.text.trim());
+      print('AuthController: Verification email resent successfully');
+    } catch (e) {
+      print('AuthController: Error resending verification email: $e');
+      rethrow; // Let the UI handle the specific error message
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+// Method for check verification status
+  Future<bool> checkEmailVerificationStatus() async {
+    if (emailSignUpController.text.trim().isEmpty) {
+      return false;
+    }
+
+    try {
+      final isVerified = await _authService
+          .checkEmailVerificationStatus(emailSignUpController.text.trim());
+      return isVerified;
+    } catch (e) {
+      print('AuthController: Error checking verification status: $e');
+      rethrow; // Let the UI handle the specific error message
+    }
+  }
+
+// Navigate to email verification page
+  void goToEmailVerification() {
+    errorMessage.value = '';
+    Get.toNamed(MyRoutes.emailVerification);
   }
 
   void goToLogin() {
@@ -377,44 +416,20 @@ class AuthController extends GetxController {
 
       print('AuthController: Signup response received');
 
-      // Handle successful signup
-      if (response['access_token'] != null || response['user'] != null) {
-        print('AuthController: Signup successful');
+      // Handle successful signup - backend kirim email otomatis
+      if (response['access_token'] != null) {
+        print('AuthController: Signup successful - email verification sent');
 
-        // Create AuthResponse to handle the response properly
-        final authResponse = AuthResponse.fromJson(response);
+        // JANGAN simpan tokens atau login user - mereka perlu verify email dulu
+        // Jangan clear form juga - user mungkin perlu ubah email
 
-        // If tokens are provided, user is auto-logged in
-        if (authResponse.accessToken != null) {
-          if (authResponse.user != null) {
-            user.value = authResponse.user;
-            await _authService.saveUserData(authResponse.user!);
-          } else {
-            await refreshUserData();
-            Get.offAllNamed(MyRoutes.bottomNav);
-          }
+        CustomSnackbar.show(
+            context: Get.context!,
+            message: 'Account created! Check your email for verification link.',
+            type: SnackbarType.success);
 
-          // Clear form
-          _clearSignupForm();
-
-          // Navigate to main app
-          Get.offAllNamed(MyRoutes.bottomNav);
-
-          CustomSnackbar.show(
-              context: Get.context!,
-              message: 'Account created successfully',
-              type: SnackbarType.success);
-        } else {
-          // Account created but not logged in (email verification required)
-          _clearSignupForm();
-
-          CustomSnackbar.show(
-              context: Get.context!,
-              message: 'Please check your email to verify your account',
-              type: SnackbarType.success);
-
-          goToLogin();
-        }
+        // Always navigate to email verification page after successful signup
+        goToEmailVerification();
       }
     } catch (e) {
       print('AuthController: Signup error: $e');
@@ -442,7 +457,7 @@ class AuthController extends GetxController {
 
       emailLoginController.clear();
       passwordLoginController.clear();
-      _clearSignupForm();
+      clearSignupForm();
 
       print('AuthController: Logout successful, clearing user data...');
 
@@ -475,18 +490,22 @@ class AuthController extends GetxController {
       errorMessage.value = '';
       emailLoginController.clear();
       passwordLoginController.clear();
-      _clearSignupForm();
+      clearSignupForm();
       Get.offAllNamed(MyRoutes.login);
     } catch (e) {
       print('AuthController: Error during logout execution: $e');
     }
   }
 
-  void _clearSignupForm() {
+  void clearSignupForm() {
     usernameSignUpController.clear();
     emailSignUpController.clear();
     passwordSignUpController.clear();
     confirmSignUpPasswordController.clear();
+    usernameSignUpError.value = '';
+    emailSignUpError.value = '';
+    passwordSignUpError.value = '';
+    confirmPasswordSignUpError.value = '';
   }
 
   // username getter
