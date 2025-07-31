@@ -192,7 +192,20 @@ class VenueDetailPage extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      if (controller.venue.value?.activities?.isNotEmpty ==
+                          true) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          _buildActivitiesSubtitle(
+                              controller.venue.value!.activities!),
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 14,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 8),
                       Row(
                         children: [
                           const Icon(Icons.star, color: Colors.amber, size: 18),
@@ -244,24 +257,39 @@ class VenueDetailPage extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Wrap(
               spacing: 8,
+              runSpacing: 8,
               children: [
+                // Category chip
                 CategoryChip(
                   label: controller.venue.value?.category?.name ??
                       LocalizationHelper.tr(
                           LocaleKeys.venue_category_uncategorized),
                   color: Colors.blue,
                 ),
+
+                // Capacity chip
                 CategoryChip(
                   label:
                       '1-${controller.venue.value?.maxCapacity ?? LocalizationHelper.tr(LocaleKeys.venue_capacity_unknown)}',
                   color: Colors.blue,
                   icon: Icons.groups_2,
                 ),
+
+                // Area chip
                 CategoryChip(
                   label: '1000 m²',
                   color: Colors.blue,
                   icon: Icons.straighten,
                 ),
+
+                // Activities chips - ONLY THIS ONE, remove the duplicate
+                ...controller.activities
+                    .map((activity) => CategoryChip(
+                          label: activity.name ?? 'Unknown Activity',
+                          color: Colors.green,
+                          icon: Icons.local_activity,
+                        ))
+                    .toList(),
               ],
             ),
           ),
@@ -656,5 +684,17 @@ class VenueDetailPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _buildActivitiesSubtitle(List<ActivityModel> activities) {
+    if (activities.isEmpty) return '';
+
+    if (activities.length == 1) {
+      return 'Perfect for ${activities.first.name}';
+    } else if (activities.length == 2) {
+      return 'Perfect for ${activities.first.name} & ${activities.last.name}';
+    } else {
+      return 'Perfect for ${activities.first.name}, ${activities[1].name} & more';
+    }
   }
 }

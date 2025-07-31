@@ -10,8 +10,9 @@ class VenueModel {
   final List<PictureModel>? pictures;
   final String? mapsUrl;
   final int? categoryId;
-  final int? facilityId;
   final int? activityId;
+  final List<int>? facilityIds;
+  final List<int>? activityIds;
   final int? cityId;
   final int? hostId;
   final String? rules;
@@ -22,18 +23,39 @@ class VenueModel {
   final double? rating;
   final int? ratingCount;
   final List<FacilityModel>? facilities;
+  final List<ActivityModel>? activities;
   final List<ReviewModel>? reviews;
   final List<ScheduleModel>? schedules;
   final int? price;
   final int? maxCapacity;
 
-  String? get firstPictureUrl => firstPicture != null
-      ? '${AppConstants.baseUrlLocal}/img/$firstPicture'
-      : (pictures != null &&
-              pictures!.isNotEmpty &&
-              pictures!.first.filename != null)
-          ? '${AppConstants.baseUrlLocal}/img/${pictures!.first.filename}'
-          : null;
+  String? get firstPictureUrl {
+    // Priority 1: first_picture from API response
+    if (firstPicture != null &&
+        firstPicture!.isNotEmpty &&
+        firstPicture != 'null') {
+      return '${AppConstants.baseUrlLocal}/img/$firstPicture';
+    }
+
+    // Priority 2: first picture from pictures array
+    if (pictures != null && pictures!.isNotEmpty) {
+      final validPicture = pictures!.firstWhere(
+        (pic) =>
+            pic.filename != null &&
+            pic.filename!.isNotEmpty &&
+            pic.filename != 'null',
+        orElse: () => PictureModel(),
+      );
+      if (validPicture.filename != null &&
+          validPicture.filename!.isNotEmpty &&
+          validPicture.filename != 'null') {
+        return validPicture.imageUrl;
+      }
+    }
+
+    // Return null if no valid image found
+    return null;
+  }
 
   VenueModel({
     this.id,
@@ -43,8 +65,8 @@ class VenueModel {
     this.firstPicture,
     this.mapsUrl,
     this.categoryId,
-    this.facilityId,
-    this.activityId,
+    this.facilityIds,
+    this.activityIds,
     this.cityId,
     this.hostId,
     this.rules,
@@ -52,10 +74,12 @@ class VenueModel {
     this.pictures,
     this.host,
     this.category,
+    this.activityId,
     this.city,
     this.rating,
     this.ratingCount,
     this.facilities,
+    this.activities,
     this.reviews,
     this.schedules,
     this.price,
@@ -63,6 +87,7 @@ class VenueModel {
   });
 
   factory VenueModel.fromJson(Map<String, dynamic> json) {
+
     return VenueModel(
       id: json['id'],
       name: json['name'],
@@ -70,29 +95,47 @@ class VenueModel {
       description: json['description'],
       mapsUrl: json['maps_url'],
       categoryId: json['category_id'],
-      facilityId: json['facility_id'],
-      activityId: json['activity_id'],
+      // IDs arrays (backward compatibility)
+      facilityIds: json['facility_ids'] != null
+          ? List<int>.from(json['facility_ids'])
+          : null,
+      activityIds: json['activity_ids'] != null
+          ? List<int>.from(json['activity_ids'])
+          : null,
       cityId: json['city_id'],
       hostId: json['host_id'],
       rules: json['rules'],
+
+      // Rooms
       rooms: (json['rooms'] as List<dynamic>?)
           ?.map((room) => RoomModel.fromJson(room))
           .toList(),
+
+      // Pictures
       firstPicture: json['first_picture'],
       pictures: (json['pictures'] as List<dynamic>?)
           ?.map((picture) => PictureModel.fromJson(picture))
           .toList(),
+
+      // Relations
       host: json['host'] != null ? HostModel.fromJson(json['host']) : null,
       category: json['category'] != null
           ? CategoryModel.fromJson(json['category'])
           : null,
       city: json['city'] != null ? CityModel.fromJson(json['city']) : null,
-      rating:
-          json['rating'] != null ? (json['rating'] as num).toDouble() : null,
-      ratingCount: json['rating_count'],
+
+      // Full facility and activity objects
       facilities: (json['facilities'] as List<dynamic>?)
           ?.map((facility) => FacilityModel.fromJson(facility))
           .toList(),
+      activities: (json['activities'] as List<dynamic>?)
+          ?.map((activity) => ActivityModel.fromJson(activity))
+          .toList(),
+
+      // Other fields
+      rating:
+          json['rating'] != null ? (json['rating'] as num).toDouble() : null,
+      ratingCount: json['rating_count'],
       reviews: (json['reviews'] as List<dynamic>?)
           ?.map((review) => ReviewModel.fromJson(review))
           .toList(),
@@ -112,8 +155,8 @@ class VenueModel {
       'description': description,
       'maps_url': mapsUrl,
       'category_id': categoryId,
-      'facility_id': facilityId,
-      'activity_id': activityId,
+      'facility_ids': facilityIds,
+      'activity_ids': activityIds,
       'city_id': cityId,
       'host_id': hostId,
       'rules': rules,
@@ -174,15 +217,15 @@ class PictureModel {
 
   String? get imageUrl {
     print("PictureModel - Filename: $filename, PlaceId: $placeId");
-    
-    if (filename == null || filename!.isEmpty) {
-      print("PictureModel - No filename provided");
+
+    if (filename == null || filename!.isEmpty || filename == 'null') {
+      print("PictureModel - No valid filename provided");
       return null;
     }
 
     final fullUrl = '${AppConstants.baseUrlLocal}/img/$filename';
     print("PictureModel - Constructed URL: $fullUrl");
-    
+
     return fullUrl;
   }
 
@@ -238,6 +281,7 @@ class HostModel {
       'user': user?.toJson(),
     };
   }
+
   // Get host display name - prioritas: user.username > "Host"
   String get displayName {
     return user?.username ?? 'Host';
@@ -250,16 +294,16 @@ class HostModel {
 
   String? get formattedPhone {
     if (!hasPhone) return null;
-    
+
     // Indonesian phone number formatting
     final digits = phone!.replaceAll(RegExp(r'\D'), '');
-    
+
     if (digits.startsWith('62')) {
       return '+${digits.substring(0, 2)} ${digits.substring(2, 5)} ${digits.substring(5, 9)} ${digits.substring(9)}';
     } else if (digits.startsWith('0')) {
       return '+62 ${digits.substring(1, 4)} ${digits.substring(4, 8)} ${digits.substring(8)}';
     }
-    
+
     return phone; // Return original if no formatting applied
   }
 }
@@ -366,6 +410,31 @@ class FacilityModel {
       'id': id,
       'name': name,
       'is_available': isAvailable,
+    };
+  }
+}
+
+// NEW: ActivityModel for handling activity objects
+class ActivityModel {
+  final int? id;
+  final String? name;
+
+  ActivityModel({
+    this.id,
+    this.name,
+  });
+
+  factory ActivityModel.fromJson(Map<String, dynamic> json) {
+    return ActivityModel(
+      id: json['id'],
+      name: json['name'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
     };
   }
 }
