@@ -209,7 +209,7 @@ class BookingDetailController extends GetxController {
           ),
           TextButton(
             onPressed: () {
-            cancelBooking();
+              cancelBooking();
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: Text(LocalizationHelper.tr(LocaleKeys.booking_yesCancel)),
@@ -249,6 +249,9 @@ class BookingDetailController extends GetxController {
           // Check if payment was completed
           if (isBookingCompleted && booking.value?.payment != null) {
             _showSuccess('Payment completed successfully!');
+            print('🔍 Payment status: ${booking.value!.payment!.status}');
+            print('🔍 Payment_status field: ${booking.value!.paymentStatus}');
+            print('🔍 isPaid result: ${booking.value!.isPaid}');
           }
         } else {
           // If booking is null, it might have been cancelled by admin
@@ -411,6 +414,6 @@ class BookingDetailController extends GetxController {
 
   //whatsapp
   Future<void> contactHost() async {
-  WhatsAppContactService.contactHostFromBooking(booking: booking.value!);
-}
+    WhatsAppContactService.contactHostFromBooking(booking: booking.value!);
+  }
 }

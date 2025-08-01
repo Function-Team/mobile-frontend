@@ -32,6 +32,14 @@ class BookingListController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+
+    final arguments = Get.arguments as Map<String, dynamic>?;
+    if (arguments != null && arguments['initialTab'] != null) {
+      final initialTab = arguments['initialTab'] as int;
+      if (initialTab >= 0 && initialTab < tabTitles.length) {
+        currentTabIndex.value = initialTab;
+      }
+    }
     fetchBookings();
   }
 
@@ -54,6 +62,10 @@ class BookingListController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  Future<void> refreshBookings() async {
+    await fetchBookings();
   }
 
   void updateBookingCounts() {
@@ -180,10 +192,6 @@ class BookingListController extends GetxController {
   void setSearchQuery(String query) {
     searchQuery.value = query;
     filterBookingsByTab();
-  }
-
-  Future<void> refreshBookings() async {
-    await fetchBookings();
   }
 
   Future<void> cancelBooking(BookingModel booking) async {

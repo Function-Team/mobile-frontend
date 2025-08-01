@@ -10,7 +10,7 @@ class ApiService extends GetxService {
 
   ApiService() {
     _dio = dio.Dio(dio.BaseOptions(
-      baseUrl: AppConstants.baseUrl,
+      baseUrl: AppConstants.baseUrlLocal,
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
       sendTimeout: const Duration(seconds: 10),
@@ -23,57 +23,33 @@ class ApiService extends GetxService {
       },
     ));
 
-    print(
-        "API Service initialized with base URL: ${AppConstants.baseUrl}");
+    print("API Service initialized with base URL: ${AppConstants.baseUrl}");
 
     _dio.interceptors.add(dio.LogInterceptor(
-      requestHeader: true,
+      requestHeader: false,
       requestBody: false,
       responseHeader: false,
       responseBody: false,
       error: true,
       logPrint: (obj) {
-        print("API: $obj");
         final logString = obj.toString();
-        // Filter so response from place doesnt fully the debug console
+
+        // Only log important stuff
         if (logString.contains('*** Request ***') ||
             logString.contains('*** Response ***') ||
-            logString.contains('Response Text:') ||
-            logString.contains('uri:') ||
-            logString.contains('method:') ||
-            logString.contains('responseType:') ||
-            logString.contains('followRedirects:') ||
-            logString.contains('persistentConnection:') ||
-            logString.contains('connectTimeout:') ||
-            logString.contains('sendTimeout:') ||
-            logString.contains('receiveTimeout:') ||
-            logString.contains('receiveDataWhenStatusError:') ||
-            logString.contains('extra:') ||
-            logString.contains('headers:') ||
-            logString.contains('data:') ||
-            logString.contains('Content-Type:') ||
-            logString.contains('Accept:') ||
-            logString.contains('Authorization:') ||
-            logString.contains('[{id:')) {
-          // Skip these verbose logs
-          return;
+            logString.contains('POST') ||
+            logString.contains('PUT') ||
+            logString.contains('DELETE') ||
+            logString.contains('ERROR')) {
+          print("API: $obj");
         }
 
-        // Only show important logs
-        if (logString.contains('Error') ||
-            logString.contains('Exception') ||
-            logString.contains('GET ') ||
-            logString.contains('POST ') ||
-            logString.contains('PUT ') ||
-            logString.contains('DELETE ') ||
-            logString.contains('200 ') ||
-            logString.contains('201 ') ||
-            logString.contains('400 ') ||
-            logString.contains('401 ') ||
-            logString.contains('403 ') ||
-            logString.contains('404 ') ||
-            logString.contains('500 ')) {
-          print("API: $obj");
+        // Skip verbose GET request details
+        if (logString.contains('GET') &&
+            (logString.contains('uri:') ||
+                logString.contains('method:') ||
+                logString.contains('responseType:'))) {
+          return;
         }
       },
     ));
@@ -132,9 +108,6 @@ class ApiService extends GetxService {
       print(
           "Warning: Could not add auth token to ${options.method} ${options.path}: $e");
     }
-
-    print("Request headers: ${options.headers}");
-    print("${options.method} ${options.path}");
   }
 
   Future<bool> _handleTokenRefresh(dio.RequestOptions failedRequest) async {
@@ -228,12 +201,9 @@ class ApiService extends GetxService {
   Future<dynamic> getRequest(String endpoint,
       {Map<String, dynamic>? headers}) async {
     try {
-      print("GET Request: $endpoint");
 
       final options = headers != null ? dio.Options(headers: headers) : null;
-      final response = await _dio.get(endpoint, options: options);
-
-      print("GET Response: ${response.statusCode}");
+      final response = await _dio.get(endpoint, options: options); 
 
       if (response.statusCode! >= 200 && response.statusCode! < 300) {
         return response.data;
@@ -258,12 +228,8 @@ class ApiService extends GetxService {
   Future<dynamic> postRequest(
       String endpoint, Map<String, dynamic> data) async {
     try {
-      print("POST Request: $endpoint");
-      print("POST Data: $data");
 
       final response = await _dio.post(endpoint, data: data);
-
-      print("POST Response: ${response.statusCode}");
 
       if (response.statusCode! >= 200 && response.statusCode! < 300) {
         return response.data;
