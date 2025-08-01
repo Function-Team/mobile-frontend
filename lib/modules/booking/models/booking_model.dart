@@ -106,16 +106,21 @@ class BookingModel {
   // Helper to check if booking is paid
   bool get isPaid {
     // First check the direct payment_status field
-    if (paymentStatus != null && paymentStatus!.toLowerCase() == 'success') {
-      return true;
-    }
-
-    // Then check the payment object if it exists
-    if (payment != null && payment!.status.toLowerCase() == 'success') {
-      return true;
-    }
-
-    return false;
+    final validPaidStatuses = ['paid', 'success', 'settlement'];
+  
+  // Check payment_status field
+  if (paymentStatus != null && 
+      validPaidStatuses.contains(paymentStatus!.toLowerCase())) {
+    return true;
+  }
+  
+  // Check payment object status
+  if (payment != null && 
+      validPaidStatuses.contains(payment!.status.toLowerCase())) {
+    return true;
+  }
+  
+  return false;
   }
 
   String get statusDisplayName {

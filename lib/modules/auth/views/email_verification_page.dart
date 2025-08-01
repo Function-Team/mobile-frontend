@@ -1,8 +1,5 @@
 import 'dart:async';
-import 'dart:io';
-import 'package:android_intent_plus/android_intent.dart';
 import 'package:flutter/material.dart';
-import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 import 'package:function_mobile/common/widgets/buttons/secondary_button.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';

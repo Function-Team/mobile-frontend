@@ -1,4 +1,3 @@
-import 'package:function_mobile/core/constant/app_constant.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:function_mobile/core/services/api_service.dart';
 import 'package:function_mobile/core/services/secure_storage_service.dart';
@@ -13,7 +12,6 @@ class AuthService extends GetxService {
   
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
-      print('AuthService: Attempting login with email: $email');
 
       final response = await _apiService.postFormRequest(
         '/login',
@@ -22,8 +20,6 @@ class AuthService extends GetxService {
           'password': password,
         },
       );
-
-      print('AuthService: Login response received');
 
       if (response != null && response['access_token'] != null) {
         // Save tokens
@@ -39,7 +35,6 @@ class AuthService extends GetxService {
         // Create user from token
         try {
           await createUserFromToken();
-          print('AuthService: User created from token successfully');
         } catch (e) {
           print('AuthService: Error creating user from token: $e');
         }
@@ -438,38 +433,46 @@ class AuthService extends GetxService {
   }
 
   Future<bool> checkEmailVerificationStatus(String email) async {
-    try {
-      print('AuthService: Checking verification status for: $email');
+  try {
+    print('AuthService: Checking verification status for: $email');
 
-      final email = tokenInfo['sub'] as String?;
-      final userId = tokenInfo['id'] as int?;
-
-      final response = await _apiService.postRequest(
-        '/check-verification',
-        {'email': email},
-      );
-
-
-      if (response != null && response['is_verified'] != null) {
-        return response['is_verified'] as bool;
-      }
-
-      return false;
-    } on dio.DioException catch (e) {
-      print('AuthService: DioException during verification check: ${e.response?.statusCode} - ${e.response?.data}');
-
-      if (e.response?.statusCode == 404) {
-        // User not found
-        return false;
-      }
-
-      // For other errors, assume not verified
-      return false;
-    } catch (e) {
-      print('AuthService: General error during verification status check: $e');
+    final tokenInfo = await getUserInfoFromToken();
+    if (tokenInfo == null) return false;
+    
+    final userEmail = tokenInfo['sub'] as String?;
+    // final userId = tokenInfo['id'] as int?;
+    
+    // Use the passed email parameter or token email
+    final emailToCheck = email.isNotEmpty ? email : userEmail;
+    
+    if (emailToCheck == null) {
+      print('AuthService: No email available for verification check');
       return false;
     }
+
+    final response = await _apiService.postRequest(
+      '/check-verification',
+      {'email': emailToCheck},
+    );
+
+    if (response != null && response['is_verified'] != null) {
+      return response['is_verified'] as bool;
+    }
+
+    return false;
+  } on dio.DioException catch (e) {
+    print('AuthService: DioException during verification check: ${e.response?.statusCode} - ${e.response?.data}');
+
+    if (e.response?.statusCode == 404) {
+      return false;
+    }
+
+    return false;
+  } catch (e) {
+    print('AuthService: General error during verification status check: $e');
+    return false;
   }
+}
 
   // ===== UTILITY METHODS =====
   Future<bool> isLoggedIn() async {
@@ -500,8 +503,6 @@ class AuthService extends GetxService {
     try {
       final token = await getToken();
       if (token == null) return null;
-
-      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
 
       final userData = await getUserData();
       return userData?.id;

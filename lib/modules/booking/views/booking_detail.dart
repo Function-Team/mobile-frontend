@@ -427,40 +427,6 @@ class BookingDetailPage extends GetView<BookingDetailController> {
               ),
             ],
           ),
-
-          const SizedBox(height: 16),
-
-          // Payment status
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: _getPaymentStatusColor(booking.paymentStatus)
-                  .withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: _getPaymentStatusColor(booking.paymentStatus)
-                    .withOpacity(0.3),
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  _getPaymentStatusIcon(booking.paymentStatus),
-                  size: 20,
-                  color: _getPaymentStatusColor(booking.paymentStatus),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Payment: ${booking.paymentStatus?.toUpperCase() ?? 'UNKNOWN'}',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: _getPaymentStatusColor(booking.paymentStatus),
-                  ),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );
