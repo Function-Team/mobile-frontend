@@ -1,8 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:function_mobile/common/bindings/app_binding.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/theme/app_theme.dart';

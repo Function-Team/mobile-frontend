@@ -1,4 +1,4 @@
-import 'package:function_mobile/core/constant/app_constant.dart';
+import 'package:function_mobile/core/constants/app_constants.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -23,7 +23,8 @@ class ApiService extends GetxService {
       },
     ));
 
-    print("API Service initialized with base URL: ${AppConstants.baseUrlLocal}");
+    print(
+        "API Service initialized with base URL: ${AppConstants.baseUrl}");
 
     _dio.interceptors.add(dio.LogInterceptor(
       requestHeader: true,

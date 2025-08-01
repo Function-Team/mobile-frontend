@@ -24,6 +24,9 @@ import 'package:function_mobile/modules/payment/views/payment_status_page.dart';
 // import 'package:function_mobile/modules/payment/views/payment_history_page.dart';
 // import 'package:function_mobile/modules/payment/views/payment_page.dart';
 import 'package:function_mobile/modules/profile/views/edit_profile_page.dart';
+import 'package:function_mobile/modules/reviews/bindings/review_binding.dart';
+import 'package:function_mobile/modules/reviews/views/review_form_page.dart';
+import 'package:function_mobile/modules/reviews/views/review_page.dart';
 import 'package:function_mobile/modules/splash/views/splash_screen.dart';
 import 'package:function_mobile/modules/venue/views/venue_detail_page.dart';
 import 'package:function_mobile/modules/navigation/views/bottom_nav_view.dart';
@@ -93,6 +96,10 @@ class MyRoutes {
   static const String payment = '/payment';
   static const String paymentStatus = '/payment-status';
   static const String paymentHistory = '/payment-history';
+
+  // Review
+  static const String reviewPage = '/review-page';
+  static const String reviewForm = '/review-form';
 
   // Define the routes for the app
 
@@ -203,5 +210,15 @@ class MyRoutes {
       },
     ),
     // GetPage(name: MyRoutes.paymentHistory, page: () => const PaymentHistoryPage()),
+    GetPage(
+      name: reviewPage,
+      page: () => const ReviewPage(),
+      binding: ReviewBinding(),
+    ),
+    GetPage(
+      name: reviewForm,
+      page: () => const ReviewFormPage(),
+      binding: ReviewBinding(),
+    ),
   ];
 }

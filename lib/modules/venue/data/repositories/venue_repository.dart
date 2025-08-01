@@ -99,8 +99,8 @@ class VenueRepository {
   // Get venue reviews
   Future<List<ReviewModel>> getVenueReviews(int venueId) async {
     try {
-      final response =
-          await _apiService.getRequest('/review?venue_id=$venueId');
+      // Ubah endpoint ke endpoint yang benar
+      final response = await _apiService.getRequest('/place/$venueId/reviews');
 
       if (response is List) {
         return response.map((json) => ReviewModel.fromJson(json)).toList();

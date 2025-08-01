@@ -133,8 +133,7 @@ class VenueDetailPage extends StatelessWidget {
                         _buildVenueInfoSection(context, controller),
                         _buildLocationSection(context, controller),
                         FacilitiesSection(),
-                        // ! In Development
-                        // _buildReviewsSection(context, controller),
+                        _buildReviewsSection(context, controller),
                         _buildScheduleSection(context, controller),
                         const SizedBox(height: 80),
                       ],
@@ -686,15 +685,167 @@ class VenueDetailPage extends StatelessWidget {
     );
   }
 
-  String _buildActivitiesSubtitle(List<ActivityModel> activities) {
-    if (activities.isEmpty) return '';
-
-    if (activities.length == 1) {
-      return 'Perfect for ${activities.first.name}';
-    } else if (activities.length == 2) {
-      return 'Perfect for ${activities.first.name} & ${activities.last.name}';
+  Widget _buildReviewsSection(
+      BuildContext context, VenueDetailController controller) {
+    return Container(
+      margin: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Reviews',
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              CustomTextButton(
+                text: 'Show All',
+                onTap: () {
+                  Get.toNamed(
+                    MyRoutes.reviewPage,
+                    arguments: {'venueId': controller.venue.value?.id},
+                  );
+                },
+                icon: Icons.arrow_forward,
+                isrightIcon: true,
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Obx(() {
+            if (controller.isLoadingReviews.value) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            } else if (controller.reviews.isEmpty) {
+              return Container(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                alignment: Alignment.center,
+                child: Text(
+                  'No reviews yet',
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
+              );
     } else {
-      return 'Perfect for ${activities.first.name}, ${activities[1].name} & more';
-    }
+              // Show only the first 2 reviews
+              final displayedReviews = controller.reviews.length > 2
+                  ? controller.reviews.sublist(0, 2)
+                  : controller.reviews;
+
+              return Column(
+                children: [
+                  ...displayedReviews.map((review) => Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[50],
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey[200]!),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                CircleAvatar(
+                                  backgroundColor: Colors.blue[100],
+                                  radius: 16,
+                                  child: Text(
+                                    (review.user?.username?.isNotEmpty ?? false)
+                                        ? review.user!.username![0]
+                                            .toUpperCase()
+                                        : 'U',
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        review.user?.username ?? 'Anonymous',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      if (review.createdAt != null)
+                                        Text(
+                                          DateFormat('dd MMM yyyy')
+                                              .format(review.createdAt!),
+                                          style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                                Row(
+                                  children: List.generate(5, (index) {
+                                    return Icon(
+                                      index < (review.rating ?? 0)
+                                          ? Icons.star
+                                          : Icons.star_border,
+                                      color: index < (review.rating ?? 0)
+                                          ? Colors.amber
+                                          : Colors.grey,
+                                      size: 14,
+                                    );
+                                  }),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              review.comment ?? '',
+                              style: const TextStyle(fontSize: 14),
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      )),
+                  if (controller.reviews.length > 2)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: TextButton(
+                        onPressed: () {
+                          Get.toNamed(
+                            MyRoutes.reviewPage,
+                            arguments: {'venueId': controller.venue.value?.id},
+                          );
+                        },
+                        child: Text(
+                          'View all ${controller.reviews.length} reviews',
+                          style:
+                              TextStyle(color: Theme.of(context).primaryColor),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            }
+          }),
+        ],
+      ),
+    );
   }
 }
+
+// Tambahkan fungsi ini di class VenueDetailPage

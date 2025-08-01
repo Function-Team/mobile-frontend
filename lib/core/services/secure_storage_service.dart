@@ -1,6 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:function_mobile/core/constant/app_constant.dart';
-
+import 'package:function_mobile/core/constants/app_constants.dart';
 import 'dart:convert';
 
 import 'package:function_mobile/modules/auth/models/auth_model.dart';
