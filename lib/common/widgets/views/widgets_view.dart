@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 import 'package:function_mobile/common/widgets/buttons/secondary_button.dart';
 import 'package:function_mobile/common/widgets/buttons/outline_button.dart';
 import 'package:function_mobile/common/widgets/inputs/auth_text_field.dart';
@@ -47,7 +46,7 @@ class ComponentsView extends StatelessWidget {
               ),
               SizedBox(height: 18),
               VenueCard(
-                onTap: () => {print('Card Clicked')},
+                onTap: () {},
                 venue: VenueModel(),
               )
             ],

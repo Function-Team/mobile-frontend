@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:function_mobile/common/widgets/buttons/outline_button.dart';
 import 'package:function_mobile/common/widgets/buttons/secondary_button.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
 import 'package:function_mobile/common/widgets/inputs/primary_text_field.dart';
