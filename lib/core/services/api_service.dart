@@ -23,8 +23,7 @@ class ApiService extends GetxService {
       },
     ));
 
-    print(
-        "API Service initialized with base URL: ${AppConstants.baseUrlLocal}");
+    print("API Service initialized with base URL: ${AppConstants.baseUrl}");
 
     _dio.interceptors.add(dio.LogInterceptor(
       requestHeader: false,

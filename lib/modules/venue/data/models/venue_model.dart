@@ -34,7 +34,7 @@ class VenueModel {
     if (firstPicture != null &&
         firstPicture!.isNotEmpty &&
         firstPicture != 'null') {
-      return '${AppConstants.baseUrlLocal}/img/$firstPicture';
+      return '${AppConstants.baseUrl}/img/$firstPicture';
     }
 
     // Priority 2: first picture from pictures array
@@ -87,7 +87,6 @@ class VenueModel {
   });
 
   factory VenueModel.fromJson(Map<String, dynamic> json) {
-
     return VenueModel(
       id: json['id'],
       name: json['name'],
@@ -223,7 +222,7 @@ class PictureModel {
       return null;
     }
 
-    final fullUrl = '${AppConstants.baseUrlLocal}/img/$filename';
+    final fullUrl = '${AppConstants.baseUrl}/img/$filename';
     print("PictureModel - Constructed URL: $fullUrl");
 
     return fullUrl;

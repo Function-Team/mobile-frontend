@@ -1,3 +1,4 @@
+import 'package:function_mobile/core/constants/app_constants.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:function_mobile/core/services/api_service.dart';
 import 'package:function_mobile/core/services/secure_storage_service.dart';
@@ -9,7 +10,7 @@ class AuthService extends GetxService {
   final ApiService _apiService = ApiService();
   final SecureStorageService _secureStorage = SecureStorageService();
   Function? onSessionExpired;
-  
+
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
 
@@ -41,10 +42,12 @@ class AuthService extends GetxService {
 
         return Map<String, dynamic>.from(response);
       } else {
-        throw Exception('Invalid credentials. Please check your email and password.');
+        throw Exception(
+            'Invalid credentials. Please check your email and password.');
       }
     } on dio.DioException catch (e) {
-      print('AuthService: DioException during login: ${e.response?.statusCode} - ${e.response?.data}');
+      print(
+          'AuthService: DioException during login: ${e.response?.statusCode} - ${e.response?.data}');
 
       if (e.response?.statusCode == 401) {
         throw Exception('Invalid email or password. Please try again.');
@@ -65,16 +68,19 @@ class AuthService extends GetxService {
       }
 
       if (e.toString().contains('FormatException')) {
-        throw Exception('Server returned invalid data. Please try again later.');
+        throw Exception(
+            'Server returned invalid data. Please try again later.');
       } else {
         throw Exception('An unexpected error occurred. Please try again.');
       }
     }
   }
 
-  Future<Map<String, dynamic>> signup(String username, String password, String email) async {
+  Future<Map<String, dynamic>> signup(
+      String username, String password, String email) async {
     try {
-      print('AuthService: Attempting signup with username: $username, email: $email');
+      print(
+          'AuthService: Attempting signup with username: $username, email: $email');
 
       final response = await _apiService.postRequest(
         '/signup',
@@ -85,14 +91,16 @@ class AuthService extends GetxService {
         },
       );
 
-      if (response != null && (response['access_token'] != null || response['user'] != null)) {
+      if (response != null &&
+          (response['access_token'] != null || response['user'] != null)) {
         // Save tokens if provided
-        if (response['access_token'] != null && response['refresh_token'] != null) {
+        if (response['access_token'] != null &&
+            response['refresh_token'] != null) {
           await saveTokens(
             accessToken: response['access_token'],
             refreshToken: response['refresh_token'],
           );
-          
+
           try {
             await createUserFromToken();
             print('AuthService: User created from token successfully');
@@ -108,16 +116,21 @@ class AuthService extends GetxService {
         throw Exception('Account creation failed. Please try again.');
       }
     } on dio.DioException catch (e) {
-      print('AuthService: DioException during signup: ${e.response?.statusCode} - ${e.response?.data}');
+      print(
+          'AuthService: DioException during signup: ${e.response?.statusCode} - ${e.response?.data}');
 
       if (e.response?.statusCode == 400) {
         final errorData = e.response?.data;
         if (errorData != null && errorData['detail'] != null) {
           final detail = errorData['detail'].toString();
           if (detail.toLowerCase().contains('username already registered')) {
-            throw Exception('This username is already taken. Please choose another.');
-          } else if (detail.toLowerCase().contains('email already registered')) {
-            throw Exception('This email is already registered. Please use a different email.');
+            throw Exception(
+                'This username is already taken. Please choose another.');
+          } else if (detail
+              .toLowerCase()
+              .contains('email already registered')) {
+            throw Exception(
+                'This email is already registered. Please use a different email.');
           } else {
             throw Exception(detail);
           }
@@ -172,7 +185,8 @@ class AuthService extends GetxService {
     print('AuthService: Token saved successfully');
   }
 
-  Future<void> saveTokens({required String accessToken, required String refreshToken}) async {
+  Future<void> saveTokens(
+      {required String accessToken, required String refreshToken}) async {
     await _secureStorage.saveTokens(
       accessToken: accessToken,
       refreshToken: refreshToken,
@@ -200,7 +214,7 @@ class AuthService extends GetxService {
     try {
       final accessToken = await getToken();
       final refreshToken = await getRefreshToken();
-      
+
       if (accessToken == null) {
         return {
           'hasTokens': false,
@@ -212,7 +226,7 @@ class AuthService extends GetxService {
 
       final accessExpired = JwtDecoder.isExpired(accessToken);
       bool refreshExpired = true;
-      
+
       if (refreshToken != null) {
         refreshExpired = JwtDecoder.isExpired(refreshToken);
       }
@@ -245,124 +259,126 @@ class AuthService extends GetxService {
   }
 
   Future<dynamic> fetchUserInfo() async {
-  try {
-    print('AuthService: Fetching user info...');
-
-    // Get token to call API
-    final token = await getToken();
-    if (token == null) {
-      print('AuthService: No token available');
-      throw Exception('No authentication token available');
-    }
-
-    // Call API to get REAL user data with username
     try {
-      final response = await _apiService.getRequest('/user/me');
-      print('AuthService: API response received: $response');
+      print('AuthService: Fetching user info...');
 
-      if (response != null) {
-        // Create user from API response (has real username)
-        final apiUser = User(
-          id: response['id'] ?? 0,
-          username: response['username'] ?? '',
-          email: response['email'] ?? '',
-          isVerified: response['is_verified'] ?? false,
-          createdAt: response['created_at'] != null
-              ? DateTime.parse(response['created_at'])
-              : DateTime.now(),
-        );
-
-        // Save the complete user data
-        await saveUserData(apiUser);
-        print('AuthService: User data from API saved: ${apiUser.username}');
-        
-        return response;
+      // Get token to call API
+      final token = await getToken();
+      if (token == null) {
+        print('AuthService: No token available');
+        throw Exception('No authentication token available');
       }
+
+      // Call API to get REAL user data with username
+      try {
+        final response = await _apiService.getRequest('/user/me');
+        print('AuthService: API response received: $response');
+
+        if (response != null) {
+          // Create user from API response (has real username)
+          final apiUser = User(
+            id: response['id'] ?? 0,
+            username: response['username'] ?? '',
+            email: response['email'] ?? '',
+            isVerified: response['is_verified'] ?? false,
+            createdAt: response['created_at'] != null
+                ? DateTime.parse(response['created_at'])
+                : DateTime.now(),
+          );
+
+          // Save the complete user data
+          await saveUserData(apiUser);
+          print('AuthService: User data from API saved: ${apiUser.username}');
+
+          return response;
+        }
+      } catch (e) {
+        print('AuthService: API call failed: $e');
+        // Continue to fallback logic below
+      }
+
+      // FALLBACK - Try to get user from stored data
+      final userData = await getUserData();
+      if (userData?.id != null) {
+        print('AuthService: Using stored user data: ${userData!.username}');
+        return userData.toJson();
+      }
+
+      // Create temporary user from token
+      print('AuthService: Creating temporary user from token...');
+      final userFromToken = await createUserFromToken();
+      if (userFromToken != null) {
+        return userFromToken.toJson();
+      }
+
+      throw Exception('No user data available');
     } catch (e) {
-      print('AuthService: API call failed: $e');
-      // Continue to fallback logic below
-    }
+      print('AuthService: Error fetching user info: $e');
 
-    // FALLBACK - Try to get user from stored data
-    final userData = await getUserData();
-    if (userData?.id != null) {
-      print('AuthService: Using stored user data: ${userData!.username}');
-      return userData.toJson();
-    }
+      if (e.toString().contains('401')) {
+        _handleSessionExpired();
+      }
 
-    // Create temporary user from token
-    print('AuthService: Creating temporary user from token...');
-    final userFromToken = await createUserFromToken();
-    if (userFromToken != null) {
-      return userFromToken.toJson();
+      throw Exception('Failed to fetch user information: ${e.toString()}');
     }
-
-    throw Exception('No user data available');
-  } catch (e) {
-    print('AuthService: Error fetching user info: $e');
-    
-    if (e.toString().contains('401')) {
-      _handleSessionExpired();
-    }
-    
-    throw Exception('Failed to fetch user information: ${e.toString()}');
   }
-}
 
   Future<User?> createUserFromToken() async {
-  try {
-    final tokenInfo = await getUserInfoFromToken();
-    if (tokenInfo == null) return null;
+    try {
+      final tokenInfo = await getUserInfoFromToken();
+      if (tokenInfo == null) return null;
 
-    // Extract data from token
-    final email = tokenInfo['sub'] as String?;
-    final userId = tokenInfo['id'] as int?;
-    
-    if (email == null || userId == null) {
-      print('AuthService: Missing required user data in token');
+      // Extract data from token
+      final email = tokenInfo['sub'] as String?;
+      final userId = tokenInfo['id'] as int?;
+
+      if (email == null || userId == null) {
+        print('AuthService: Missing required user data in token');
+        return null;
+      }
+
+      // Try API call first to get REAL username
+      try {
+        final response = await _apiService.getRequest('/user/me');
+        if (response != null && response['username'] != null) {
+          final newUser = User(
+            id: userId,
+            email: email,
+            username: response['username'],
+            isVerified: response['is_verified'] ?? false,
+            createdAt: response['created_at'] != null
+                ? DateTime.parse(response['created_at'])
+                : DateTime.now(),
+          );
+
+          await saveUserData(newUser);
+          print(
+              'AuthService: User created from API with real username: ${newUser.username}');
+          return newUser;
+        }
+      } catch (e) {
+        print('AuthService: API call failed in createUserFromToken: $e');
+      }
+
+      // Create temporary user with email-based username
+      final tempUser = User(
+        id: userId,
+        email: email,
+        username: email.split('@')[0],
+        isVerified: tokenInfo['is_verified'] ?? false,
+        createdAt: DateTime.now(),
+      );
+
+      await saveUserData(tempUser);
+      print(
+          'AuthService: Created temporary user from token: ${tempUser.username}');
+
+      return tempUser;
+    } catch (e) {
+      print('AuthService: Error creating user from token: $e');
       return null;
     }
-
-    // Try API call first to get REAL username
-    try {
-      final response = await _apiService.getRequest('/user/me');
-      if (response != null && response['username'] != null) {
-        final newUser = User(
-          id: userId,
-          email: email,
-          username: response['username'],
-          isVerified: response['is_verified'] ?? false,
-          createdAt: response['created_at'] != null
-              ? DateTime.parse(response['created_at'])
-              : DateTime.now(),
-        );
-
-        await saveUserData(newUser);
-        print('AuthService: User created from API with real username: ${newUser.username}');
-        return newUser;
-      }
-    } catch (e) {
-      print('AuthService: API call failed in createUserFromToken: $e');
-    }
-
-    // Create temporary user with email-based username
-    final tempUser = User(
-      id: userId,
-      email: email,
-      username: email.split('@')[0],
-      isVerified: tokenInfo['is_verified'] ?? false,
-      createdAt: DateTime.now(),
-    );
-
-    await saveUserData(tempUser);
-    print('AuthService: Created temporary user from token: ${tempUser.username}');
-
-    return tempUser;
-  } catch (e) {
-    print('AuthService: Error creating user from token: $e');
-    return null;
   }
-}
 
   Future<Map<String, dynamic>?> getUserInfoFromToken() async {
     try {
@@ -406,7 +422,8 @@ class AuthService extends GetxService {
         throw Exception('Failed to resend verification email');
       }
     } on dio.DioException catch (e) {
-      print('AuthService: DioException during resend verification: ${e.response?.statusCode} - ${e.response?.data}');
+      print(
+          'AuthService: DioException during resend verification: ${e.response?.statusCode} - ${e.response?.data}');
 
       if (e.response?.statusCode == 400) {
         final errorData = e.response?.data;
@@ -420,7 +437,8 @@ class AuthService extends GetxService {
         throw Exception('Too many requests. Please wait before trying again.');
       }
 
-      throw Exception('Unable to resend verification email. Please try again later or contact support.');
+      throw Exception(
+          'Unable to resend verification email. Please try again later or contact support.');
     } catch (e) {
       print('AuthService: General error during resend verification: $e');
 
