@@ -5,6 +5,7 @@ import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_controller.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:function_mobile/modules/booking/services/booking_service.dart';
+import 'package:function_mobile/modules/notification/controllers/notification_controllers.dart';
 import 'package:get/get.dart';
 
 class BookingListController extends GetxController {
@@ -41,6 +42,7 @@ class BookingListController extends GetxController {
       }
     }
     fetchBookings();
+    _clearBookingNotifications();
   }
 
   Future<void> fetchBookings() async {
@@ -65,7 +67,22 @@ class BookingListController extends GetxController {
   }
 
   Future<void> refreshBookings() async {
+    print('🔄 BookingListController: Refreshing bookings...');
+
+    // Clear notifications saat refresh
+    await _clearBookingNotifications();
+
     await fetchBookings();
+  }
+
+  Future<void> _clearBookingNotifications() async {
+    try {
+      final notificationController = Get.find<NotificationController>();
+      await notificationController.clearNotifications();
+      print('🧹 BookingListController: Cleared booking notifications');
+    } catch (e) {
+      print('❌ BookingListController: Error clearing notifications: $e');
+    }
   }
 
   void updateBookingCounts() {
