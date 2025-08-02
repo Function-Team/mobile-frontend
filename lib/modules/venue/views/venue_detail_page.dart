@@ -191,19 +191,19 @@ class VenueDetailPage extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      if (controller.venue.value?.activities?.isNotEmpty ==
-                          true) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          _buildActivitiesSubtitle(
-                              controller.venue.value!.activities!),
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 14,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      ],
+                      // if (controller.venue.value?.activities?.isNotEmpty ==
+                      //     true) ...[
+                      //   const SizedBox(height: 4),
+                      //   Text(
+                      //     _buildActivitiesSubtitle(
+                      //         controller.venue.value!.activities!),
+                      //     style: TextStyle(
+                      //       color: Colors.grey[600],
+                      //       fontSize: 14,
+                      //       fontStyle: FontStyle.italic,
+                      //     ),
+                      //   ),
+                      // ],
                       const SizedBox(height: 8),
                       Row(
                         children: [
