@@ -191,10 +191,6 @@ class VenueDetailPage extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      if (controller.venue.value?.activities?.isNotEmpty ==
-                          true) ...[
-                        const SizedBox(height: 4),
-                      ],
                       const SizedBox(height: 8),
                       Row(
                         children: [
