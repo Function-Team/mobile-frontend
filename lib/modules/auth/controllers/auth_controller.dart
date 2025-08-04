@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:function_mobile/common/widgets/bottom_sheets/logout_bottom_sheet.dart';
+import 'package:function_mobile/modules/settings/widgets/logout_bottom_sheet.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:function_mobile/modules/auth/models/auth_model.dart';
 import 'package:function_mobile/modules/auth/services/auth_service.dart';
@@ -34,6 +34,11 @@ class AuthController extends GetxController {
   final RxString emailSignUpError = ''.obs;
   final RxString passwordSignUpError = ''.obs;
   final RxString confirmPasswordSignUpError = ''.obs;
+  // Controllers untuk reset password
+  final TextEditingController resetEmailController = TextEditingController();
+  final TextEditingController newPasswordController = TextEditingController();
+  final TextEditingController confirmNewPasswordController =
+      TextEditingController();
 
   @override
   void onInit() {
@@ -51,6 +56,9 @@ class AuthController extends GetxController {
     emailSignUpController.dispose();
     passwordSignUpController.dispose();
     confirmSignUpPasswordController.dispose();
+    resetEmailController.dispose();
+    newPasswordController.dispose();
+    confirmNewPasswordController.dispose();
     super.onClose();
   }
 
@@ -423,9 +431,7 @@ class AuthController extends GetxController {
       if (userData != null) {
         final refreshedUser = User(
           id: userData['id'] ?? user.value?.id ?? 0,
-          username: userData['username'] ??
-              user.value?.username ??
-              'Unknown',
+          username: userData['username'] ?? user.value?.username ?? 'Unknown',
           email:
               userData['email'] ?? user.value?.email ?? 'unknown@example.com',
           isVerified:
@@ -599,6 +605,70 @@ extension AuthControllerLogout on AuthController {
 
     if (shouldLogout == true) {
       await _executeLogout();
+    }
+  }
+
+  Future<void> requestPasswordReset() async {
+    try {
+      final email = resetEmailController.text.trim();
+
+      // Validasi email
+      if (email.isEmpty) {
+        errorMessage.value = 'Please enter your email address';
+        return;
+      }
+
+      isLoading.value = true;
+      await _authService.requestPasswordReset(email);
+      isLoading.value = false;
+
+      // Tampilkan pesan sukses
+      Get.snackbar(
+        'Password Reset Email Sent',
+        'If your email is registered, you will receive a password reset link.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+
+      // Kembali ke halaman login
+      Get.back();
+    } catch (e) {
+      isLoading.value = false;
+      errorMessage.value = e.toString();
+    }
+  }
+
+  Future<void> resetPassword(String token) async {
+    try {
+      final newPassword = newPasswordController.text;
+      final confirmPassword = confirmNewPasswordController.text;
+
+      // Validasi password
+      if (newPassword.isEmpty) {
+        errorMessage.value = 'Please enter a new password';
+        return;
+      }
+
+      if (newPassword != confirmPassword) {
+        errorMessage.value = 'Passwords do not match';
+        return;
+      }
+
+      isLoading.value = true;
+      await _authService.resetPassword(token, newPassword);
+      isLoading.value = false;
+
+      // Tampilkan pesan sukses
+      Get.snackbar(
+        'Password Reset Successful',
+        'Your password has been reset successfully. Please login with your new password.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+
+      // Kembali ke halaman login
+      Get.offAllNamed(MyRoutes.login);
+    } catch (e) {
+      isLoading.value = false;
+      errorMessage.value = e.toString();
     }
   }
 }

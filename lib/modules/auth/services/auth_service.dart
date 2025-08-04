@@ -1,4 +1,3 @@
-import 'package:function_mobile/core/constants/app_constants.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:function_mobile/core/services/api_service.dart';
 import 'package:function_mobile/core/services/secure_storage_service.dart';
@@ -13,7 +12,6 @@ class AuthService extends GetxService {
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
-
       final response = await _apiService.postFormRequest(
         '/login',
         {
@@ -451,46 +449,47 @@ class AuthService extends GetxService {
   }
 
   Future<bool> checkEmailVerificationStatus(String email) async {
-  try {
-    print('AuthService: Checking verification status for: $email');
+    try {
+      print('AuthService: Checking verification status for: $email');
 
-    final tokenInfo = await getUserInfoFromToken();
-    if (tokenInfo == null) return false;
-    
-    final userEmail = tokenInfo['sub'] as String?;
-    // final userId = tokenInfo['id'] as int?;
-    
-    // Use the passed email parameter or token email
-    final emailToCheck = email.isNotEmpty ? email : userEmail;
-    
-    if (emailToCheck == null) {
-      print('AuthService: No email available for verification check');
+      final tokenInfo = await getUserInfoFromToken();
+      if (tokenInfo == null) return false;
+
+      final userEmail = tokenInfo['sub'] as String?;
+      // final userId = tokenInfo['id'] as int?;
+
+      // Use the passed email parameter or token email
+      final emailToCheck = email.isNotEmpty ? email : userEmail;
+
+      if (emailToCheck == null) {
+        print('AuthService: No email available for verification check');
+        return false;
+      }
+
+      final response = await _apiService.postRequest(
+        '/check-verification',
+        {'email': emailToCheck},
+      );
+
+      if (response != null && response['is_verified'] != null) {
+        return response['is_verified'] as bool;
+      }
+
+      return false;
+    } on dio.DioException catch (e) {
+      print(
+          'AuthService: DioException during verification check: ${e.response?.statusCode} - ${e.response?.data}');
+
+      if (e.response?.statusCode == 404) {
+        return false;
+      }
+
+      return false;
+    } catch (e) {
+      print('AuthService: General error during verification status check: $e');
       return false;
     }
-
-    final response = await _apiService.postRequest(
-      '/check-verification',
-      {'email': emailToCheck},
-    );
-
-    if (response != null && response['is_verified'] != null) {
-      return response['is_verified'] as bool;
-    }
-
-    return false;
-  } on dio.DioException catch (e) {
-    print('AuthService: DioException during verification check: ${e.response?.statusCode} - ${e.response?.data}');
-
-    if (e.response?.statusCode == 404) {
-      return false;
-    }
-
-    return false;
-  } catch (e) {
-    print('AuthService: General error during verification status check: $e');
-    return false;
   }
-}
 
   // ===== UTILITY METHODS =====
   Future<bool> isLoggedIn() async {
@@ -551,6 +550,60 @@ class AuthService extends GetxService {
       } catch (e) {
         print('AuthService: Error handling session expiry: $e');
       }
+    }
+  }
+
+  // ===== PASSWORD RESET =====
+  Future<void> requestPasswordReset(String email) async {
+    try {
+      print('AuthService: Requesting password reset for: $email');
+
+      final response = await _apiService.postRequest(
+        '/forgot-password',
+        {'email': email},
+      );
+
+      print('AuthService: Password reset email sent');
+      return response;
+    } catch (e) {
+      print('AuthService: Error requesting password reset: $e');
+      throw Exception(
+          'Failed to request password reset. Please try again later.');
+    }
+  }
+
+  Future<bool> verifyResetToken(String token) async {
+    try {
+      print('AuthService: Verifying reset token');
+
+      final response = await _apiService.getRequest(
+        '/reset-password/$token',
+      );
+
+      return response['valid'] ?? false;
+    } catch (e) {
+      print('AuthService: Error verifying reset token: $e');
+      return false;
+    }
+  }
+
+  Future<void> resetPassword(String token, String newPassword) async {
+    try {
+      print('AuthService: Resetting password');
+
+      final response = await _apiService.postRequest(
+        '/reset-password',
+        {
+          'token': token,
+          'new_password': newPassword,
+        },
+      );
+
+      print('AuthService: Password reset successful');
+      return response;
+    } catch (e) {
+      print('AuthService: Error resetting password: $e');
+      throw Exception('Failed to reset password. Please try again later.');
     }
   }
 }

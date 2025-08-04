@@ -1,4 +1,6 @@
 import 'package:function_mobile/modules/auth/views/email_verification_page.dart';
+import 'package:function_mobile/modules/auth/views/forgot_password_page.dart';
+import 'package:function_mobile/modules/auth/views/reset_password_page.dart';
 import 'package:function_mobile/modules/auth/views/signup_page.dart';
 import 'package:function_mobile/modules/booking/bindings/booking_binding.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
@@ -44,6 +46,8 @@ class MyRoutes {
   static const String login = '/login';
   static const String signup = '/signup';
   static const String emailVerification = '/emailVerification';
+  static const String forgotPassword = '/forgot-password';
+  static const String resetPassword = '/reset-password';
 
   // Home
   static const String home = '/homePage';
@@ -214,6 +218,16 @@ class MyRoutes {
       name: reviewForm,
       page: () => const ReviewFormPage(),
       binding: ReviewBinding(),
+    ),
+  ];
+  static List<GetPage> getPages = [
+    GetPage(
+      name: MyRoutes.forgotPassword,
+      page: () => const ForgotPasswordPage(),
+    ),
+    GetPage(
+      name: MyRoutes.resetPassword,
+      page: () => const ResetPasswordPage(),
     ),
   ];
 }

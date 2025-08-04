@@ -1,7 +1,7 @@
 {
   "navigation": {
     "home": "Home",
-    "bookings": "Bookings", 
+    "bookings": "Bookings",
     "favorites": "Favorites",
     "chat": "Chat",
     "profile": "Profile"
@@ -9,83 +9,83 @@
   "profile": {
     "payment_methods": "Payment Methods",
     "payment_methods_subtitle": "Add or remove payment methods",
-    "your_details": "Your Details", 
+    "your_details": "Your Details",
     "your_details_subtitle": "Update your personal details",
     "refunds": "Refunds",
     "refunds_subtitle": "Request a refund",
     "viewProfile": "View Profile"
   },
   "faq": {
-  "title": "FAQ",
-  "subtitle": "Find answers to the most common questions",
-  "search_placeholder": "Search FAQs...",
-  "categories": {
-    "payment": {
-      "title": "Payment & Billing",
-      "payment_methods": {
-        "question": "What payment methods do you accept?",
-        "answer": "We accept all major bank transfers (BRI, BCA, Mandiri), digital wallets (GoPay, OVO, DANA, ShopeePay, QRIS), and more. All payments are processed securely through encrypted channels."
+    "title": "FAQ",
+    "subtitle": "Find answers to the most common questions",
+    "search_placeholder": "Search FAQs...",
+    "categories": {
+      "payment": {
+        "title": "Payment & Billing",
+        "payment_methods": {
+          "question": "What payment methods do you accept?",
+          "answer": "We accept all major bank transfers (BRI, BCA, Mandiri), digital wallets (GoPay, OVO, DANA, ShopeePay, QRIS), and more. All payments are processed securely through encrypted channels."
+        },
+        "payment_failed": {
+          "question": "What should I do if my payment fails?",
+          "answer": "If your payment fails, please check your card details, ensure sufficient balance, and try again. If the issue persists, contact your bank or try a different payment method. You may also reach out to our support team for further assistance."
+        }
       },
-      "payment_failed": {
-        "question": "What should I do if my payment fails?",
-        "answer": "If your payment fails, please check your card details, ensure sufficient balance, and try again. If the issue persists, contact your bank or try a different payment method. You may also reach out to our support team for further assistance."
-      }
-    },
-    "booking": {
-      "title": "Booking & Reservations",
-      "how_to_book": {
-        "question": "How do I make a booking?",
-        "answer": "To make a booking, browse available services, select your preferred date and time, provide the required details, and proceed to payment. A confirmation will be sent once your booking is successful."
+      "booking": {
+        "title": "Booking & Reservations",
+        "how_to_book": {
+          "question": "How do I make a booking?",
+          "answer": "To make a booking, browse available services, select your preferred date and time, provide the required details, and proceed to payment. A confirmation will be sent once your booking is successful."
+        },
+        "booking_confirmation": {
+          "question": "How will I receive my booking confirmation?",
+          "answer": "You'll receive a confirmation immediately via push notification. It will include your booking details, location, and time. You can also view your bookings in the 'My Bookings' section."
+        }
       },
-      "booking_confirmation": {
-        "question": "How will I receive my booking confirmation?",
-        "answer": "You'll receive a confirmation immediately via push notification. It will include your booking details, location, and time. You can also view your bookings in the 'My Bookings' section."
-      }
-    },
-    "cancellation": {
-      "title": "Cancellation",
-      "how_to_cancel": {
-        "question": "How do I cancel my booking?",
-        "answer": "To cancel a booking, go to 'My Bookings', find your reservation, and tap 'Cancel Booking'. Follow the prompts to complete the cancellation process."
+      "cancellation": {
+        "title": "Cancellation",
+        "how_to_cancel": {
+          "question": "How do I cancel my booking?",
+          "answer": "To cancel a booking, go to 'My Bookings', find your reservation, and tap 'Cancel Booking'. Follow the prompts to complete the cancellation process."
+        },
+        "cancellation_policy": {
+          "question": "What is your cancellation policy?",
+          "answer": "Free cancellation is available up until your booking is confirmed by an admin."
+        }
       },
-      "cancellation_policy": {
-        "question": "What is your cancellation policy?",
-        "answer": "Free cancellation is available up until your booking is confirmed by an admin."
-      }
-    },
-    "account": {
-      "title": "Account & Profile",
-      "create_account": {
-        "question": "How do I create an account?",
-        "answer": "Tap 'Sign Up' on the welcome screen, enter your email and phone number, create a secure password, and verify your email address."
+      "account": {
+        "title": "Account & Profile",
+        "create_account": {
+          "question": "How do I create an account?",
+          "answer": "Tap 'Sign Up' on the welcome screen, enter your email and phone number, create a secure password, and verify your email address."
+        },
+        "update_profile": {
+          "question": "How can I update my profile information?",
+          "answer": "Go to 'Profile' in the app menu, tap 'Edit Profile', update your information, and save the changes. You can modify your name, phone number, preferences, and notification settings."
+        }
       },
-      "update_profile": {
-        "question": "How can I update my profile information?",
-        "answer": "Go to 'Profile' in the app menu, tap 'Edit Profile', update your information, and save the changes. You can modify your name, phone number, preferences, and notification settings."
-      }
-    },
-    "general": {
-      "title": "General",
-      "app_features": {
-        "question": "What are the main features of this app?",
-        "answer": "Our app offers simple booking management, real-time notifications, secure payments, booking history, customer support chat, and multi-language support. You can also track your bookings and receive live updates."
-      },
-      "contact_support": {
-        "question": "How can I contact customer support?",
-        "answer": "You can reach our support team via WhatsApp or email at support@Function.com. Our support hours are 9 AM – 9 PM, Monday to Sunday."
-      },
-      "app_updates": {
-        "question": "How do I update the app?",
-        "answer": "Enable automatic updates in your device settings, or manually check the App Store (iOS) or Google Play Store (Android). We regularly release updates with new features and improvements."
+      "general": {
+        "title": "General",
+        "app_features": {
+          "question": "What are the main features of this app?",
+          "answer": "Our app offers simple booking management, real-time notifications, secure payments, booking history, customer support chat, and multi-language support. You can also track your bookings and receive live updates."
+        },
+        "contact_support": {
+          "question": "How can I contact customer support?",
+          "answer": "You can reach our support team via WhatsApp or email at support@Function.com. Our support hours are 9 AM – 9 PM, Monday to Sunday."
+        },
+        "app_updates": {
+          "question": "How do I update the app?",
+          "answer": "Enable automatic updates in your device settings, or manually check the App Store (iOS) or Google Play Store (Android). We regularly release updates with new features and improvements."
+        }
       }
     }
-  }
-},
+  },
   "contact_support": {
     "title": "Contact Support",
     "subtitle": "Get help with your account"
   },
- "follow_us": {
+  "follow_us": {
     "title": "Follow Us",
     "subtitle": "Stay connected and get the latest updates from us!",
     "menuSubtitle": "Connect with us on social media",
@@ -100,7 +100,7 @@
   "common": {
     "change": "Change",
     "saveChange": "Save Changes",
-    "hello" : "Hello, ",
+    "hello": "Hello, ",
     "unknown": "Unknown",
     "important": "Important:",
     "error": "Error",
@@ -113,7 +113,7 @@
     "no": "No",
     "save": "Save",
     "edit": "Edit",
-    "exit": "Exit",
+    "logout": "Logout",
     "delete": "Delete",
     "open": "Open",
     "close": "Close",
@@ -133,13 +133,13 @@
     "seeMore": "See More",
     "monday": "Monday",
     "tuesday": "Tuesday",
-    "wednesday": "Wednesday", 
+    "wednesday": "Wednesday",
     "thursday": "Thursday",
     "friday": "Friday",
     "saturday": "Saturday",
     "sunday": "Sunday",
     "date": "Date",
-    "time": "Time", 
+    "time": "Time",
     "venue": "Venue",
     "capacity": "Capacity",
     "view": "View",
@@ -204,11 +204,11 @@
     "priceDetails": "Price Details",
     "guestName": "Name:",
     "serviceFee": "Service Fee",
-    "tax": "Tax", 
+    "tax": "Tax",
     "discount": "Discount",
     "contactHost": "Contact Host",
     "cancelling": "Cancelling...",
-     "bookVenue": "Book Venue",
+    "bookVenue": "Book Venue",
     "bookingDetail": "Booking Detail",
     "bookingNotFound": "Booking not found",
     "viewBookingDetails": "View Booking Details",
@@ -226,7 +226,7 @@
     "processingPayment": "Processing Payment...",
     "cancelPayment": "Cancel Payment",
     "allBookings": "All",
-    "pendingBookings": "Pending", 
+    "pendingBookings": "Pending",
     "confirmedBookings": "Confirmed",
     "completedBookings": "Completed",
     "cancelledBookings": "Cancelled",
@@ -250,7 +250,7 @@
     "cancelledByAdmin": "This booking has been cancelled by the venue administrator.",
     "status": {
       "completed": "Completed",
-      "confirmed": "Confirmed", 
+      "confirmed": "Confirmed",
       "paid": "Paid",
       "pending": "Pending",
       "cancelled": "Cancelled"
@@ -407,7 +407,7 @@
     "sortRelevance": "Relevance",
     "searchVenueHint": "Search venue",
     "selectActivity": "Select Activity",
-    "selectCapacity": "Select Capacity", 
+    "selectCapacity": "Select Capacity",
     "selectAll": "Select All",
     "clearAll": "Clear All",
     "filterByCategory": "Filter by Category"
@@ -640,11 +640,11 @@
     "welcomeBack": "Welcome back!",
     "welcome": "Welcome!"
   },
-   "time": {
+  "time": {
     "daysSingular": "day",
     "daysPlural": "days",
     "hoursSingular": "hour",
-    "hoursPlural": "hours", 
+    "hoursPlural": "hours",
     "minutesSingular": "minute",
     "minutesPlural": "minutes",
     "pastBooking": "Past booking",
