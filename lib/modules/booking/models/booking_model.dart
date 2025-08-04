@@ -43,8 +43,8 @@ class BookingModel {
     this.amount,
     this.paymentStatus,
     this.placeName,
-    this.isCancelled, 
-    this.cancelReason, 
+    this.isCancelled,
+    this.cancelReason,
     this.cancelledBy,
     this.place,
     this.user,
@@ -107,20 +107,20 @@ class BookingModel {
   bool get isPaid {
     // First check the direct payment_status field
     final validPaidStatuses = ['paid', 'success', 'settlement'];
-  
-  // Check payment_status field
-  if (paymentStatus != null && 
-      validPaidStatuses.contains(paymentStatus!.toLowerCase())) {
-    return true;
-  }
-  
-  // Check payment object status
-  if (payment != null && 
-      validPaidStatuses.contains(payment!.status.toLowerCase())) {
-    return true;
-  }
-  
-  return false;
+
+    // Check payment_status field
+    if (paymentStatus != null &&
+        validPaidStatuses.contains(paymentStatus!.toLowerCase())) {
+      return true;
+    }
+
+    // Check payment object status
+    if (payment != null &&
+        validPaidStatuses.contains(payment!.status.toLowerCase())) {
+      return true;
+    }
+
+    return false;
   }
 
   String get statusDisplayName {
@@ -250,7 +250,7 @@ class BookingModel {
       placeName: json['place_name'],
       isCancelled: json['is_cancelled'] as bool?,
       cancelReason: json['cancel_reason'] as String?,
-      cancelledBy: json['cancelled_by'] as String?, 
+      cancelledBy: json['cancelled_by'] as String?,
       place: json['place'] != null ? VenueModel.fromJson(json['place']) : null,
       user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
       reviews: json['reviews'] != null
@@ -277,8 +277,8 @@ class BookingModel {
       'payment_status': paymentStatus,
       'place_name': placeName,
       'is_cancelled': isCancelled,
-      'cancel_reason': cancelReason, 
-      'cancelled_by': cancelledBy, 
+      'cancel_reason': cancelReason,
+      'cancelled_by': cancelledBy,
     };
   }
 
@@ -334,7 +334,6 @@ class BookingModel {
   }
 }
 
-// Supporting classes tetap sama seperti model asli Anda
 class BookingCreateRequest {
   final int placeId;
   final int? userId;
@@ -368,16 +367,15 @@ class BookingCreateRequest {
     return {
       'place_id': placeId,
       'user_id': userId ?? 1,
-      'venue_name': venueName,
-      'user_name': userName,
-      'user_email': userEmail,
-      'user_phone': userPhone,
       'start_datetime': startDateTime.toIso8601String().split('.')[0],
       'end_datetime': endDateTime.toIso8601String().split('.')[0],
       'is_confirmed': false,
-      'capacity': capacity,
-      'special_requests': specialRequests,
       'amount': totalPrice ?? 0.0,
+      'guest_name': userName ?? '',
+      'guest_email': userEmail,
+      'guest_phone': userPhone ?? '',
+      'guest_count': capacity,
+      'special_request': specialRequests ?? '',
     };
   }
 
@@ -391,7 +389,10 @@ class BookingCreateRequest {
     String userName = "Test User",
     String userEmail = "test@example.com",
     String? userPhone,
+    DateTime? endDate,
   }) {
+    final actualEndDate = endDate ?? date;
+
     final startDateTime = DateTime(
       date.year,
       date.month,
@@ -401,9 +402,9 @@ class BookingCreateRequest {
     );
 
     final endDateTime = DateTime(
-      date.year,
-      date.month,
-      date.day,
+      actualEndDate.year,
+      actualEndDate.month,
+      actualEndDate.day,
       endTime.hour,
       endTime.minute,
     );

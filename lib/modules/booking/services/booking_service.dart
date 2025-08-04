@@ -1,8 +1,10 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:function_mobile/core/services/api_service.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:function_mobile/modules/venue/data/repositories/venue_repository.dart';
+import 'package:function_mobile/modules/booking/models/booking_response_models.dart';
 import 'package:get/get.dart';
 
 class BookingService extends GetxService {
@@ -29,10 +31,8 @@ class BookingService extends GetxService {
 
         for (final bookingData in response) {
           try {
-            // Parse booking first
             final booking = BookingModel.fromJson(bookingData);
 
-            // SOLUSI UTAMA: Fetch place details jika tidak ada atau tidak lengkap
             BookingModel enrichedBooking = booking;
             if (_needsPlaceEnrichment(booking)) {
               enrichedBooking = await _enrichBookingWithPlaceDetails(booking);
@@ -109,13 +109,88 @@ class BookingService extends GetxService {
     }
   }
 
-  // Cancel booking di FastAPI
-  Future<void> cancelBooking(int bookingId) async {
+  Future<dynamic> createBookingWithConflictHandling(BookingCreateRequest request) async {
     try {
-      await _apiService.patchRequest('/booking/user/cancel/$bookingId', {});
+      final response = await _apiService.postRequest('/booking', request.toJson());
+      
+      if (response != null) {
+        return BookingCreateResponse.fromJson(response);
+      }
+      
+      throw Exception('Failed to create booking');
+    } on DioException catch (e) {
+      // Handle 409 Conflict specifically
+      if (e.response?.statusCode == 409) {
+        final data = e.response?.data;
+        if (data != null) {
+          final conflictData = data['detail'] ?? data;
+          return BookingConflictResponse.fromJson(conflictData);
+        }
+      }
+      throw e;
+    }
+  }
+
+   Future<BookingValidationResponse> validateBooking(BookingCreateRequest request) async {
+    try {
+      final response = await _apiService.postRequest(
+        '/booking/validate',
+        request.toJson(),
+      );
+
+      if (response != null) {
+        return BookingValidationResponse.fromJson(response);
+      }
+      
+      throw Exception('Failed to validate booking');
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  // Check venue availability untuk tanggal tertentu
+ Future<VenueAvailabilityResponse> checkVenueAvailability({
+    required int placeId,
+    required DateTime date,
+    int? durationHours,
+  }) async {
+    try {
+      final params = {
+        'date': date.toIso8601String().split('T')[0],
+        if (durationHours != null) 'duration_hours': durationHours.toString(),
+      };
+
+      // Use query string in URL instead of queryParameters
+      final queryString = params.entries
+          .map((e) => '${e.key}=${Uri.encodeComponent(e.value)}')
+          .join('&');
+      
+      final response = await _apiService.getRequest(
+        '/place/$placeId/check-availability?$queryString',
+      );
+
+      if (response != null) {
+        return VenueAvailabilityResponse.fromJson(response);
+      }
+      
+      throw Exception('Failed to check availability');
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  // Cancel booking
+  Future<bool> cancelBooking(int bookingId) async {
+    try {
+      final response = await _apiService.patchRequest(
+        '/booking/user/cancel/$bookingId',
+        {},
+      );
+      
+      return response != null;
     } catch (e) {
       print('Error cancelling booking: $e');
-      throw Exception('Failed to cancel booking: $e');
+      throw e;
     }
   }
 

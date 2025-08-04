@@ -25,6 +25,7 @@ import 'package:function_mobile/modules/reviews/bindings/review_binding.dart';
 import 'package:function_mobile/modules/reviews/views/review_form_page.dart';
 import 'package:function_mobile/modules/reviews/views/review_page.dart';
 import 'package:function_mobile/modules/splash/views/splash_screen.dart';
+import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:function_mobile/modules/venue/views/venue_detail_page.dart';
 import 'package:function_mobile/modules/navigation/views/bottom_nav_view.dart';
 import 'package:function_mobile/modules/venue/views/venue_list_page.dart';
@@ -120,7 +121,11 @@ class MyRoutes {
     // Booking
     GetPage(
         name: bookingPage,
-        page: () => const BookingPage(),
+        page: () {
+          // Get venue dari arguments
+          final venue = Get.arguments as VenueModel;
+          return BookingPage(venue: venue);
+        },
         binding: BookingBinding()),
     GetPage(
       name: bookingList,
