@@ -1,9 +1,7 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import 'package:function_mobile/core/services/api_service.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
-import 'package:function_mobile/modules/venue/data/repositories/venue_repository.dart';
 import 'package:function_mobile/modules/booking/models/booking_response_models.dart';
 import 'package:get/get.dart';
 
@@ -86,98 +84,45 @@ class BookingService extends GetxService {
     }
   }
 
-  Future<BookingModel> createBooking(BookingCreateRequest request) async {
-    try {
-      print('Creating booking with data: ${request.toJson()}');
-
-      // Send directly to FastAPI
-      final response =
-          await _apiService.postRequest('/booking', request.toJson());
-      print('Full booking response: $response');
-
-      // Parse booking
-      final booking = BookingModel.fromJson(response);
-
-      // Immediately enrich dengan place details untuk consistency
-      final enrichedBooking = await _enrichBookingWithPlaceDetails(booking);
-
-      print('Booking created successfully with place details');
-      return enrichedBooking;
-    } catch (e) {
-      print('Error creating booking via FastAPI: $e');
-      throw Exception('Failed to create booking: $e');
+Future<dynamic> createBookingWithBuiltInValidation(BookingCreateRequest request) async {
+  try {
+    final response = await _apiService.postRequest(
+      '/booking/create', 
+      request.toJson()
+    );
+    
+    if (response != null) {
+      return BookingCreateWithResponse.fromJson(response);
     }
-  }
-
-  Future<dynamic> createBookingWithConflictHandling(BookingCreateRequest request) async {
-    try {
-      final response = await _apiService.postRequest('/booking', request.toJson());
-      
-      if (response != null) {
-        return BookingCreateResponse.fromJson(response);
-      }
-      
-      throw Exception('Failed to create booking');
-    } on DioException catch (e) {
-      // Handle 409 Conflict specifically
-      if (e.response?.statusCode == 409) {
-        final data = e.response?.data;
-        if (data != null) {
-          final conflictData = data['detail'] ?? data;
-          return BookingConflictResponse.fromJson(conflictData);
+    
+    throw Exception('Failed to create booking');
+  } on DioException catch (e) {
+    // Handle 409 Conflict specifically
+    if (e.response?.statusCode == 409) {
+      final data = e.response?.data;
+      if (data != null) {
+        // Parse available_slots from backend response
+        final availableSlots = <TimeSlot>[];
+        if (data['available_slots'] != null) {
+          for (final slot in data['available_slots']) {
+            availableSlots.add(TimeSlot(
+              start: slot['start'],
+              end: slot['end'], 
+              available: slot['available'] ?? true,
+            ));
+          }
         }
+        
+        return BookingConflictResponse(
+          success: false,
+          error: data['error'] ?? 'Venue not available at selected time',
+          availableSlots: availableSlots,
+        );
       }
-      throw e;
     }
+    throw e;
   }
-
-   Future<BookingValidationResponse> validateBooking(BookingCreateRequest request) async {
-    try {
-      final response = await _apiService.postRequest(
-        '/booking/validate',
-        request.toJson(),
-      );
-
-      if (response != null) {
-        return BookingValidationResponse.fromJson(response);
-      }
-      
-      throw Exception('Failed to validate booking');
-    } catch (e) {
-      throw e;
-    }
-  }
-
-  // Check venue availability untuk tanggal tertentu
- Future<VenueAvailabilityResponse> checkVenueAvailability({
-    required int placeId,
-    required DateTime date,
-    int? durationHours,
-  }) async {
-    try {
-      final params = {
-        'date': date.toIso8601String().split('T')[0],
-        if (durationHours != null) 'duration_hours': durationHours.toString(),
-      };
-
-      // Use query string in URL instead of queryParameters
-      final queryString = params.entries
-          .map((e) => '${e.key}=${Uri.encodeComponent(e.value)}')
-          .join('&');
-      
-      final response = await _apiService.getRequest(
-        '/place/$placeId/check-availability?$queryString',
-      );
-
-      if (response != null) {
-        return VenueAvailabilityResponse.fromJson(response);
-      }
-      
-      throw Exception('Failed to check availability');
-    } catch (e) {
-      throw e;
-    }
-  }
+}
 
   // Cancel booking
   Future<bool> cancelBooking(int bookingId) async {
@@ -223,4 +168,44 @@ class BookingService extends GetxService {
 
     return enrichedBookings;
   }
+
+  // CALENDER
+
+  Future<CalendarAvailabilityResponse> getCalendarAvailability({
+    required int placeId,
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    try {
+      final startDateStr = startDate.toIso8601String().split('T')[0];
+      final endDateStr = endDate.toIso8601String().split('T')[0];
+      
+      final response = await _apiService.getRequest(
+        '/place/$placeId/calendar-availability?start_date=$startDateStr&end_date=$endDateStr'
+      );
+      
+      return CalendarAvailabilityResponse.fromJson(response);
+    } catch (e) {
+      throw Exception('Failed to get calendar availability: $e');
+    }
+  }
+
+  // Get detailed time slots for specific date
+  Future<DetailedSlotsResponse> getDetailedTimeSlots({
+    required int placeId,
+    required DateTime date,
+  }) async {
+    try {
+      final dateStr = date.toIso8601String().split('T')[0];
+      
+      final response = await _apiService.getRequest(
+        '/place/$placeId/detailed-slots?date=$dateStr'
+      );
+      
+      return DetailedSlotsResponse.fromJson(response);
+    } catch (e) {
+      throw Exception('Failed to get detailed time slots: $e');
+    }
+  }
+  
 }

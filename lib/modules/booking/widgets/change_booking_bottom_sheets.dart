@@ -42,7 +42,7 @@ class ChangeBookingBottomSheet extends StatelessWidget {
             text: 'Save Date',
             onPressed: () {
               print(
-                  'Saved: ${controller.selectedDateRange.value}, Capacity: ${controller.selectedCapacity.value}');
+                  'Saved: ${controller.selectedDate.value}, Capacity: ${controller.selectedCapacity.value}');
               Get.back();
             },
           ),
@@ -53,7 +53,7 @@ class ChangeBookingBottomSheet extends StatelessWidget {
 
   Widget _dateRangePicker(BookingController controller) {
     return Obx(() {
-      final range = controller.selectedDateRange.value;
+      final range = controller.selectedDate.value;
 
       return Container(
         padding: const EdgeInsets.all(16),
@@ -67,11 +67,11 @@ class ChangeBookingBottomSheet extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  range != null ? _formatDate(range.start) : 'Start Date',
+                  range != null ? _formatDate(range) : 'Start Date',
                   style: Get.textTheme.bodyMedium,
                 ),
                 Text(
-                  range != null ? _formatDate(range.end) : 'End Date',
+                  range != null ? _formatDate(range) : 'End Date',
                   style: Get.textTheme.bodyMedium,
                 ),
               ],
@@ -84,11 +84,11 @@ class ChangeBookingBottomSheet extends StatelessWidget {
                   context: Get.context!,
                   firstDate: DateTime.now(),
                   lastDate: DateTime.now().add(const Duration(days: 365)),
-                  initialDateRange: range,
+                  // initialDateRange: range,
                 );
-                if (picked != null) {
-                  controller.setDateRange(picked);
-                }
+                // if (picked != null) {
+                //   controller.setDateRange(picked);
+                // }
               },
               icon: Icons.date_range,
               text: 'Change Date',

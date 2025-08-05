@@ -1,5 +1,3 @@
-// lib/modules/booking/models/booking_response_models.dart
-
 class TimeSlot {
   final String start;
   final String end;
@@ -77,55 +75,108 @@ class BookingConflictResponse {
   }
 }
 
-class BookingValidationResponse {
-  final bool valid;
-  final String? error;
-  final List<TimeSlot>? availableSlots;
-  final Map<String, dynamic>? calculation;
+class DetailedTimeSlot {
+  final String start;
+  final String end;
+  final bool available;
+  final int durationMinutes;
 
-  BookingValidationResponse({
-    required this.valid,
-    this.error,
-    this.availableSlots,
-    this.calculation,
+  DetailedTimeSlot({
+    required this.start,
+    required this.end,
+    required this.available,
+    required this.durationMinutes,
   });
 
-  factory BookingValidationResponse.fromJson(Map<String, dynamic> json) {
-    return BookingValidationResponse(
-      valid: json['valid'] ?? false,
-      error: json['error'],
-      availableSlots: json['available_slots'] != null
-          ? (json['available_slots'] as List<dynamic>)
-              .map((slot) => TimeSlot.fromJson(slot))
-              .toList()
-          : null,
-      calculation: json['calculation'],
+  factory DetailedTimeSlot.fromJson(Map<String, dynamic> json) {
+    return DetailedTimeSlot(
+      start: json['start'],
+      end: json['end'],
+      available: json['available'],
+      durationMinutes: json['duration_minutes'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'start': start,
+      'end': end,
+      'available': available,
+      'duration_minutes': durationMinutes,
+    };
+  }
+}
+
+class CalendarAvailabilityResponse {
+  final int placeId;
+  final String startDate;
+  final String endDate;
+  final Map<String, String> availability;
+
+  CalendarAvailabilityResponse({
+    required this.placeId,
+    required this.startDate,
+    required this.endDate,
+    required this.availability,
+  });
+
+  factory CalendarAvailabilityResponse.fromJson(Map<String, dynamic> json) {
+    return CalendarAvailabilityResponse(
+      placeId: json['place_id'],
+      startDate: json['start_date'],
+      endDate: json['end_date'],
+      availability: Map<String, String>.from(json['availability']),
     );
   }
 }
 
-class VenueAvailabilityResponse {
+class DetailedSlotsResponse {
   final int placeId;
   final String date;
-  final List<TimeSlot> availableSlots;
+  final List<DetailedTimeSlot> slots;
   final String venueOperatingHours;
 
-  VenueAvailabilityResponse({
+  DetailedSlotsResponse({
     required this.placeId,
     required this.date,
-    required this.availableSlots,
+    required this.slots,
     required this.venueOperatingHours,
   });
 
-  factory VenueAvailabilityResponse.fromJson(Map<String, dynamic> json) {
-    return VenueAvailabilityResponse(
-      placeId: json['place_id'] ?? 0,
-      date: json['date'] ?? '',
-      availableSlots: (json['available_slots'] as List<dynamic>?)
-              ?.map((slot) => TimeSlot.fromJson(slot))
-              .toList() ??
-          [],
-      venueOperatingHours: json['venue_operating_hours'] ?? '00:00-24:00',
+  factory DetailedSlotsResponse.fromJson(Map<String, dynamic> json) {
+    return DetailedSlotsResponse(
+      placeId: json['place_id'],
+      date: json['date'],
+      slots: (json['slots'] as List)
+          .map((slot) => DetailedTimeSlot.fromJson(slot))
+          .toList(),
+      venueOperatingHours: json['venue_operating_hours'],
+    );
+  }
+}
+
+class BookingCreateWithResponse {
+  final bool success;
+  final int bookingId;
+  final double totalHours;
+  final double totalAmount;
+  final Map<String, dynamic> booking;
+
+  BookingCreateWithResponse({
+    required this.success,
+    required this.bookingId,
+    required this.totalHours,
+    required this.totalAmount,
+    required this.booking,
+  });
+
+  factory BookingCreateWithResponse.fromJson(Map<String, dynamic> json) {
+    return BookingCreateWithResponse(
+      success: json['success'],
+      bookingId: json['booking_id'],
+      totalHours: (json['total_hours'] as num).toDouble(),
+      totalAmount: (json['total_amount'] as num).toDouble(),
+      booking: json['booking'],
     );
   }
 }

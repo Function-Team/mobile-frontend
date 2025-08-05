@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_controller.dart';
 import 'package:function_mobile/modules/booking/widgets/time_slot_picker.dart';
+import 'package:function_mobile/modules/booking/widgets/calendar_booking_widget.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -24,7 +25,11 @@ class BookingForm extends StatelessWidget {
         children: [
           _bookingTitle(),
           const SizedBox(height: 16),
-          _dateRangePicker(controller),
+          // REPLACE DateTimeRange picker with Calendar
+          CalendarBookingWidget(
+            controller: controller,
+            venueId: venue.id!,
+          ),
           const SizedBox(height: 16),
           _timeRangePicker(controller),
           const SizedBox(height: 16),
@@ -34,11 +39,9 @@ class BookingForm extends StatelessWidget {
           const SizedBox(height: 16),
           _guestInfoForm(controller),
           const SizedBox(height: 24),
-          _availabilityDisplay(controller), // Auto-updated when date/time changes
-          const SizedBox(height: 24),
           _totalPriceDisplay(controller),
           const SizedBox(height: 24),
-          _bookNowButton(controller), // Single action button
+          _bookNowButton(controller),
         ],
       ),
     );
@@ -54,29 +57,9 @@ class BookingForm extends StatelessWidget {
     );
   }
 
-  Widget _dateRangePicker(BookingController controller) {
-    return Obx(() {
-      final range = controller.selectedDateRange.value;
-
-      return Card(
-        child: ListTile(
-          leading: Icon(Icons.calendar_today, color: Get.theme.primaryColor),
-          title: Text('Booking Dates'),
-          subtitle: Text(
-            range != null
-                ? '${_formatDate(range.start)} - ${_formatDate(range.end)}'
-                : 'Select dates',
-          ),
-          trailing: Icon(Icons.arrow_forward_ios),
-          onTap: () => _selectDateRange(controller),
-        ),
-      );
-    });
-  }
-
   Widget _timeRangePicker(BookingController controller) {
-    final timeSlots = controller.generateTimeSlots();
-    
+    final timeSlots = _generateTimeSlots();
+
     return Obx(() {
       return Row(
         children: [
@@ -91,17 +74,16 @@ class BookingForm extends StatelessWidget {
                 // Auto-set end time to +2 hours if not set
                 if (controller.endTime.value == null) {
                   final endHour = (time.hour + 2) % 24;
-                  controller.endTime.value = TimeOfDay(hour: endHour, minute: time.minute);
+                  controller.endTime.value =
+                      TimeOfDay(hour: endHour, minute: time.minute);
                 }
-                // Auto-check availability when time changes
-                _autoCheckAvailability(controller);
               },
             ),
           ),
-          
+
           SizedBox(width: 16),
-          
-          // End Time  
+
+          // End Time
           Expanded(
             child: TimeSlotPicker(
               label: 'End Time',
@@ -109,8 +91,6 @@ class BookingForm extends StatelessWidget {
               timeSlots: timeSlots,
               onTimeSelected: (time) {
                 controller.endTime.value = time;
-                // Auto-check availability when time changes
-                _autoCheckAvailability(controller);
               },
             ),
           ),
@@ -121,35 +101,34 @@ class BookingForm extends StatelessWidget {
 
   Widget _durationDisplay(BookingController controller) {
     return Obx(() {
-      if (controller.selectedDateRange.value == null ||
+      if (controller.selectedDate.value == null ||
           controller.startTime.value == null ||
           controller.endTime.value == null) {
         return SizedBox.shrink();
       }
-      
-      final startDate = controller.selectedDateRange.value!.start;
-      final endDate = controller.selectedDateRange.value!.end;
+
+      final selectedDate = controller.selectedDate.value!;
       final startTime = controller.startTime.value!;
       final endTime = controller.endTime.value!;
-      
+
       final start = DateTime(
-        startDate.year,
-        startDate.month,
-        startDate.day,
+        selectedDate.year,
+        selectedDate.month,
+        selectedDate.day,
         startTime.hour,
         startTime.minute,
       );
-      
+
       final end = DateTime(
-        endDate.year,
-        endDate.month,
-        endDate.day,
+        selectedDate.year,
+        selectedDate.month,
+        selectedDate.day,
         endTime.hour,
         endTime.minute,
       );
-      
+
       final duration = end.difference(start);
-      
+
       // Validate minimum duration
       if (duration < Duration(hours: 1)) {
         return Card(
@@ -169,7 +148,7 @@ class BookingForm extends StatelessWidget {
           ),
         );
       }
-      
+
       // Validate maximum duration
       if (duration > Duration(days: 7)) {
         return Card(
@@ -189,7 +168,7 @@ class BookingForm extends StatelessWidget {
           ),
         );
       }
-      
+
       return Card(
         color: Colors.green[50],
         child: Padding(
@@ -234,7 +213,8 @@ class BookingForm extends StatelessWidget {
                 value: controller.selectedCapacity.value,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  contentPadding:
+                      EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 ),
                 items: controller.capacityOptions.map((String capacity) {
                   return DropdownMenuItem<String>(
@@ -314,128 +294,42 @@ class BookingForm extends StatelessWidget {
     );
   }
 
-  // SIMPLIFIED: Auto-updated availability display (no manual check button)
-  Widget _availabilityDisplay(BookingController controller) {
-    return Obx(() {
-      if (controller.isCheckingAvailability.value) {
-        return Card(
-          child: Padding(
-            padding: EdgeInsets.all(16),
-            child: Row(
-              children: [
-                SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-                SizedBox(width: 12),
-                Text('Checking availability...'),
-              ],
-            ),
-          ),
-        );
-      }
-      
-      if (controller.availabilityError.value.isNotEmpty) {
-        return Card(
-          color: Colors.red[50],
-          child: Padding(
-            padding: EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Icon(Icons.error_outline, color: Colors.red),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    controller.availabilityError.value,
-                    style: TextStyle(color: Colors.red),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      }
-      
-      if (controller.availableTimeSlots.isNotEmpty) {
-        return Card(
-          child: Padding(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.schedule, color: Colors.green),
-                    SizedBox(width: 8),
-                    Text(
-                      'Available Time Slots',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: controller.availableTimeSlots.map((slot) {
-                    return Chip(
-                      label: Text('${slot.start} - ${slot.end}'),
-                      backgroundColor: Colors.green[50],
-                      labelStyle: TextStyle(color: Colors.green[700]),
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
-          ),
-        );
-      }
-      
-      return SizedBox.shrink();
-    });
-  }
-
   Widget _totalPriceDisplay(BookingController controller) {
     return Obx(() {
-      if (controller.selectedDateRange.value == null ||
+      if (controller.selectedDate.value == null ||
           controller.startTime.value == null ||
           controller.endTime.value == null) {
         return SizedBox.shrink();
       }
-      
-      final startDate = controller.selectedDateRange.value!.start;
-      final endDate = controller.selectedDateRange.value!.end;
+
+      final selectedDate = controller.selectedDate.value!;
       final startTime = controller.startTime.value!;
       final endTime = controller.endTime.value!;
-      
+
       final start = DateTime(
-        startDate.year,
-        startDate.month,
-        startDate.day,
+        selectedDate.year,
+        selectedDate.month,
+        selectedDate.day,
         startTime.hour,
         startTime.minute,
       );
-      
+
       final end = DateTime(
-        endDate.year,
-        endDate.month,
-        endDate.day,
+        selectedDate.year,
+        selectedDate.month,
+        selectedDate.day,
         endTime.hour,
         endTime.minute,
       );
-      
+
       final duration = end.difference(start);
       final totalHours = duration.inMinutes / 60.0;
       final totalAmount = (venue.price ?? 0) * totalHours;
-      
+
       if (duration < Duration(hours: 1) || duration > Duration(days: 7)) {
         return SizedBox.shrink();
       }
-      
+
       return Container(
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -499,20 +393,21 @@ class BookingForm extends StatelessWidget {
   // SIMPLIFIED: Single "Book Now" button with smart handling
   Widget _bookNowButton(BookingController controller) {
     return Obx(() {
-      final isValidForm = controller.selectedDateRange.value != null &&
+      final isValidForm = controller.selectedDate.value != null &&
           controller.startTime.value != null &&
           controller.endTime.value != null &&
           controller.guestNameController.text.trim().isNotEmpty &&
           controller.guestEmailController.text.trim().isNotEmpty;
-      
+
       final isDurationValid = _isDurationValid(controller);
-      
+
       return SizedBox(
         width: double.infinity,
         child: ElevatedButton(
-          onPressed: (isValidForm && isDurationValid && !controller.isProcessing.value)
-              ? () => controller.createBookingWithAvailabilityCheck(venue)
-              : null,
+          onPressed:
+              (isValidForm && isDurationValid && !controller.isProcessing.value)
+                  ? () => controller.createBooking(venue)
+                  : null,
           style: ElevatedButton.styleFrom(
             padding: EdgeInsets.symmetric(vertical: 16),
             backgroundColor: Get.theme.primaryColor,
@@ -540,75 +435,43 @@ class BookingForm extends StatelessWidget {
   }
 
   // Helper methods
-  void _selectDateRange(BookingController controller) async {
-    final DateTimeRange? picked = await showDateRangePicker(
-      context: Get.context!,
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(Duration(days: 365)),
-      initialDateRange: controller.selectedDateRange.value,
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: Get.theme.primaryColor,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    
-    if (picked != null) {
-      controller.selectedDateRange.value = picked;
-      // Auto-check availability when date changes
-      _autoCheckAvailability(controller);
+  List<TimeOfDay> _generateTimeSlots() {
+    final slots = <TimeOfDay>[];
+    for (int hour = 0; hour < 24; hour++) {
+      slots.add(TimeOfDay(hour: hour, minute: 0));
+      slots.add(TimeOfDay(hour: hour, minute: 30));
     }
-  }
-
-  void _autoCheckAvailability(BookingController controller) {
-    // Only auto-check if we have all required data
-    if (controller.selectedDateRange.value != null &&
-        controller.startTime.value != null &&
-        controller.endTime.value != null &&
-        _isDurationValid(controller)) {
-      final date = controller.selectedDateRange.value!.start;
-      controller.checkAvailability(venue.id!, date);
-    }
+    return slots;
   }
 
   bool _isDurationValid(BookingController controller) {
-    if (controller.selectedDateRange.value == null ||
+    if (controller.selectedDate.value == null ||
         controller.startTime.value == null ||
         controller.endTime.value == null) {
       return false;
     }
-    
-    final startDate = controller.selectedDateRange.value!.start;
-    final endDate = controller.selectedDateRange.value!.end;
+
+    final selectedDate = controller.selectedDate.value!;
     final startTime = controller.startTime.value!;
     final endTime = controller.endTime.value!;
-    
+
     final start = DateTime(
-      startDate.year,
-      startDate.month,
-      startDate.day,
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
       startTime.hour,
       startTime.minute,
     );
-    
+
     final end = DateTime(
-      endDate.year,
-      endDate.month,
-      endDate.day,
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
       endTime.hour,
       endTime.minute,
     );
-    
+
     final duration = end.difference(start);
     return duration >= Duration(hours: 1) && duration <= Duration(days: 7);
-  }
-
-  String _formatDate(DateTime date) {
-    return DateFormat('dd MMM yyyy').format(date);
   }
 }

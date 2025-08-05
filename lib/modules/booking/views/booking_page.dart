@@ -238,7 +238,7 @@ class BookingPage extends StatelessWidget {
   }
   
   Widget _buildTotalPriceBar(BuildContext context) {
-    if (controller.selectedDateRange.value == null ||
+    if (controller.selectedDate.value == null ||
         controller.startTime.value == null ||
         controller.endTime.value == null) {
       return Container(
@@ -251,8 +251,8 @@ class BookingPage extends StatelessWidget {
       );
     }
     
-    final startDate = controller.selectedDateRange.value!.start;
-    final endDate = controller.selectedDateRange.value!.end;
+    final startDate = controller.selectedDate.value!;
+    final endDate = controller.selectedDate.value!;
     final startTime = controller.startTime.value!;
     final endTime = controller.endTime.value!;
     
