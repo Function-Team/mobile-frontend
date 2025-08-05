@@ -1,5 +1,3 @@
-// lib/modules/booking/controllers/booking_controller.dart - CLEANED VERSION
-
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/core/services/api_service.dart';
@@ -9,7 +7,6 @@ import 'package:function_mobile/modules/booking/models/booking_response_models.d
 import 'package:function_mobile/modules/booking/services/booking_service.dart';
 import 'package:function_mobile/modules/navigation/controllers/bottom_nav_controller.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
-import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
@@ -18,13 +15,12 @@ import 'package:url_launcher/url_launcher.dart';
 class BookingController extends GetxController {
   final ApiService _apiService = ApiService();
 
-  // SINGLE DATE STATE (Remove DateTimeRange)
   final Rx<DateTime?> selectedDate = Rx<DateTime?>(null);
-  
+
   // Form data
   final RxString selectedCapacity = '10'.obs;
   final RxList<String> capacityOptions = ['10', '20', '50', '100', '200'].obs;
-  
+
   // Calendar & Time slots state
   final RxMap<String, String> calendarAvailability = <String, String>{}.obs;
   final RxList<DetailedTimeSlot> detailedTimeSlots = <DetailedTimeSlot>[].obs;
@@ -74,7 +70,8 @@ class BookingController extends GetxController {
   }
 
   // CALENDAR METHODS
-  Future<void> loadCalendarAvailability(int venueId, DateTime startDate, DateTime endDate) async {
+  Future<void> loadCalendarAvailability(
+      int venueId, DateTime startDate, DateTime endDate) async {
     try {
       isLoadingCalendar.value = true;
       calendarAvailability.clear();
@@ -118,7 +115,6 @@ class BookingController extends GetxController {
     return calendarAvailability[dateStr] ?? 'unknown';
   }
 
-  // MAIN BOOKING METHOD (Unified approach)
   Future<void> createBooking(VenueModel venue) async {
     if (!isFormValid()) return;
 
@@ -139,7 +135,8 @@ class BookingController extends GetxController {
       );
 
       final service = BookingService();
-      final response = await service.createBookingWithBuiltInValidation(bookingRequest);
+      final response =
+          await service.createBookingWithBuiltInValidation(bookingRequest);
 
       if (response is BookingCreateWithResponse) {
         // Success
@@ -164,7 +161,6 @@ class BookingController extends GetxController {
     }
   }
 
-  // SIMPLIFIED FORM VALIDATION (Backend handles time validation)
   bool isFormValid() {
     if (selectedDate.value == null) {
       _showError('Please select booking date');
@@ -194,159 +190,204 @@ class BookingController extends GetxController {
     return true;
   }
 
-  // IMPROVED CONFLICT DIALOG
-  void _showConflictDialog(List<TimeSlot> slots, VenueModel venue) {
+  // CONFLICT DIALOG
+  void _showConflictDialog(List<TimeSlot> availableSlots, VenueModel venue) {
     Get.dialog(
       AlertDialog(
-        title: Text('Time Slot Not Available'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+        title: Row(
           children: [
-            Text(
-              'The selected time slot is already booked.',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 16),
-            if (slots.isNotEmpty) ...[
-              Text('Available alternatives:'),
-              SizedBox(height: 8),
-              ...slots.take(3).map((slot) => Container(
-                margin: EdgeInsets.symmetric(vertical: 2),
-                child: ElevatedButton(
-                  onPressed: () => _useAlternativeSlot(slot, venue),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green[50],
-                    foregroundColor: Colors.green[700],
+            Icon(Icons.schedule, color: Colors.orange, size: 24),
+            SizedBox(width: 8),
+            Text('Time Not Available'),
+          ],
+        ),
+        content: Container(
+          width: double.maxFinite,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'The selected time slot is already booked.',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[700],
+                ),
+              ),
+              SizedBox(height: 16),
+              if (availableSlots.isNotEmpty) ...[
+                Text(
+                  'Available time slots today:',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Container(
+                  height: 200,
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: availableSlots.length,
+                    itemBuilder: (context, index) {
+                      final slot = availableSlots[index];
+                      return _buildAvailableSlotItem(slot, venue);
+                    },
+                  ),
+                ),
+              ] else ...[
+                Container(
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red[50],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red[200]!),
                   ),
                   child: Row(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.schedule, size: 16),
+                      Icon(Icons.info_outline, color: Colors.red, size: 20),
                       SizedBox(width: 8),
-                      Text('Use ${slot.start} - ${slot.end}'),
+                      Expanded(
+                        child: Text(
+                          'No available slots for today. Please choose a different date.',
+                          style: TextStyle(
+                            color: Colors.red[700],
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
-              )).toList(),
-            ] else ...[
-              Text('No available slots for this date.'),
-              Text('Please try a different date.'),
+              ],
             ],
-          ],
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: Text('Cancel'),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: Colors.grey[600]),
+            ),
           ),
-          if (slots.isNotEmpty)
-            TextButton(
+          if (availableSlots.isEmpty)
+            ElevatedButton(
               onPressed: () {
                 Get.back();
-                _showAllAvailableSlots(slots, venue);
+                // Focus on date picker to let user choose different date
+                _focusOnDatePicker();
               },
-              child: Text('View All Slots'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+              ),
+              child: Text('Choose Different Date'),
             ),
         ],
       ),
+      barrierDismissible: true,
     );
   }
 
-  void _useAlternativeSlot(TimeSlot slot, VenueModel venue) {
-    Get.back();
-    
-    final startParts = slot.start.split(':');
-    final endParts = slot.end.split(':');
-    
-    startTime.value = TimeOfDay(
-      hour: int.parse(startParts[0]),
-      minute: int.parse(startParts[1]),
-    );
-    
-    endTime.value = TimeOfDay(
-      hour: int.parse(endParts[0]),
-      minute: int.parse(endParts[1]),
-    );
-    
-    Get.snackbar(
-      'Time Updated',
-      'Using ${slot.start} - ${slot.end}. Creating booking...',
-      backgroundColor: Colors.green[100],
-    );
-    
-    Future.delayed(Duration(milliseconds: 500), () {
-      createBooking(venue);
-    });
-  }
-
-  void _showAllAvailableSlots(List<TimeSlot> slots, VenueModel venue) {
-    Get.bottomSheet(
-      Container(
-        padding: EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+  Widget _buildAvailableSlotItem(TimeSlot slot, VenueModel venue) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.green[200]!),
+        borderRadius: BorderRadius.circular(8),
+        color: Colors.green[50],
+      ),
+      child: ListTile(
+        dense: true,
+        leading: Icon(
+          Icons.access_time,
+          color: Colors.green[600],
+          size: 20,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'All Available Time Slots',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 16),
-            Flexible(
-              child: GridView.builder(
-                shrinkWrap: true,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 3,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                ),
-                itemCount: slots.length,
-                itemBuilder: (context, index) {
-                  final slot = slots[index];
-                  return ElevatedButton(
-                    onPressed: () => _useAlternativeSlot(slot, venue),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green[50],
-                      foregroundColor: Colors.green[700],
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: Text(
-                      '${slot.start} - ${slot.end}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Get.back(),
-                child: Text('Close'),
-              ),
-            ),
-          ],
+        title: Text(
+          slot.displayTime,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.green[700],
+          ),
+        ),
+        trailing: ElevatedButton(
+          onPressed: () => _useAvailableSlot(slot, venue),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.green,
+            foregroundColor: Colors.white,
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            minimumSize: Size(60, 32),
+            textStyle: TextStyle(fontSize: 12),
+          ),
+          child: Text('Use This'),
         ),
       ),
     );
   }
 
-  // SETTERS (Keep for backward compatibility)
+// Use the selected available slot
+  void _useAvailableSlot(TimeSlot slot, VenueModel venue) {
+    // Close dialog first
+    Get.back();
+
+    try {
+      // Parse and update the form with selected time slot
+      final startParts = slot.start.split(':');
+      final endParts = slot.end.split(':');
+
+      startTime.value = TimeOfDay(
+        hour: int.parse(startParts[0]),
+        minute: int.parse(startParts[1]),
+      );
+
+      endTime.value = TimeOfDay(
+        hour: int.parse(endParts[0]),
+        minute: int.parse(endParts[1]),
+      );
+
+      // Show confirmation dialog
+      Get.dialog(
+        AlertDialog(
+          title: Text('Confirm Time Change'),
+          content: Text(
+            'Change booking time to ${slot.displayTime}?',
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(),
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Get.back();
+                // Show success message and auto-submit
+                _showSuccess(
+                    'Time updated to ${slot.displayTime}. Creating booking...');
+
+                // Small delay for user to see the message
+                Future.delayed(Duration(milliseconds: 500), () {
+                  createBooking(venue);
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+              ),
+              child: Text('Confirm & Book'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      _showError('Failed to update time slot: $e');
+    }
+  }
+
   void setCapacity(String capacity) {
     selectedCapacity.value = capacity;
   }
@@ -359,7 +400,7 @@ class BookingController extends GetxController {
     endTime.value = time;
   }
 
-  // PAYMENT METHODS (Keep existing)
+  // PAYMENT METHODS
   Future<void> createPaymentForBooking(BookingModel booking) async {
     try {
       isProcessing.value = true;
@@ -453,24 +494,66 @@ class BookingController extends GetxController {
     }
   }
 
+  void _focusOnDatePicker() {
+    print('📅 Focus on date picker to choose different date');
+  }
+
   void _showError(String message) {
-    if (Get.context != null) {
-      CustomSnackbar.show(
-        context: Get.context!,
-        message: message,
-        type: SnackbarType.error,
-      );
+    String userFriendlyMessage = _makeErrorUserFriendly(message);
+
+    Get.snackbar(
+      'Booking Error',
+      userFriendlyMessage,
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: Colors.red[600],
+      colorText: Colors.white,
+      duration: Duration(seconds: 4),
+      margin: EdgeInsets.all(16),
+      borderRadius: 8,
+      icon: Icon(Icons.error_outline, color: Colors.white),
+    );
+  }
+
+  String _makeErrorUserFriendly(String technicalError) {
+    final lowerError = technicalError.toLowerCase();
+
+    if (lowerError.contains('venue not available') ||
+        lowerError.contains('409') ||
+        lowerError.contains('conflict')) {
+      return 'This time slot is already booked. Please choose a different time.';
     }
+
+    if (lowerError.contains('network') || lowerError.contains('connection')) {
+      return 'Connection problem. Please check your internet and try again.';
+    }
+
+    if (lowerError.contains('timeout')) {
+      return 'Request timed out. Please try again.';
+    }
+
+    if (lowerError.contains('validation') || lowerError.contains('invalid')) {
+      return 'Please check your booking details and try again.';
+    }
+
+    if (lowerError.contains('unauthorized') || lowerError.contains('401')) {
+      return 'Please log in again to continue.';
+    }
+
+    return 'Something went wrong. Please try again or contact support.';
   }
 
   void _showSuccess(String message) {
-    if (Get.context != null) {
-      CustomSnackbar.show(
-        context: Get.context!,
-        message: message,
-        type: SnackbarType.success,
-      );
-    }
+    Get.snackbar(
+      'Booking Successful! 🎉',
+      message,
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: Colors.green[600],
+      colorText: Colors.white,
+      duration: Duration(seconds: 3),
+      margin: EdgeInsets.all(16),
+      borderRadius: 8,
+      icon: Icon(Icons.check_circle_outline, color: Colors.white),
+    );
   }
 
   // NAVIGATION

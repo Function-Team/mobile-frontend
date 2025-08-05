@@ -25,7 +25,7 @@ class BookingForm extends StatelessWidget {
         children: [
           _bookingTitle(),
           const SizedBox(height: 16),
-          // REPLACE DateTimeRange picker with Calendar
+          // Calendar widget
           CalendarBookingWidget(
             controller: controller,
             venueId: venue.id!,
@@ -390,48 +390,212 @@ class BookingForm extends StatelessWidget {
     });
   }
 
-  // SIMPLIFIED: Single "Book Now" button with smart handling
+  // IMPROVED BOOKING BUTTON with comprehensive validation
   Widget _bookNowButton(BookingController controller) {
     return Obx(() {
-      final isValidForm = controller.selectedDate.value != null &&
-          controller.startTime.value != null &&
-          controller.endTime.value != null &&
-          controller.guestNameController.text.trim().isNotEmpty &&
-          controller.guestEmailController.text.trim().isNotEmpty;
+      final isProcessing = controller.isProcessing.value;
+      final isValid = _isFormValidForSubmission(controller);
 
-      final isDurationValid = _isDurationValid(controller);
+      return Column(
+        children: [
+          // Show validation errors if form is not valid
+          if (!isValid && !isProcessing) ...[
+            _buildValidationErrors(controller),
+            SizedBox(height: 16),
+          ],
 
-      return SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          onPressed:
-              (isValidForm && isDurationValid && !controller.isProcessing.value)
-                  ? () => controller.createBooking(venue)
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: isValid && !isProcessing
+                  ? () {
+                      print(
+                          'Book Now button pressed - starting booking process');
+                      controller.createBooking(venue);
+                    }
                   : null,
-          style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.symmetric(vertical: 16),
-            backgroundColor: Get.theme.primaryColor,
-          ),
-          child: controller.isProcessing.value
-              ? SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 2,
-                  ),
-                )
-              : Text(
-                  'Book Now',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                backgroundColor:
+                    isValid ? Get.theme.primaryColor : Colors.grey[400],
+                disabledBackgroundColor: Colors.grey[400],
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
-        ),
+              ),
+              child: isProcessing
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        ),
+                        SizedBox(width: 12),
+                        Text(
+                          'Creating Booking...',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    )
+                  : Text(
+                      'Book Now',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isValid ? Colors.white : Colors.grey[600],
+                      ),
+                    ),
+            ),
+          ),
+        ],
       );
     });
+  }
+
+  // COMPREHENSIVE FORM VALIDATION
+  bool _isFormValidForSubmission(BookingController controller) {
+    // Check basic form fields
+    if (controller.selectedDate.value == null) return false;
+    if (controller.startTime.value == null || controller.endTime.value == null)
+      return false;
+
+    // Check guest information
+    if (controller.guestNameController.text.trim().isEmpty) return false;
+    if (controller.guestEmailController.text.trim().isEmpty) return false;
+    if (controller.guestPhoneController.text.trim().isEmpty) return false;
+
+    // Check email format
+    if (!_isValidEmail(controller.guestEmailController.text.trim()))
+      return false;
+
+    // Check time slot duration is valid
+    if (!_isTimeSlotDurationValid(controller)) return false;
+
+    // Check not currently processing
+    if (controller.isProcessing.value) return false;
+
+    return true;
+  }
+
+  // Helper method to validate email format
+  bool _isValidEmail(String email) {
+    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+  }
+
+  // Helper method to validate time slot duration
+  bool _isTimeSlotDurationValid(BookingController controller) {
+    if (controller.selectedDate.value == null ||
+        controller.startTime.value == null ||
+        controller.endTime.value == null) {
+      return false;
+    }
+
+    final selectedDateValue = controller.selectedDate.value!;
+    final startTimeValue = controller.startTime.value!;
+    final endTimeValue = controller.endTime.value!;
+
+    final start = DateTime(
+      selectedDateValue.year,
+      selectedDateValue.month,
+      selectedDateValue.day,
+      startTimeValue.hour,
+      startTimeValue.minute,
+    );
+
+    final end = DateTime(
+      selectedDateValue.year,
+      selectedDateValue.month,
+      selectedDateValue.day,
+      endTimeValue.hour,
+      endTimeValue.minute,
+    );
+
+    final duration = end.difference(start);
+
+    // Must be at least 1 hour and maximum 7 days
+    return duration >= Duration(hours: 1) && duration <= Duration(days: 7);
+  }
+
+  // Helper widget to show validation errors
+  Widget _buildValidationErrors(BookingController controller) {
+    final errors = <String>[];
+
+    if (controller.selectedDate.value == null) {
+      errors.add('Please select a booking date');
+    }
+
+    if (controller.startTime.value == null ||
+        controller.endTime.value == null) {
+      errors.add('Please select start and end times');
+    } else if (!_isTimeSlotDurationValid(controller)) {
+      errors.add('Booking duration must be between 1 hour and 7 days');
+    }
+
+    if (controller.guestNameController.text.trim().isEmpty) {
+      errors.add('Please enter guest name');
+    }
+
+    if (controller.guestEmailController.text.trim().isEmpty) {
+      errors.add('Please enter email address');
+    } else if (!_isValidEmail(controller.guestEmailController.text.trim())) {
+      errors.add('Please enter a valid email address');
+    }
+
+    if (controller.guestPhoneController.text.trim().isEmpty) {
+      errors.add('Please enter phone number');
+    }
+
+    if (errors.isEmpty) return SizedBox.shrink();
+
+    return Container(
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.orange[50],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.orange[200]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.info_outline, color: Colors.orange[700], size: 20),
+              SizedBox(width: 8),
+              Text(
+                'Please complete the form:',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.orange[700],
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 8),
+          ...errors
+              .map((error) => Padding(
+                    padding: EdgeInsets.only(left: 28, bottom: 4),
+                    child: Text(
+                      '• $error',
+                      style: TextStyle(
+                        color: Colors.orange[700],
+                        fontSize: 13,
+                      ),
+                    ),
+                  ))
+              .toList(),
+        ],
+      ),
+    );
   }
 
   // Helper methods
@@ -442,36 +606,5 @@ class BookingForm extends StatelessWidget {
       slots.add(TimeOfDay(hour: hour, minute: 30));
     }
     return slots;
-  }
-
-  bool _isDurationValid(BookingController controller) {
-    if (controller.selectedDate.value == null ||
-        controller.startTime.value == null ||
-        controller.endTime.value == null) {
-      return false;
-    }
-
-    final selectedDate = controller.selectedDate.value!;
-    final startTime = controller.startTime.value!;
-    final endTime = controller.endTime.value!;
-
-    final start = DateTime(
-      selectedDate.year,
-      selectedDate.month,
-      selectedDate.day,
-      startTime.hour,
-      startTime.minute,
-    );
-
-    final end = DateTime(
-      selectedDate.year,
-      selectedDate.month,
-      selectedDate.day,
-      endTime.hour,
-      endTime.minute,
-    );
-
-    final duration = end.difference(start);
-    return duration >= Duration(hours: 1) && duration <= Duration(days: 7);
   }
 }

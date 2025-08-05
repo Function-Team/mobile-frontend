@@ -201,11 +201,11 @@ class BookingModel {
   }
 
   String get startTime {
-    return "${startDateTime.hour.toString().padLeft(2, '0')}:${startDateTime.minute.toString().padLeft(2, '0')}";
+    return DateFormat('HH:mm').format(startDateTime);
   }
 
   String get endTime {
-    return "${endDateTime.hour.toString().padLeft(2, '0')}:${endDateTime.minute.toString().padLeft(2, '0')}";
+    return DateFormat('HH:mm').format(endDateTime);
   }
 
   String get formattedTimeRange {
@@ -216,17 +216,39 @@ class BookingModel {
     return endDateTime.difference(startDateTime);
   }
 
-  factory BookingModel.fromJson(Map<String, dynamic> json) {
-    DateTime parseDateTime(dynamic value) {
-      if (value == null) return DateTime.now();
-      if (value is String) {
-        return DateTime.parse(value).toLocal();
+  static DateTime parseDateTime(dynamic value) {
+    if (value == null) return DateTime.now();
+
+    if (value is String) {
+      try {
+        DateTime parsedDateTime;
+
+        if (value.contains('T')) {
+          final cleanValue = value
+              .replaceAll('Z', '')
+              .replaceAll(RegExp(r'[+-]\d{2}:\d{2}$'), '');
+          parsedDateTime = DateTime.parse(cleanValue);
+        } else {
+          // Format lain
+          parsedDateTime = DateTime.parse(value);
+        }
+
+        return parsedDateTime.add(Duration(hours: 7));
+      } catch (e) {
+        print('Error parsing datetime: $value, error: $e');
+        return DateTime.now();
       }
-      if (value is DateTime) return value.toLocal();
-      return DateTime.now();
     }
 
-    // Parse amount
+    if (value is DateTime) {
+      // Return as-is, NO timezone conversion
+      return value;
+    }
+
+    return DateTime.now();
+  }
+
+  factory BookingModel.fromJson(Map<String, dynamic> json) {
     double? parseAmount(dynamic value) {
       if (value == null) return null;
       if (value is double) return value;
@@ -388,21 +410,24 @@ class BookingCreateRequest {
     required String userEmail,
     required String userPhone,
   }) {
-    final startDateTime = DateTime(
+    final startDateTimeLocal = DateTime(
       date.year,
       date.month,
       date.day,
       startTime.hour,
       startTime.minute,
-    ).toUtc();
+    ).subtract(Duration(hours: 7));
 
-    final endDateTime = DateTime(
+    final endDateTimeLocal = DateTime(
       date.year,
       date.month,
       date.day,
       endTime.hour,
       endTime.minute,
-    ).toUtc();
+    ).subtract(Duration(hours: 7));
+
+    final startDateTime = startDateTimeLocal;
+    final endDateTime = endDateTimeLocal;
 
     final duration = endDateTime.difference(startDateTime);
     final durationInHours = duration.inMinutes / 60.0;

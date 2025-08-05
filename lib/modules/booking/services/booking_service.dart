@@ -21,33 +21,58 @@ class BookingService extends GetxService {
 
   Future<List<BookingModel>> getUserBookings() async {
     try {
+      print('Fetching user bookings...');
+
       final response = await _apiService.getRequest('/bookings/me');
-      print('Fetched bookings: $response');
 
-      if (response is List) {
-        final bookings = <BookingModel>[];
-
-        for (final bookingData in response) {
-          try {
-            final booking = BookingModel.fromJson(bookingData);
-
-            BookingModel enrichedBooking = booking;
-            if (_needsPlaceEnrichment(booking)) {
-              enrichedBooking = await _enrichBookingWithPlaceDetails(booking);
-            }
-
-            bookings.add(enrichedBooking);
-          } catch (e) {
-            print('Error processing booking ${bookingData['id']}: $e');
-            // Skip this booking but continue with others
-          }
-        }
-
-        return bookings;
+      if (response == null) {
+        print('No response received from bookings API');
+        return [];
       }
-      return [];
+
+      if (response is! List) {
+        print(
+            'Invalid response format: expected List, got ${response.runtimeType}');
+        return [];
+      }
+
+      if (response.isEmpty) {
+        print('No bookings found for user');
+        return [];
+      }
+
+      print('Processing ${response.length} bookings...');
+      final bookings = <BookingModel>[];
+
+      for (int i = 0; i < response.length; i++) {
+        try {
+          final bookingData = response[i];
+
+          if (bookingData is! Map<String, dynamic>) {
+            print('Skipping invalid booking data at index $i');
+            continue;
+          }
+
+          // Parse booking
+          final booking = BookingModel.fromJson(bookingData);
+
+          // Enrich with place details if needed
+          BookingModel enrichedBooking = booking;
+          if (_needsPlaceEnrichment(booking)) {
+            enrichedBooking = await _enrichBookingWithPlaceDetails(booking);
+          }
+
+          bookings.add(enrichedBooking);
+        } catch (e) {
+          print('Error processing booking at index $i: $e');
+          // Continue processing other bookings
+        }
+      }
+
+      print('Successfully processed ${bookings.length} bookings');
+      return bookings;
     } catch (e) {
-      print('Error fetching bookings from API: $e');
+      print('Error fetching user bookings: $e');
       throw Exception('Failed to fetch bookings: $e');
     }
   }
@@ -84,45 +109,78 @@ class BookingService extends GetxService {
     }
   }
 
-Future<dynamic> createBookingWithBuiltInValidation(BookingCreateRequest request) async {
-  try {
-    final response = await _apiService.postRequest(
-      '/booking/create', 
-      request.toJson()
-    );
-    
-    if (response != null) {
-      return BookingCreateWithResponse.fromJson(response);
-    }
-    
-    throw Exception('Failed to create booking');
-  } on DioException catch (e) {
-    // Handle 409 Conflict specifically
-    if (e.response?.statusCode == 409) {
-      final data = e.response?.data;
-      if (data != null) {
-        // Parse available_slots from backend response
-        final availableSlots = <TimeSlot>[];
-        if (data['available_slots'] != null) {
-          for (final slot in data['available_slots']) {
-            availableSlots.add(TimeSlot(
-              start: slot['start'],
-              end: slot['end'], 
-              available: slot['available'] ?? true,
-            ));
+  Future<dynamic> createBookingWithBuiltInValidation(
+      BookingCreateRequest request) async {
+    try {
+      print('Creating booking request...');
+
+      final response =
+          await _apiService.postRequest('/booking/create', request.toJson());
+
+      if (response != null) {
+        print('Booking created successfully');
+        return BookingCreateWithResponse.fromJson(response);
+      }
+
+      throw Exception('Failed to create booking: Empty response');
+    } on DioException catch (e) {
+      print('DioException: ${e.response?.statusCode}');
+
+      // Handle 409 Conflict specifically
+      if (e.response?.statusCode == 409) {
+        final data = e.response?.data;
+
+        if (data != null && data is Map<String, dynamic>) {
+          print('🔍 Parsing conflict response...');
+
+          try {
+            final availableSlots = <TimeSlot>[];
+
+            if (data['available_slots'] != null &&
+                data['available_slots'] is List) {
+              for (final slot in data['available_slots']) {
+                if (slot is Map<String, dynamic>) {
+                  availableSlots.add(TimeSlot.fromJson(slot));
+                }
+              }
+            }
+
+            print('Parsed ${availableSlots.length} available slots');
+
+            return BookingConflictResponse(
+              success: false,
+              error: data['error'] ?? 'Venue not available at selected time',
+              availableSlots: availableSlots,
+            );
+          } catch (parseError) {
+            print('Error parsing conflict response: $parseError');
+
+            return BookingConflictResponse(
+              success: false,
+              error: 'Venue not available at selected time',
+              availableSlots: [],
+            );
           }
         }
-        
-        return BookingConflictResponse(
-          success: false,
-          error: data['error'] ?? 'Venue not available at selected time',
-          availableSlots: availableSlots,
-        );
       }
+
+      // Handle other HTTP errors
+      if (e.response != null) {
+        final statusCode = e.response!.statusCode;
+        final message = e.response!.data?['message'] ??
+            e.response!.data?['detail'] ??
+            'HTTP $statusCode error';
+
+        throw Exception(message);
+      }
+
+      // Handle network errors
+      throw Exception('Network error: ${e.message}');
+    } catch (e) {
+      print('Unexpected error: $e');
+      throw Exception('Failed to create booking: $e');
     }
-    throw e;
   }
-}
 
   // Cancel booking
   Future<bool> cancelBooking(int bookingId) async {
@@ -131,7 +189,7 @@ Future<dynamic> createBookingWithBuiltInValidation(BookingCreateRequest request)
         '/booking/user/cancel/$bookingId',
         {},
       );
-      
+
       return response != null;
     } catch (e) {
       print('Error cancelling booking: $e');
@@ -179,11 +237,10 @@ Future<dynamic> createBookingWithBuiltInValidation(BookingCreateRequest request)
     try {
       final startDateStr = startDate.toIso8601String().split('T')[0];
       final endDateStr = endDate.toIso8601String().split('T')[0];
-      
+
       final response = await _apiService.getRequest(
-        '/place/$placeId/calendar-availability?start_date=$startDateStr&end_date=$endDateStr'
-      );
-      
+          '/place/$placeId/calendar-availability?start_date=$startDateStr&end_date=$endDateStr');
+
       return CalendarAvailabilityResponse.fromJson(response);
     } catch (e) {
       throw Exception('Failed to get calendar availability: $e');
@@ -197,15 +254,13 @@ Future<dynamic> createBookingWithBuiltInValidation(BookingCreateRequest request)
   }) async {
     try {
       final dateStr = date.toIso8601String().split('T')[0];
-      
-      final response = await _apiService.getRequest(
-        '/place/$placeId/detailed-slots?date=$dateStr'
-      );
-      
+
+      final response = await _apiService
+          .getRequest('/place/$placeId/detailed-slots?date=$dateStr');
+
       return DetailedSlotsResponse.fromJson(response);
     } catch (e) {
       throw Exception('Failed to get detailed time slots: $e');
     }
   }
-  
 }
