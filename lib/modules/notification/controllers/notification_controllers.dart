@@ -115,11 +115,11 @@ class NotificationController extends GetxController {
           print('📋 Update: $update');
         }
       } else {
-        print('✅ NotificationController: No changes detected');
+        print('NotificationController: No changes detected');
       }
       
     } catch (e) {
-      print('❌ NotificationController: Error checking updates: $e');
+      print('NotificationController: Error checking updates: $e');
     }
   }
 
@@ -190,7 +190,6 @@ class NotificationController extends GetxController {
     await prefs.remove(_keyUpdateCount);
     await prefs.remove(_keyLastCheckTime);
     
-    print('✅ NotificationController: Reset complete');
   }
 
   // Get last check time for debugging

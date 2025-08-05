@@ -217,13 +217,12 @@ class BookingModel {
   }
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
-    print('Booking JSON: $json');
-
-    // Parse dates
     DateTime parseDateTime(dynamic value) {
       if (value == null) return DateTime.now();
-      if (value is String) return DateTime.parse(value);
-      if (value is DateTime) return value;
+      if (value is String) {
+        return DateTime.parse(value).toLocal();
+      }
+      if (value is DateTime) return value.toLocal();
       return DateTime.now();
     }
 
@@ -366,9 +365,8 @@ class BookingCreateRequest {
   Map<String, dynamic> toJson() {
     return {
       'place_id': placeId,
-      'user_id': userId ?? 1,
-      'start_datetime': startDateTime.toIso8601String().split('.')[0],
-      'end_datetime': endDateTime.toIso8601String().split('.')[0],
+      'start_datetime': startDateTime.toIso8601String(),
+      'end_datetime': endDateTime.toIso8601String(),
       'is_confirmed': false,
       'amount': totalPrice ?? 0.0,
       'guest_name': userName ?? '',
@@ -385,37 +383,34 @@ class BookingCreateRequest {
     required TimeOfDay startTime,
     required TimeOfDay endTime,
     required int capacity,
-    String? specialRequests,
-    String userName = "Test User",
-    String userEmail = "test@example.com",
-    String? userPhone,
-    DateTime? endDate,
+    required String specialRequests,
+    required String userName,
+    required String userEmail,
+    required String userPhone,
   }) {
-    final actualEndDate = endDate ?? date;
-
     final startDateTime = DateTime(
       date.year,
       date.month,
       date.day,
       startTime.hour,
       startTime.minute,
-    );
+    ).toUtc();
 
     final endDateTime = DateTime(
-      actualEndDate.year,
-      actualEndDate.month,
-      actualEndDate.day,
+      date.year,
+      date.month,
+      date.day,
       endTime.hour,
       endTime.minute,
-    );
+    ).toUtc();
 
-    final durationInHours =
-        endDateTime.difference(startDateTime).inMinutes / 60;
+    final duration = endDateTime.difference(startDateTime);
+    final durationInHours = duration.inMinutes / 60.0;
     final totalPrice = (venue.price ?? 0) * durationInHours;
 
     return BookingCreateRequest(
       placeId: venue.id!,
-      userId: 1,
+      userId: null,
       venueName: venue.name ?? 'Unknown Venue',
       userName: userName,
       userEmail: userEmail,

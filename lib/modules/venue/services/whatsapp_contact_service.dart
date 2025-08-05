@@ -342,13 +342,13 @@ Thank you for your time! 🙏''';
 
     return '''Hi! I'm contacting you regarding my booking at "${venue.name}".
 
-📋 *Booking Details:*
+ *Booking Details:*
 • Booking ID: #${booking.id}
 • Venue: ${venue.name}
 • Date: ${dateFormat.format(booking.startDateTime)} - ${dateFormat.format(booking.endDateTime)}
 • Time: ${timeFormat.format(booking.startDateTime)} - ${timeFormat.format(booking.endDateTime)}
-• Status: ${booking.isConfirmed ? '✅ Confirmed' : '⏳ Pending'}
-• Payment: ${booking.paymentStatus == 'success' ? '✅ Paid' : '⏳ Pending'}
+• Status: ${booking.isConfirmed ? 'Confirmed' : ' Pending'}
+• Payment: ${booking.paymentStatus == 'success' ? ' Paid' : ' Pending'}
 
 I would like to discuss some details about my booking. Please let me know if you have any questions or if there's anything I need to prepare.
 

@@ -124,7 +124,7 @@ class VenueDetailController extends GetxController {
 
         if (validImages.isNotEmpty) {
           venueImages.assignAll(validImages);
-          print('✅ Loaded ${validImages.length} images from pictures array');
+          print('Loaded ${validImages.length} images from pictures array');
           return;
         }
       }
@@ -140,7 +140,7 @@ class VenueDetailController extends GetxController {
         );
         venueImages.add(mainImage);
         print(
-            '✅ Using first_picture as fallback: ${venue.value!.firstPicture}');
+            'Using first_picture as fallback: ${venue.value!.firstPicture}');
         return;
       }
 
@@ -228,7 +228,6 @@ class VenueDetailController extends GetxController {
       }).toList();
       
       activities.assignAll(convertedActivities);
-      print('✅ Loaded ${activities.length} activities from activities array');
       
       // Debug print
       for (var activity in activities) {
