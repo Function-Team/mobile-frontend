@@ -24,16 +24,21 @@ class TimeSlot {
       'available': available,
     };
   }
+
+  String get displayTime => '$start - $end';
+
+  @override
+  String toString() => 'TimeSlot($start - $end, available: $available)';
 }
 
-class BookingCreateResponse {
+class BookingCreateWithResponse {
   final bool success;
   final int bookingId;
   final double totalHours;
   final double totalAmount;
   final Map<String, dynamic> booking;
 
-  BookingCreateResponse({
+  BookingCreateWithResponse({
     required this.success,
     required this.bookingId,
     required this.totalHours,
@@ -41,8 +46,8 @@ class BookingCreateResponse {
     required this.booking,
   });
 
-  factory BookingCreateResponse.fromJson(Map<String, dynamic> json) {
-    return BookingCreateResponse(
+  factory BookingCreateWithResponse.fromJson(Map<String, dynamic> json) {
+    return BookingCreateWithResponse(
       success: json['success'] ?? true,
       bookingId: json['booking_id'] ?? 0,
       totalHours: (json['total_hours'] ?? 0).toDouble(),
@@ -50,8 +55,11 @@ class BookingCreateResponse {
       booking: json['booking'] ?? {},
     );
   }
+  @override
+  String toString() =>
+      'BookingCreateWithResponse(bookingId: $bookingId, totalAmount: $totalAmount)';
 }
- 
+
 class BookingConflictResponse {
   final bool success;
   final String error;
@@ -64,16 +72,47 @@ class BookingConflictResponse {
   });
 
   factory BookingConflictResponse.fromJson(Map<String, dynamic> json) {
+    final slots = <TimeSlot>[];
+
+    try {
+      if (json['available_slots'] != null && json['available_slots'] is List) {
+        for (final slot in json['available_slots']) {
+          if (slot is Map<String, dynamic>) {
+            slots.add(TimeSlot.fromJson(slot));
+          }
+        }
+      }
+    } catch (e) {
+      print('Error parsing available slots: $e');
+    }
+
     return BookingConflictResponse(
       success: json['success'] ?? false,
-      error: json['error'] ?? 'Venue not available',
-      availableSlots: (json['available_slots'] as List<dynamic>?)
-              ?.map((slot) => TimeSlot.fromJson(slot))
-              .toList() ??
-          [],
+      error: json['error'] ?? 'Venue not available at selected time',
+      availableSlots: slots,
     );
   }
+  Map<String, dynamic> toJson() {
+    return {
+      'success': success,
+      'error': error,
+      'available_slots': availableSlots.map((slot) => slot.toJson()).toList(),
+    };
+  } 
+  // Helper methods
+
+  bool get hasAvailableSlots => availableSlots.isNotEmpty;
+
+  int get availableSlotsCount => availableSlots.length;
+
+  List<TimeSlot> get validSlots =>
+      availableSlots.where((slot) => slot.available).toList();
+
+  @override
+  String toString() =>
+      'BookingConflictResponse(error: $error, slots: ${availableSlots.length})';
 }
+
 
 class DetailedTimeSlot {
   final String start;
@@ -151,32 +190,6 @@ class DetailedSlotsResponse {
           .map((slot) => DetailedTimeSlot.fromJson(slot))
           .toList(),
       venueOperatingHours: json['venue_operating_hours'],
-    );
-  }
-}
-
-class BookingCreateWithResponse {
-  final bool success;
-  final int bookingId;
-  final double totalHours;
-  final double totalAmount;
-  final Map<String, dynamic> booking;
-
-  BookingCreateWithResponse({
-    required this.success,
-    required this.bookingId,
-    required this.totalHours,
-    required this.totalAmount,
-    required this.booking,
-  });
-
-  factory BookingCreateWithResponse.fromJson(Map<String, dynamic> json) {
-    return BookingCreateWithResponse(
-      success: json['success'],
-      bookingId: json['booking_id'],
-      totalHours: (json['total_hours'] as num).toDouble(),
-      totalAmount: (json['total_amount'] as num).toDouble(),
-      booking: json['booking'],
     );
   }
 }

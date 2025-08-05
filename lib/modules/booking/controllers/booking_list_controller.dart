@@ -46,28 +46,32 @@ class BookingListController extends GetxController {
   }
 
   Future<void> fetchBookings() async {
-    try {
-      isLoading.value = true;
-      hasError.value = false;
-      errorMessage.value = '';
+  try {
+    isLoading.value = true;
+    hasError.value = false;
+    errorMessage.value = '';
 
-      final fetchedBookings = await _bookingService.getUserBookings();
+    final fetchedBookings = await _bookingService.getUserBookings();
 
-      bookings.assignAll(fetchedBookings);
-      updateBookingCounts();
-      filterBookingsByTab();
-      sortBookings();
-    } catch (e) {
-      hasError.value = true;
-      errorMessage.value = 'Failed to load bookings: ${e.toString()}';
-      showError('Failed to load bookings');
-    } finally {
-      isLoading.value = false;
-    }
+    bookings.assignAll(fetchedBookings);
+    updateBookingCounts();
+    filterBookingsByTab();
+    sortBookings();
+    
+    print('Loaded ${bookings.length} bookings successfully');
+    
+  } catch (e) {
+    hasError.value = true;
+    errorMessage.value = 'Failed to load bookings: ${e.toString()}';
+    showError('Failed to load bookings');
+    print('Error fetching bookings: $e');
+  } finally {
+    isLoading.value = false;
   }
+}
 
   Future<void> refreshBookings() async {
-    print('🔄 BookingListController: Refreshing bookings...');
+    print('BookingListController: Refreshing bookings...');
 
     // Clear notifications saat refresh
     await _clearBookingNotifications();
@@ -79,9 +83,9 @@ class BookingListController extends GetxController {
     try {
       final notificationController = Get.find<NotificationController>();
       await notificationController.clearNotifications();
-      print('🧹 BookingListController: Cleared booking notifications');
+      print('BookingListController: Cleared booking notifications');
     } catch (e) {
-      print('❌ BookingListController: Error clearing notifications: $e');
+      print('BookingListController: Error clearing notifications: $e');
     }
   }
 
