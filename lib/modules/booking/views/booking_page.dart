@@ -8,53 +8,104 @@ import 'package:intl/intl.dart';
 class BookingPage extends StatelessWidget {
   final BookingController controller = Get.put(BookingController());
   final VenueModel venue;
-  
+
   BookingPage({Key? key, required this.venue}) : super(key: key);
-  
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Book ${venue.name}'),
-        elevation: 0,
-        backgroundColor: Theme.of(context).primaryColor,
-      ),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Venue Summary Card
-                _buildVenueSummaryCard(context),
-                
-                // Price Information
-                _buildPriceInfoCard(context),
-                
-                // Booking Form
-                BookingForm(
-                  controller: controller,
-                  venue: venue,
-                ),
-                
-                // Add padding at bottom for floating button
-                SizedBox(height: 100),
-              ],
+    return RefreshIndicator(
+      onRefresh: () async {
+        await _refreshPageData();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Book ${venue.name}'),
+          titleTextStyle: TextStyle(color: Colors.white),
+          elevation: 0,
+          backgroundColor: Theme.of(context).primaryColor,
+        ),
+        body: Stack(
+          children: [
+            SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Venue Summary Card
+                  _buildVenueSummaryCard(context),
+
+                  // Price Information
+                  _buildPriceInfoCard(context),
+
+                  // Booking Form
+                  BookingForm(
+                    controller: controller,
+                    venue: venue,
+                  ),
+                  SizedBox(height: 100),
+                ],
+              ),
             ),
-          ),
-          
-          // Floating Bottom Bar with Total
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: _buildBottomBar(context),
-          ),
-        ],
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: _buildBottomBar(context),
+            ),
+          ],
+        ),
       ),
     );
   }
-  
+
+  Future<void> _refreshPageData() async {
+    try {
+      // Show loading feedback
+      Get.snackbar(
+        'Refreshing...',
+        'Updating booking availability',
+        duration: Duration(seconds: 1),
+        backgroundColor: Colors.blue[100],
+        colorText: Colors.blue[800],
+        snackPosition: SnackPosition.TOP,
+        margin: EdgeInsets.all(16),
+      );
+
+      final now = DateTime.now();
+      final startOfMonth = DateTime(now.year, now.month, 1);
+      final endOfMonth = DateTime(now.year, now.month + 1, 0);
+
+      await controller.loadCalendarAvailability(
+          venue.id!, startOfMonth, endOfMonth);
+
+      // Refresh time slots if date is selected
+      if (controller.selectedDate.value != null) {
+        await controller.loadDetailedTimeSlots(
+            venue.id!, controller.selectedDate.value!);
+      }
+
+      // Success feedback
+      Get.snackbar(
+        'Updated',
+        'Booking availability refreshed',
+        duration: Duration(seconds: 2),
+        backgroundColor: Colors.green[100],
+        colorText: Colors.green[800],
+        snackPosition: SnackPosition.TOP,
+        margin: EdgeInsets.all(16),
+      );
+    } catch (e) {
+      // Error feedback
+      Get.snackbar(
+        'Refresh Failed',
+        'Could not update data. Please try again.',
+        backgroundColor: Colors.red[100],
+        colorText: Colors.red[800],
+        snackPosition: SnackPosition.TOP,
+        margin: EdgeInsets.all(16),
+      );
+    }
+  }
+
   Widget _buildVenueSummaryCard(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(16),
@@ -80,9 +131,9 @@ class BookingPage extends StatelessWidget {
                       )
                     : _buildImagePlaceholder(),
               ),
-              
+
               SizedBox(width: 16),
-              
+
               // Venue Info
               Expanded(
                 child: Column(
@@ -152,7 +203,7 @@ class BookingPage extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildImagePlaceholder() {
     return Container(
       width: 80,
@@ -161,7 +212,7 @@ class BookingPage extends StatelessWidget {
       child: Icon(Icons.image, color: Colors.grey[600]),
     );
   }
-  
+
   Widget _buildPriceInfoCard(BuildContext context) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16),
@@ -215,7 +266,7 @@ class BookingPage extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildBottomBar(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
@@ -236,7 +287,7 @@ class BookingPage extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildTotalPriceBar(BuildContext context) {
     if (controller.selectedDate.value == null ||
         controller.startTime.value == null ||
@@ -250,12 +301,12 @@ class BookingPage extends StatelessWidget {
         ),
       );
     }
-    
+
     final startDate = controller.selectedDate.value!;
     final endDate = controller.selectedDate.value!;
     final startTime = controller.startTime.value!;
     final endTime = controller.endTime.value!;
-    
+
     final start = DateTime(
       startDate.year,
       startDate.month,
@@ -263,7 +314,7 @@ class BookingPage extends StatelessWidget {
       startTime.hour,
       startTime.minute,
     );
-    
+
     final end = DateTime(
       endDate.year,
       endDate.month,
@@ -271,11 +322,11 @@ class BookingPage extends StatelessWidget {
       endTime.hour,
       endTime.minute,
     );
-    
+
     final duration = end.difference(start);
     final totalHours = duration.inMinutes / 60.0;
     final totalAmount = (venue.price ?? 0) * totalHours;
-    
+
     if (duration < Duration(hours: 1)) {
       return Container(
         height: 48,
@@ -286,7 +337,7 @@ class BookingPage extends StatelessWidget {
         ),
       );
     }
-    
+
     if (duration > Duration(days: 7)) {
       return Container(
         height: 48,
@@ -297,7 +348,7 @@ class BookingPage extends StatelessWidget {
         ),
       );
     }
-    
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [

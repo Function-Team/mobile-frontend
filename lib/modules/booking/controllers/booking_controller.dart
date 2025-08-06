@@ -85,7 +85,7 @@ class BookingController extends GetxController {
 
       calendarAvailability.value = response.availability;
     } catch (e) {
-      _showError('Failed to load calendar availability: ${e.toString()}');
+      showError('Failed to load calendar availability: ${e.toString()}');
     } finally {
       isLoadingCalendar.value = false;
     }
@@ -104,7 +104,7 @@ class BookingController extends GetxController {
 
       detailedTimeSlots.value = response.slots;
     } catch (e) {
-      _showError('Failed to load time slots: ${e.toString()}');
+      showError('Failed to load time slots: ${e.toString()}');
     } finally {
       isLoadingTimeSlots.value = false;
     }
@@ -155,7 +155,7 @@ class BookingController extends GetxController {
       }
     } catch (e) {
       bookingStatus.value = 'failed';
-      _showError('Error: ${e.toString()}');
+      showError('Error: ${e.toString()}');
     } finally {
       isProcessing.value = false;
     }
@@ -163,27 +163,27 @@ class BookingController extends GetxController {
 
   bool isFormValid() {
     if (selectedDate.value == null) {
-      _showError('Please select booking date');
+      showError('Please select booking date');
       return false;
     }
 
     if (startTime.value == null || endTime.value == null) {
-      _showError('Please select start and end times');
+      showError('Please select start and end times');
       return false;
     }
 
     if (guestNameController.text.trim().isEmpty) {
-      _showError('Please enter guest name');
+      showError('Please enter guest name');
       return false;
     }
 
     if (guestEmailController.text.trim().isEmpty) {
-      _showError('Please enter email address');
+      showError('Please enter email address');
       return false;
     }
 
     if (guestPhoneController.text.trim().isEmpty) {
-      _showError('Please enter phone number');
+      showError('Please enter phone number');
       return false;
     }
 
@@ -384,7 +384,7 @@ class BookingController extends GetxController {
         ),
       );
     } catch (e) {
-      _showError('Failed to update time slot: $e');
+      showError('Failed to update time slot: $e');
     }
   }
 
@@ -406,13 +406,13 @@ class BookingController extends GetxController {
       isProcessing.value = true;
 
       if (!booking.isConfirmed) {
-        _showError('Booking must be confirmed by admin before payment');
+        showError('Booking must be confirmed by admin before payment');
         return;
       }
 
       if (booking.payment != null &&
           booking.payment!.status.toLowerCase() == 'success') {
-        _showError('Payment already completed for this booking');
+        showError('Payment already completed for this booking');
         return;
       }
 
@@ -448,7 +448,7 @@ class BookingController extends GetxController {
         throw Exception('Failed to create payment session');
       }
     } catch (e) {
-      _showError('Payment Error: ${e.toString()}');
+      showError('Payment Error: ${e.toString()}');
     } finally {
       isProcessing.value = false;
     }
@@ -498,7 +498,7 @@ class BookingController extends GetxController {
     print('📅 Focus on date picker to choose different date');
   }
 
-  void _showError(String message) {
+  void showError(String message) {
     String userFriendlyMessage = _makeErrorUserFriendly(message);
 
     Get.snackbar(

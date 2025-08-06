@@ -22,57 +22,43 @@ class BookingService extends GetxService {
   Future<List<BookingModel>> getUserBookings() async {
     try {
       print('Fetching user bookings...');
-
       final response = await _apiService.getRequest('/bookings/me');
 
-      if (response == null) {
-        print('No response received from bookings API');
+      if (response == null || response is! List) {
         return [];
       }
 
-      if (response is! List) {
-        print(
-            'Invalid response format: expected List, got ${response.runtimeType}');
-        return [];
-      }
-
-      if (response.isEmpty) {
-        print('No bookings found for user');
-        return [];
-      }
-
-      print('Processing ${response.length} bookings...');
       final bookings = <BookingModel>[];
 
       for (int i = 0; i < response.length; i++) {
         try {
           final bookingData = response[i];
+          if (bookingData is! Map<String, dynamic>) continue;
 
-          if (bookingData is! Map<String, dynamic>) {
-            print('Skipping invalid booking data at index $i');
-            continue;
-          }
-
-          // Parse booking
           final booking = BookingModel.fromJson(bookingData);
 
-          // Enrich with place details if needed
+          // Safe enrichment dengan better error handling
           BookingModel enrichedBooking = booking;
           if (_needsPlaceEnrichment(booking)) {
-            enrichedBooking = await _enrichBookingWithPlaceDetails(booking);
+            try {
+              enrichedBooking = await _enrichBookingWithPlaceDetails(booking);
+            } catch (enrichError) {
+              print(
+                  '⚠️ Failed to enrich booking ${booking.id}, using original: $enrichError');
+              // Use original booking if enrichment fails
+            }
           }
 
           bookings.add(enrichedBooking);
         } catch (e) {
-          print('Error processing booking at index $i: $e');
-          // Continue processing other bookings
+          print('❌ Error processing booking at index $i: $e');
+          // Skip this booking and continue
         }
       }
 
-      print('Successfully processed ${bookings.length} bookings');
       return bookings;
     } catch (e) {
-      print('Error fetching user bookings: $e');
+      print('❌ Error fetching user bookings: $e');
       throw Exception('Failed to fetch bookings: $e');
     }
   }
