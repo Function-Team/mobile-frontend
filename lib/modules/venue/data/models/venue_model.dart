@@ -34,7 +34,7 @@ class VenueModel {
     if (firstPicture != null &&
         firstPicture!.isNotEmpty &&
         firstPicture != 'null') {
-      return '${AppConstants.baseUrl}/img/$firstPicture';
+      return '${AppConstants.imageBaseUrl}/img/$firstPicture';
     }
 
     // Priority 2: first picture from pictures array
@@ -53,7 +53,6 @@ class VenueModel {
       }
     }
 
-    // Return null if no valid image found
     return null;
   }
 
@@ -112,10 +111,7 @@ class VenueModel {
 
       // Pictures
       firstPicture: json['first_picture'],
-      pictures: (json['pictures'] as List<dynamic>?)
-          ?.map((picture) => PictureModel.fromJson(picture))
-          .toList(),
-
+      pictures: _parsePictures(json['pictures'], json['id']),
       // Relations
       host: json['host'] != null ? HostModel.fromJson(json['host']) : null,
       category: json['category'] != null
@@ -145,6 +141,32 @@ class VenueModel {
       maxCapacity: json['max_capacity'],
     );
   }
+
+  static List<PictureModel>? _parsePictures(dynamic picturesData, int? placeId) {
+  if (picturesData == null) return null;
+  
+  try {
+    final picturesList = picturesData as List<dynamic>;
+    
+    return picturesList.map((item) {
+      if (item is String) {
+        return PictureModel(
+          id: null,
+          filename: item,
+          placeId: placeId,
+        );
+      } else if (item is Map<String, dynamic>) {
+        return PictureModel.fromJson(item);
+      } else {
+        print('⚠️ Unknown picture format: $item');
+        return PictureModel();
+      }
+    }).toList();
+  } catch (e) {
+    print('❌ Error parsing pictures: $e');
+    return null;
+  }
+}
 
   Map<String, dynamic> toJson() {
     return {
@@ -222,7 +244,7 @@ class PictureModel {
       return null;
     }
 
-    final fullUrl = '${AppConstants.baseUrl}/img/$filename';
+    final fullUrl = '${AppConstants.imageBaseUrl}/img/$filename';
     print("PictureModel - Constructed URL: $fullUrl");
 
     return fullUrl;

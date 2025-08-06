@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 
 class NetworkImageWithLoader extends StatelessWidget {
@@ -19,23 +20,32 @@ class NetworkImageWithLoader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (imageUrl.isEmpty) {
+      return _buildErrorPlaceholder();
+    }
+
     return ClipRRect(
       borderRadius: borderRadius ?? BorderRadius.zero,
-      child: Image.network(
-        imageUrl,
+      child: CachedNetworkImage(
+        imageUrl: imageUrl,
         height: height,
         width: width,
         fit: fit,
-        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-          if (wasSynchronouslyLoaded) return child;
-          return frame != null ? child : _buildShimmerPlaceholder();
+
+        placeholder: (context, url) => _buildShimmerPlaceholder(),
+
+        errorWidget: (context, url, error) {
+          return _buildErrorPlaceholder();
         },
-        errorBuilder: (context, error, stackTrace) => _buildErrorPlaceholder(),
+
+        httpHeaders: {
+          'User-Agent': 'FunctionApp/1.0',
+          'Accept': 'image/*',
+        },
       ),
     );
   }
 
-  /// Shimmer Loading Placeholder
   Widget _buildShimmerPlaceholder() {
     return Shimmer.fromColors(
       baseColor: Colors.grey[300]!,
@@ -51,7 +61,6 @@ class NetworkImageWithLoader extends StatelessWidget {
     );
   }
 
-  /// Error Placeholder
   Widget _buildErrorPlaceholder() {
     return Container(
       height: height,
@@ -60,19 +69,15 @@ class NetworkImageWithLoader extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Expanded(
-            child: Icon(Icons.broken_image, size: 24, color: Colors.grey[600]),
-          ),
+          Icon(Icons.broken_image, size: 24, color: Colors.grey[600]),
           const SizedBox(height: 4),
-          Expanded(
-            child: Text(
-              'Image not available',
-              overflow: TextOverflow.values[0],
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 12,
-              ),
+          Text(
+            'Image not available',
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 12,
             ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
