@@ -47,6 +47,31 @@ class BookingForm extends StatelessWidget {
     );
   }
 
+  Future<void> refreshBookingData() async {
+    try {
+      print('🔄 BookingForm: Refreshing availability data...');
+
+      // Refresh calendar availability for current month
+      final now = DateTime.now();
+      final startOfMonth = DateTime(now.year, now.month, 1);
+      final endOfMonth = DateTime(now.year, now.month + 1, 0);
+
+      await controller.loadCalendarAvailability(
+          venue.id!, startOfMonth, endOfMonth);
+
+      // Refresh time slots if date is selected
+      if (controller.selectedDate.value != null) {
+        await controller.loadDetailedTimeSlots(
+            venue.id!, controller.selectedDate.value!);
+      }
+
+      print('✅ BookingForm: Successfully refreshed availability data');
+    } catch (e) {
+      print('❌ BookingForm: Error refreshing data: $e');
+      rethrow; 
+    }
+  }
+
   Widget _bookingTitle() {
     return Text(
       'Booking Information',
@@ -58,9 +83,10 @@ class BookingForm extends StatelessWidget {
   }
 
   Widget _timeRangePicker(BookingController controller) {
-    final timeSlots = _generateTimeSlots();
-
     return Obx(() {
+      // Generate time slots based on venue operating hours
+      final timeSlots = _generateTimeSlots();
+
       return Row(
         children: [
           // Start Time
@@ -68,14 +94,31 @@ class BookingForm extends StatelessWidget {
             child: TimeSlotPicker(
               label: 'Start Time',
               selectedTime: controller.startTime.value,
-              timeSlots: timeSlots,
+              timeSlots: timeSlots, // Use venue-specific time slots
               onTimeSelected: (time) {
                 controller.startTime.value = time;
-                // Auto-set end time to +2 hours if not set
+                // Auto-set end time to +2 hours if not set, but respect venue hours
                 if (controller.endTime.value == null) {
                   final endHour = (time.hour + 2) % 24;
-                  controller.endTime.value =
-                      TimeOfDay(hour: endHour, minute: time.minute);
+                  final endTime = TimeOfDay(hour: endHour, minute: time.minute);
+
+                  // Make sure end time is within venue operating hours
+                  if (timeSlots.any((slot) =>
+                      slot.hour == endTime.hour &&
+                      slot.minute == endTime.minute)) {
+                    controller.endTime.value = endTime;
+                  } else {
+                    // Find next available end time within operating hours
+                    final availableEndTimes = timeSlots
+                        .where((slot) =>
+                            (slot.hour * 60 + slot.minute) >
+                            (time.hour * 60 + time.minute))
+                        .toList();
+
+                    if (availableEndTimes.isNotEmpty) {
+                      controller.endTime.value = availableEndTimes.first;
+                    }
+                  }
                 }
               },
             ),
@@ -88,7 +131,7 @@ class BookingForm extends StatelessWidget {
             child: TimeSlotPicker(
               label: 'End Time',
               selectedTime: controller.endTime.value,
-              timeSlots: timeSlots,
+              timeSlots: timeSlots, // Use venue-specific time slots
               onTimeSelected: (time) {
                 controller.endTime.value = time;
               },
@@ -390,35 +433,38 @@ class BookingForm extends StatelessWidget {
     });
   }
 
-  // IMPROVED BOOKING BUTTON with comprehensive validation
+  // ALWAYS ACTIVE BOOKING BUTTON - Super Simple Approach
   Widget _bookNowButton(BookingController controller) {
     return Obx(() {
       final isProcessing = controller.isProcessing.value;
-      final isValid = _isFormValidForSubmission(controller);
 
       return Column(
         children: [
-          // Show validation errors if form is not valid
-          if (!isValid && !isProcessing) ...[
-            _buildValidationErrors(controller),
-            SizedBox(height: 16),
-          ],
+          // Optional: Show helpful hints (tidak affect button state)
+          _buildFormHints(controller),
+          SizedBox(height: 16),
 
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: isValid && !isProcessing
+              // ALWAYS ACTIVE kecuali saat processing
+              onPressed: !isProcessing
                   ? () {
-                      print(
-                          'Book Now button pressed - starting booking process');
+                      // Validate only when button is pressed
+                      if (!_isFormComplete(controller)) {
+                        final errorMessage = _getValidationError(controller);
+                        controller.showError(errorMessage);
+                        return;
+                      }
+
+                      // Proceed with booking
                       controller.createBooking(venue);
                     }
                   : null,
               style: ElevatedButton.styleFrom(
                 padding: EdgeInsets.symmetric(vertical: 16),
                 backgroundColor:
-                    isValid ? Get.theme.primaryColor : Colors.grey[400],
-                disabledBackgroundColor: Colors.grey[400],
+                    !isProcessing ? Get.theme.primaryColor : Colors.grey[400],
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -451,7 +497,7 @@ class BookingForm extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: isValid ? Colors.white : Colors.grey[600],
+                        color: Colors.white,
                       ),
                     ),
             ),
@@ -461,14 +507,14 @@ class BookingForm extends StatelessWidget {
     });
   }
 
-  // COMPREHENSIVE FORM VALIDATION
-  bool _isFormValidForSubmission(BookingController controller) {
-    // Check basic form fields
+  // Simple form completion check (no reactive state)
+  bool _isFormComplete(BookingController controller) {
+    // Check basic fields
     if (controller.selectedDate.value == null) return false;
     if (controller.startTime.value == null || controller.endTime.value == null)
       return false;
 
-    // Check guest information
+    // Check guest info
     if (controller.guestNameController.text.trim().isEmpty) return false;
     if (controller.guestEmailController.text.trim().isEmpty) return false;
     if (controller.guestPhoneController.text.trim().isEmpty) return false;
@@ -477,134 +523,171 @@ class BookingForm extends StatelessWidget {
     if (!_isValidEmail(controller.guestEmailController.text.trim()))
       return false;
 
-    // Check time slot duration is valid
-    if (!_isTimeSlotDurationValid(controller)) return false;
-
-    // Check not currently processing
-    if (controller.isProcessing.value) return false;
+    // Check duration
+    if (!_isValidDuration(controller)) return false;
 
     return true;
   }
 
-  // Helper method to validate email format
+  // Get specific validation error message
+  String _getValidationError(BookingController controller) {
+    if (controller.selectedDate.value == null) {
+      return 'Please select a booking date';
+    }
+
+    if (controller.startTime.value == null ||
+        controller.endTime.value == null) {
+      return 'Please select start and end times';
+    }
+
+    if (!_isValidDuration(controller)) {
+      return 'Booking duration must be between 1 hour and 7 days';
+    }
+
+    if (controller.guestNameController.text.trim().isEmpty) {
+      return 'Please enter your name';
+    }
+
+    if (controller.guestEmailController.text.trim().isEmpty) {
+      return 'Please enter your email address';
+    }
+
+    if (!_isValidEmail(controller.guestEmailController.text.trim())) {
+      return 'Please enter a valid email address';
+    }
+
+    if (controller.guestPhoneController.text.trim().isEmpty) {
+      return 'Please enter your phone number';
+    }
+
+    return 'Please complete all required fields';
+  }
+
+  // Helper: Show friendly form hints (optional visual feedback)
+  Widget _buildFormHints(BookingController controller) {
+    final incomplete = <String>[];
+
+    if (controller.selectedDate.value == null) incomplete.add('Date');
+    if (controller.startTime.value == null || controller.endTime.value == null)
+      incomplete.add('Time');
+    if (controller.guestNameController.text.trim().isEmpty)
+      incomplete.add('Name');
+    if (controller.guestEmailController.text.trim().isEmpty)
+      incomplete.add('Email');
+    if (controller.guestPhoneController.text.trim().isEmpty)
+      incomplete.add('Phone');
+
+    if (incomplete.isEmpty) return SizedBox.shrink();
+
+    return Container(
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.blue[50],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.blue[200]!),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.info_outline, color: Colors.blue[600], size: 18),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Complete: ${incomplete.join(', ')}',
+              style: TextStyle(
+                color: Colors.blue[700],
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Email validation
   bool _isValidEmail(String email) {
     return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
   }
 
-  // Helper method to validate time slot duration
-  bool _isTimeSlotDurationValid(BookingController controller) {
+  // Duration validation
+  bool _isValidDuration(BookingController controller) {
     if (controller.selectedDate.value == null ||
         controller.startTime.value == null ||
         controller.endTime.value == null) {
       return false;
     }
 
-    final selectedDateValue = controller.selectedDate.value!;
-    final startTimeValue = controller.startTime.value!;
-    final endTimeValue = controller.endTime.value!;
+    final selectedDate = controller.selectedDate.value!;
+    final startTime = controller.startTime.value!;
+    final endTime = controller.endTime.value!;
 
     final start = DateTime(
-      selectedDateValue.year,
-      selectedDateValue.month,
-      selectedDateValue.day,
-      startTimeValue.hour,
-      startTimeValue.minute,
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      startTime.hour,
+      startTime.minute,
     );
 
     final end = DateTime(
-      selectedDateValue.year,
-      selectedDateValue.month,
-      selectedDateValue.day,
-      endTimeValue.hour,
-      endTimeValue.minute,
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      endTime.hour,
+      endTime.minute,
     );
 
     final duration = end.difference(start);
-
-    // Must be at least 1 hour and maximum 7 days
     return duration >= Duration(hours: 1) && duration <= Duration(days: 7);
   }
 
-  // Helper widget to show validation errors
-  Widget _buildValidationErrors(BookingController controller) {
-    final errors = <String>[];
+  // Helper: Generate time slots based on venue operating hours
+  List<TimeOfDay> _generateTimeSlots() {
+    // Get venue operating hours from time slots data (8 AM - 10 PM default)
+    final timeSlots = controller.detailedTimeSlots;
 
-    if (controller.selectedDate.value == null) {
-      errors.add('Please select a booking date');
+    if (timeSlots.isNotEmpty) {
+      // Extract operating hours from available slots
+      final firstSlot = timeSlots.first;
+      final lastSlot = timeSlots.last;
+
+      final startHour = int.parse(firstSlot.start.split(':')[0]);
+      final endHour = int.parse(lastSlot.end.split(':')[0]);
+      final endMinute = int.parse(lastSlot.end.split(':')[1]);
+
+      return _generateTimeSlotsInRange(startHour, 0, endHour, endMinute);
     }
 
-    if (controller.startTime.value == null ||
-        controller.endTime.value == null) {
-      errors.add('Please select start and end times');
-    } else if (!_isTimeSlotDurationValid(controller)) {
-      errors.add('Booking duration must be between 1 hour and 7 days');
-    }
-
-    if (controller.guestNameController.text.trim().isEmpty) {
-      errors.add('Please enter guest name');
-    }
-
-    if (controller.guestEmailController.text.trim().isEmpty) {
-      errors.add('Please enter email address');
-    } else if (!_isValidEmail(controller.guestEmailController.text.trim())) {
-      errors.add('Please enter a valid email address');
-    }
-
-    if (controller.guestPhoneController.text.trim().isEmpty) {
-      errors.add('Please enter phone number');
-    }
-
-    if (errors.isEmpty) return SizedBox.shrink();
-
-    return Container(
-      padding: EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.orange[50],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.orange[200]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.info_outline, color: Colors.orange[700], size: 20),
-              SizedBox(width: 8),
-              Text(
-                'Please complete the form:',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: Colors.orange[700],
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 8),
-          ...errors
-              .map((error) => Padding(
-                    padding: EdgeInsets.only(left: 28, bottom: 4),
-                    child: Text(
-                      '• $error',
-                      style: TextStyle(
-                        color: Colors.orange[700],
-                        fontSize: 13,
-                      ),
-                    ),
-                  ))
-              .toList(),
-        ],
-      ),
-    );
+    // Default: 8 AM - 10 PM (based on backend operating hours)
+    return _generateTimeSlotsInRange(8, 0, 22, 0);
   }
 
-  // Helper methods
-  List<TimeOfDay> _generateTimeSlots() {
+  List<TimeOfDay> _generateTimeSlotsInRange(
+      int startHour, int startMinute, int endHour, int endMinute) {
     final slots = <TimeOfDay>[];
-    for (int hour = 0; hour < 24; hour++) {
-      slots.add(TimeOfDay(hour: hour, minute: 0));
-      slots.add(TimeOfDay(hour: hour, minute: 30));
+
+    // Start from venue opening time
+    int currentHour = startHour;
+    int currentMinute = startMinute;
+
+    // Generate 30-minute intervals until closing time
+    while (currentHour < endHour ||
+        (currentHour == endHour && currentMinute < endMinute)) {
+      slots.add(TimeOfDay(hour: currentHour, minute: currentMinute));
+
+      // Add 30 minutes
+      currentMinute += 30;
+      if (currentMinute >= 60) {
+        currentMinute = 0;
+        currentHour++;
+      }
     }
+
+    // Add final time slot at closing time
+    if (currentHour == endHour && currentMinute == endMinute) {
+      slots.add(TimeOfDay(hour: currentHour, minute: currentMinute));
+    }
+
     return slots;
   }
 }
