@@ -37,11 +37,13 @@ class VenueCard extends StatelessWidget {
                 ClipRRect(
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(12)),
-                  child: NetworkImageWithLoader(
-                    imageUrl: venue.firstPictureUrl ?? '',
-                    height: 160,
-                    width: double.infinity,
+                  child: // Di dalam widget VenueCard
+                  NetworkImageWithLoader(
+                    imageUrl: venue.firstPictureUrl ?? "",
                     fit: BoxFit.cover,
+                    height: 120,
+                    width: double.infinity,
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
                   ),
                 ),
                 Positioned(

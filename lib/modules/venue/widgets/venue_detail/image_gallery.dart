@@ -86,9 +86,9 @@ class ImageGallery extends StatelessWidget {
               padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
               itemCount: images.length > maxImages ? maxImages : images.length,
               itemBuilder: (context, index) {
+                // Di dalam ListView.builder
                 final imageUrl = images[index].imageUrl ?? '';
-                print("Image URL at index $index: $imageUrl");
-
+                
                 return GestureDetector(
                   onTap: () => onImageTap(index),
                   child: Container(

@@ -139,8 +139,7 @@ class VenueDetailController extends GetxController {
           placeId: venue.value?.id,
         );
         venueImages.add(mainImage);
-        print(
-            '✅ Using first_picture as fallback: ${venue.value!.firstPicture}');
+        print('✅ Using first_picture as fallback: ${venue.value!.firstPicture}');
         return;
       }
 
