@@ -28,16 +28,23 @@ class VenueModel {
   final List<ScheduleModel>? schedules;
   final int? price;
   final int? maxCapacity;
-
+  
+  String? _cachedFirstPictureUrl; // Tambahkan property cache
+  
   String? get firstPictureUrl {
-    // Priority 1: first_picture from API response
+    // Return cached value if already calculated
+    if (_cachedFirstPictureUrl != null) {
+      return _cachedFirstPictureUrl;
+    }
+    
+    // Existing logic
     if (firstPicture != null &&
         firstPicture!.isNotEmpty &&
         firstPicture != 'null') {
-      return '${AppConstants.baseUrl}/img/$firstPicture';
+      _cachedFirstPictureUrl = '${AppConstants.baseUrl}/img/$firstPicture';
+      return _cachedFirstPictureUrl;
     }
-
-    // Priority 2: first picture from pictures array
+  
     if (pictures != null && pictures!.isNotEmpty) {
       final validPicture = pictures!.firstWhere(
         (pic) =>
@@ -49,11 +56,11 @@ class VenueModel {
       if (validPicture.filename != null &&
           validPicture.filename!.isNotEmpty &&
           validPicture.filename != 'null') {
-        return validPicture.imageUrl;
+        _cachedFirstPictureUrl = validPicture.imageUrl;
+        return _cachedFirstPictureUrl;
       }
     }
-
-    // Return null if no valid image found
+  
     return null;
   }
 
@@ -113,7 +120,7 @@ class VenueModel {
       // Pictures
       firstPicture: json['first_picture'],
       pictures: (json['pictures'] as List<dynamic>?)
-          ?.map((picture) => PictureModel.fromJson(picture))
+          ?.map((picture) => PictureModel.fromVenueData(picture, json['id']))
           .toList(),
 
       // Relations
@@ -204,7 +211,7 @@ class RoomModel {
 }
 
 class PictureModel {
-  final int? id;
+  final String? id;
   final String? filename;
   final int? placeId;
 
@@ -228,6 +235,14 @@ class PictureModel {
       id: json['id'],
       filename: json['filename'],
       placeId: json['place_id'],
+    );
+  }
+
+  factory PictureModel.fromVenueData(String filename, int placeId) {
+    return PictureModel(
+      id: filename,
+      filename: filename,
+      placeId: placeId,
     );
   }
 

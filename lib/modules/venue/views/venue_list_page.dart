@@ -19,12 +19,6 @@ class VenueListPage extends GetView<VenueListController> {
             icon: const Icon(Icons.arrow_back),
             onPressed: () => Get.back(),
           ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () {},
-            ),
-          ],
         ),
         body: Obx(() {
           if (controller.isLoading.value) {

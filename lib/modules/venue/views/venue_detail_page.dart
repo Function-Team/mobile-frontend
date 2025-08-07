@@ -191,19 +191,6 @@ class VenueDetailPage extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      if (controller.venue.value?.activities?.isNotEmpty ==
-                          true) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          _buildActivitiesSubtitle(
-                              controller.venue.value!.activities!),
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 14,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      ],
                       const SizedBox(height: 8),
                       Row(
                         children: [
@@ -740,87 +727,95 @@ class VenueDetailPage extends StatelessWidget {
                   style: TextStyle(color: Colors.grey[600]),
                 ),
               );
-    } else {
-              // Show only the first 2 reviews
-              final displayedReviews = controller.reviews.length > 2
-                  ? controller.reviews.sublist(0, 2)
-                  : controller.reviews;
+            } else {
+              // Limit to 2 reviews but don't create a sublist (avoid unnecessary copying)
+              final reviewCount =
+                  controller.reviews.length > 2 ? 2 : controller.reviews.length;
 
               return Column(
                 children: [
-                  ...displayedReviews.map((review) => Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[50],
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey[200]!),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                CircleAvatar(
-                                  backgroundColor: Colors.blue[100],
-                                  radius: 16,
-                                  child: Text(
-                                    (review.user?.username?.isNotEmpty ?? false)
-                                        ? review.user!.username![0]
-                                            .toUpperCase()
-                                        : 'U',
-                                    style: const TextStyle(color: Colors.white),
+                  ListView.builder(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      itemCount: reviewCount,
+                      itemBuilder: (context, index) {
+                        final review = controller.reviews[index];
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[50],
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey[200]!),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  CircleAvatar(
+                                    backgroundColor: Colors.blue[100],
+                                    radius: 16,
+                                    child: Text(
+                                      (review.user?.username?.isNotEmpty ??
+                                              false)
+                                          ? review.user!.username![0]
+                                              .toUpperCase()
+                                          : 'U',
+                                      style:
+                                          const TextStyle(color: Colors.white),
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        review.user?.username ?? 'Anonymous',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      if (review.createdAt != null)
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
                                         Text(
-                                          DateFormat('dd MMM yyyy')
-                                              .format(review.createdAt!),
-                                          style: TextStyle(
-                                            color: Colors.grey[600],
-                                            fontSize: 12,
+                                          review.user?.username ?? 'Anonymous',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                    ],
+                                        if (review.createdAt != null)
+                                          Text(
+                                            DateFormat('dd MMM yyyy')
+                                                .format(review.createdAt!),
+                                            style: TextStyle(
+                                              color: Colors.grey[600],
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Row(
-                                  children: List.generate(5, (index) {
-                                    return Icon(
-                                      index < (review.rating ?? 0)
-                                          ? Icons.star
-                                          : Icons.star_border,
-                                      color: index < (review.rating ?? 0)
-                                          ? Colors.amber
-                                          : Colors.grey,
-                                      size: 14,
-                                    );
-                                  }),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              review.comment ?? '',
-                              style: const TextStyle(fontSize: 14),
-                              maxLines: 3,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      )),
+                                  Row(
+                                    children: List.generate(5, (index) {
+                                      return Icon(
+                                        index < (review.rating ?? 0)
+                                            ? Icons.star
+                                            : Icons.star_border,
+                                        color: index < (review.rating ?? 0)
+                                            ? Colors.amber
+                                            : Colors.grey,
+                                        size: 14,
+                                      );
+                                    }),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                review.comment ?? '',
+                                style: const TextStyle(fontSize: 14),
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
                   if (controller.reviews.length > 2)
                     Padding(
                       padding: const EdgeInsets.only(top: 8),
@@ -847,5 +842,3 @@ class VenueDetailPage extends StatelessWidget {
     );
   }
 }
-
-// Tambahkan fungsi ini di class VenueDetailPage

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:function_mobile/common/widgets/texts/tr_text.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/profile/views/faq_page.dart';
@@ -13,36 +12,36 @@ Widget buildProfileOptions(BuildContext context) {
 
   return Column(
     children: [
-      _buildOptionTile(
-        context: context,
-        icon: Icons.account_balance_wallet_outlined,
-        title: LocalizationHelper.tr(LocaleKeys.profile_payment_methods),
-        subtitle:
-            LocalizationHelper.tr(LocaleKeys.profile_payment_methods_subtitle),
-        onTap: () {
-          // Handle PAYMENT METHODS
-        },
-      ),
-      const SizedBox(height: 16),
-      _buildOptionTile(
-        context: context,
-        icon: Icons.person_outline,
-        title: LocalizationHelper.tr(LocaleKeys.profile_your_details),
-        subtitle:
-            LocalizationHelper.tr(LocaleKeys.profile_your_details_subtitle),
-        onTap: () {
-          // Handle your details
-        },
-      ),
-      _buildOptionTile(
-        context: context,
-        icon: Icons.money_off,
-        title: LocalizationHelper.tr(LocaleKeys.profile_refunds),
-        subtitle: LocalizationHelper.tr(LocaleKeys.profile_refunds_subtitle),
-        onTap: () {
-          // Handle refunds
-        },
-      ),
+      // _buildOptionTile(
+      //   context: context,
+      //   icon: Icons.account_balance_wallet_outlined,
+      //   title: LocalizationHelper.tr(LocaleKeys.profile_payment_methods),
+      //   subtitle:
+      //       LocalizationHelper.tr(LocaleKeys.profile_payment_methods_subtitle),
+      //   onTap: () {
+      //     // Handle PAYMENT METHODS
+      //   },
+      // ),
+      // const SizedBox(height: 16),
+      // _buildOptionTile(
+      //   context: context,
+      //   icon: Icons.person_outline,
+      //   title: LocalizationHelper.tr(LocaleKeys.profile_your_details),
+      //   subtitle:
+      //       LocalizationHelper.tr(LocaleKeys.profile_your_details_subtitle),
+      //   onTap: () {
+      //     // Handle your details
+      //   },
+      // ),
+      // _buildOptionTile(
+      //   context: context,
+      //   icon: Icons.money_off,
+      //   title: LocalizationHelper.tr(LocaleKeys.profile_refunds),
+      //   subtitle: LocalizationHelper.tr(LocaleKeys.profile_refunds_subtitle),
+      //   onTap: () {
+      //     // Handle refunds
+      //   },
+      // ),
       _buildOptionTile(
         context: context,
         icon: Icons.help_outline,
@@ -83,29 +82,6 @@ Widget buildProfileOptions(BuildContext context) {
         title: LocalizationHelper.tr(LocaleKeys.settings_settings),
         subtitle: LocalizationHelper.tr(LocaleKeys.settings_description),
         onTap: () => controller.goToSettings(),
-      ),
-    ],
-  );
-}
-
-Widget _buildOptionTiles({
-  required BuildContext context,
-  required IconData icon,
-  required Widget titleWidget,
-  required Widget subtitleWidget,
-  required VoidCallback onTap,
-}) {
-  return Column(
-    children: [
-      ListTile(
-        leading: Icon(icon),
-        title: titleWidget,
-        subtitle: subtitleWidget,
-        onTap: onTap,
-      ),
-      const Divider(
-        height: 0,
-        thickness: 0.25,
       ),
     ],
   );

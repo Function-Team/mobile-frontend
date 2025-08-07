@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -21,16 +22,14 @@ class NetworkImageWithLoader extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: borderRadius ?? BorderRadius.zero,
-      child: Image.network(
-        imageUrl,
+      child: CachedNetworkImage(
+        // Ganti Image.network dengan CachedNetworkImage
+        imageUrl: imageUrl,
         height: height,
         width: width,
         fit: fit,
-        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-          if (wasSynchronouslyLoaded) return child;
-          return frame != null ? child : _buildShimmerPlaceholder();
-        },
-        errorBuilder: (context, error, stackTrace) => _buildErrorPlaceholder(),
+        placeholder: (context, url) => _buildShimmerPlaceholder(),
+        errorWidget: (context, url, error) => _buildErrorPlaceholder(),
       ),
     );
   }

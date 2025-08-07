@@ -134,12 +134,13 @@ class VenueDetailController extends GetxController {
           venue.value!.firstPicture!.isNotEmpty &&
           venue.value!.firstPicture != 'null') {
         final mainImage = PictureModel(
-          id: 0,
+          id: '0',
           filename: venue.value!.firstPicture,
           placeId: venue.value?.id,
         );
         venueImages.add(mainImage);
-        print('✅ Using first_picture as fallback: ${venue.value!.firstPicture}');
+        print(
+            '✅ Using first_picture as fallback: ${venue.value!.firstPicture}');
         return;
       }
 
@@ -212,65 +213,67 @@ class VenueDetailController extends GetxController {
   }
 
   void _extractVenueActivities() {
-  try {
-    isLoadingActivities.value = true;
-    activities.clear();
+    try {
+      isLoadingActivities.value = true;
+      activities.clear();
 
-    // Priority 1: Use activities array from backend (proper way)
-    if (venue.value?.activities != null && venue.value!.activities!.isNotEmpty) {
-      // Convert ActivityModel to CategoryModel for compatibility
-      final convertedActivities = venue.value!.activities!.map((activity) {
-        return CategoryModel(
-          id: activity.id,
-          name: activity.name,
-        );
-      }).toList();
-      
-      activities.assignAll(convertedActivities);
-      print('✅ Loaded ${activities.length} activities from activities array');
-      
-      // Debug print
-      for (var activity in activities) {
-        print('   - ${activity.name} (ID: ${activity.id})');
+      // Priority 1: Use activities array from backend (proper way)
+      if (venue.value?.activities != null &&
+          venue.value!.activities!.isNotEmpty) {
+        // Convert ActivityModel to CategoryModel for compatibility
+        final convertedActivities = venue.value!.activities!.map((activity) {
+          return CategoryModel(
+            id: activity.id,
+            name: activity.name,
+          );
+        }).toList();
+
+        activities.assignAll(convertedActivities);
+        print('✅ Loaded ${activities.length} activities from activities array');
+
+        // Debug print
+        for (var activity in activities) {
+          print('   - ${activity.name} (ID: ${activity.id})');
+        }
+        return;
       }
-      return;
-    }
 
-    // Priority 2: Check if activityIds array exists (backward compatibility)
-    if (venue.value?.activityIds != null && venue.value!.activityIds!.isNotEmpty) {
-      print('ℹ️ Using activityIds fallback for venue ${venue.value?.id}');
-      
-      // Create placeholder activities from IDs
-      final placeholderActivities = venue.value!.activityIds!.map((id) {
-        return CategoryModel(
-          id: id,
-          name: 'Activity $id', // Placeholder name
+      // Priority 2: Check if activityIds array exists (backward compatibility)
+      if (venue.value?.activityIds != null &&
+          venue.value!.activityIds!.isNotEmpty) {
+        print('ℹ️ Using activityIds fallback for venue ${venue.value?.id}');
+
+        // Create placeholder activities from IDs
+        final placeholderActivities = venue.value!.activityIds!.map((id) {
+          return CategoryModel(
+            id: id,
+            name: 'Activity $id', // Placeholder name
+          );
+        }).toList();
+
+        activities.assignAll(placeholderActivities);
+        return;
+      }
+
+      // Priority 3: Single activityId (legacy support)
+      if (venue.value?.activityId != null) {
+        print('ℹ️ Using single activityId fallback');
+        final activity = CategoryModel(
+          id: venue.value!.activityId,
+          name: 'Activity ${venue.value!.activityId}',
         );
-      }).toList();
-      
-      activities.assignAll(placeholderActivities);
-      return;
-    }
+        activities.add(activity);
+        return;
+      }
 
-    // Priority 3: Single activityId (legacy support)
-    if (venue.value?.activityId != null) {
-      print('ℹ️ Using single activityId fallback');
-      final activity = CategoryModel(
-        id: venue.value!.activityId,
-        name: 'Activity ${venue.value!.activityId}',
-      );
-      activities.add(activity);
-      return;
+      print('ℹ️ No activities available for venue ${venue.value?.id}');
+    } catch (e) {
+      print('❌ Error extracting venue activities: $e');
+      activities.clear();
+    } finally {
+      isLoadingActivities.value = false;
     }
-
-    print('ℹ️ No activities available for venue ${venue.value?.id}');
-  } catch (e) {
-    print('❌ Error extracting venue activities: $e');
-    activities.clear();
-  } finally {
-    isLoadingActivities.value = false;
   }
-}
 
   IconData? _findFacilityIcon(String? facilityName) {
     if (facilityName == null || facilityName.isEmpty) return Icons.help_outline;

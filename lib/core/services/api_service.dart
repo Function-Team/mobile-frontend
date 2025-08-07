@@ -10,7 +10,7 @@ class ApiService extends GetxService {
 
   ApiService() {
     _dio = dio.Dio(dio.BaseOptions(
-      baseUrl: AppConstants.baseUrlLocal,
+      baseUrl: AppConstants.baseUrl,
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
       sendTimeout: const Duration(seconds: 10),
@@ -201,9 +201,8 @@ class ApiService extends GetxService {
   Future<dynamic> getRequest(String endpoint,
       {Map<String, dynamic>? headers}) async {
     try {
-
       final options = headers != null ? dio.Options(headers: headers) : null;
-      final response = await _dio.get(endpoint, options: options); 
+      final response = await _dio.get(endpoint, options: options);
 
       if (response.statusCode! >= 200 && response.statusCode! < 300) {
         return response.data;
@@ -228,7 +227,6 @@ class ApiService extends GetxService {
   Future<dynamic> postRequest(
       String endpoint, Map<String, dynamic> data) async {
     try {
-
       final response = await _dio.post(endpoint, data: data);
 
       if (response.statusCode! >= 200 && response.statusCode! < 300) {
