@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
@@ -68,6 +69,22 @@ class VenueDetailController extends GetxController {
     }
   }
 
+  void _preloadImages() {
+  if (venue.value?.pictures != null) {
+    for (final picture in venue.value!.pictures!) {
+      if (picture.imageUrl != null) {
+        // Preload images in background
+        precacheImage(
+          CachedNetworkImageProvider(picture.imageUrl!),
+          Get.context!,
+        ).catchError((error) {
+          print('Preload error: $error');
+        });
+      }
+    }
+  }
+}
+
   Future<void> loadVenueDetails(int venueId) async {
     try {
       isLoading.value = true;
@@ -77,12 +94,24 @@ class VenueDetailController extends GetxController {
       final venueData = await _venueRepository.getVenueById(venueId);
 
       if (venueData != null) {
-        venue.value = venueData;
+        // Changed from 'response' to 'venueData'
+        venue.value = venueData; // Changed from 'response' to 'venueData'
+
+        print('=== PICTURES PARSED SUCCESSFULLY ===');
+        print('Pictures count: ${venue.value!.pictures?.length ?? 0}');
+        if (venue.value!.pictures != null &&
+            venue.value!.pictures!.isNotEmpty) {
+          print('First image URL: ${venue.value!.pictures![0].imageUrl}');
+          print('First picture URL: ${venue.value!.firstPictureUrl}');
+        }
+        print('====================================');
 
         _extractVenueImages();
         _extractVenueFacilities();
         _extractVenueActivities();
         await loadVenueReviews(venueId);
+
+        _preloadImages();
       } else {
         hasError.value = true;
         errorMessage.value = 'Failed to load venue details';
@@ -90,6 +119,7 @@ class VenueDetailController extends GetxController {
     } catch (e) {
       hasError.value = true;
       errorMessage.value = 'Error: ${e.toString()}';
+      print('Error loading venue details: $e');
     } finally {
       isLoading.value = false;
     }
@@ -124,7 +154,7 @@ class VenueDetailController extends GetxController {
 
         if (validImages.isNotEmpty) {
           venueImages.assignAll(validImages);
-          print('✅ Loaded ${validImages.length} images from pictures array');
+          print('Loaded ${validImages.length} images from pictures array');
           return;
         }
       }
@@ -139,8 +169,7 @@ class VenueDetailController extends GetxController {
           placeId: venue.value?.id,
         );
         venueImages.add(mainImage);
-        print(
-            '✅ Using first_picture as fallback: ${venue.value!.firstPicture}');
+        print('Using first_picture as fallback: ${venue.value!.firstPicture}');
         return;
       }
 
@@ -229,8 +258,6 @@ class VenueDetailController extends GetxController {
         }).toList();
 
         activities.assignAll(convertedActivities);
-        print('✅ Loaded ${activities.length} activities from activities array');
-
         // Debug print
         for (var activity in activities) {
           print('   - ${activity.name} (ID: ${activity.id})');
@@ -265,10 +292,9 @@ class VenueDetailController extends GetxController {
         activities.add(activity);
         return;
       }
-
-      print('ℹ️ No activities available for venue ${venue.value?.id}');
+      print('No activities available for venue ${venue.value?.id}');
     } catch (e) {
-      print('❌ Error extracting venue activities: $e');
+      print(' Error extracting venue activities: $e');
       activities.clear();
     } finally {
       isLoadingActivities.value = false;
@@ -312,7 +338,7 @@ class VenueDetailController extends GetxController {
     return Icons.check_circle_outline;
   }
 
-  // IMPROVED: Enhanced facility ID to name mapping
+  // Enhanced facility ID to name mapping
   String _getFacilityNameById(int id) {
     switch (id) {
       case 1:

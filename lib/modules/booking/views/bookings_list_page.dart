@@ -63,7 +63,6 @@ class BookingListPage extends GetView<BookingListController> {
   }
 
   Widget _buildTabButton(int index) {
-    // ✅ FIXED: Single Obx per button, clean access
     final isSelected = controller.currentTabIndex.value == index;
     final count = controller.getTabCount(index);
 

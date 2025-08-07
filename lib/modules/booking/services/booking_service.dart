@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import 'package:function_mobile/core/services/api_service.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
-import 'package:function_mobile/modules/venue/data/repositories/venue_repository.dart';
+import 'package:function_mobile/modules/booking/models/booking_response_models.dart';
 import 'package:get/get.dart';
 
 class BookingService extends GetxService {
@@ -21,35 +21,44 @@ class BookingService extends GetxService {
 
   Future<List<BookingModel>> getUserBookings() async {
     try {
+      print('Fetching user bookings...');
       final response = await _apiService.getRequest('/bookings/me');
-      print('Fetched bookings: $response');
 
-      if (response is List) {
-        final bookings = <BookingModel>[];
-
-        for (final bookingData in response) {
-          try {
-            // Parse booking first
-            final booking = BookingModel.fromJson(bookingData);
-
-            // SOLUSI UTAMA: Fetch place details jika tidak ada atau tidak lengkap
-            BookingModel enrichedBooking = booking;
-            if (_needsPlaceEnrichment(booking)) {
-              enrichedBooking = await _enrichBookingWithPlaceDetails(booking);
-            }
-
-            bookings.add(enrichedBooking);
-          } catch (e) {
-            print('Error processing booking ${bookingData['id']}: $e');
-            // Skip this booking but continue with others
-          }
-        }
-
-        return bookings;
+      if (response == null || response is! List) {
+        return [];
       }
-      return [];
+
+      final bookings = <BookingModel>[];
+
+      for (int i = 0; i < response.length; i++) {
+        try {
+          final bookingData = response[i];
+          if (bookingData is! Map<String, dynamic>) continue;
+
+          final booking = BookingModel.fromJson(bookingData);
+
+          // Safe enrichment dengan better error handling
+          BookingModel enrichedBooking = booking;
+          if (_needsPlaceEnrichment(booking)) {
+            try {
+              enrichedBooking = await _enrichBookingWithPlaceDetails(booking);
+            } catch (enrichError) {
+              print(
+                  '⚠️ Failed to enrich booking ${booking.id}, using original: $enrichError');
+              // Use original booking if enrichment fails
+            }
+          }
+
+          bookings.add(enrichedBooking);
+        } catch (e) {
+          print('❌ Error processing booking at index $i: $e');
+          // Skip this booking and continue
+        }
+      }
+
+      return bookings;
     } catch (e) {
-      print('Error fetching bookings from API: $e');
+      print('❌ Error fetching user bookings: $e');
       throw Exception('Failed to fetch bookings: $e');
     }
   }
@@ -86,36 +95,91 @@ class BookingService extends GetxService {
     }
   }
 
-  Future<BookingModel> createBooking(BookingCreateRequest request) async {
+  Future<dynamic> createBookingWithBuiltInValidation(
+      BookingCreateRequest request) async {
     try {
-      print('Creating booking with data: ${request.toJson()}');
+      print('Creating booking request...');
 
-      // Send directly to FastAPI
       final response =
-          await _apiService.postRequest('/booking', request.toJson());
-      print('Full booking response: $response');
+          await _apiService.postRequest('/booking/create', request.toJson());
 
-      // Parse booking
-      final booking = BookingModel.fromJson(response);
+      if (response != null) {
+        print('Booking created successfully');
+        return BookingCreateWithResponse.fromJson(response);
+      }
 
-      // Immediately enrich dengan place details untuk consistency
-      final enrichedBooking = await _enrichBookingWithPlaceDetails(booking);
+      throw Exception('Failed to create booking: Empty response');
+    } on DioException catch (e) {
+      print('DioException: ${e.response?.statusCode}');
 
-      print('Booking created successfully with place details');
-      return enrichedBooking;
+      // Handle 409 Conflict specifically
+      if (e.response?.statusCode == 409) {
+        final data = e.response?.data;
+
+        if (data != null && data is Map<String, dynamic>) {
+          print('🔍 Parsing conflict response...');
+
+          try {
+            final availableSlots = <TimeSlot>[];
+
+            if (data['available_slots'] != null &&
+                data['available_slots'] is List) {
+              for (final slot in data['available_slots']) {
+                if (slot is Map<String, dynamic>) {
+                  availableSlots.add(TimeSlot.fromJson(slot));
+                }
+              }
+            }
+
+            print('Parsed ${availableSlots.length} available slots');
+
+            return BookingConflictResponse(
+              success: false,
+              error: data['error'] ?? 'Venue not available at selected time',
+              availableSlots: availableSlots,
+            );
+          } catch (parseError) {
+            print('Error parsing conflict response: $parseError');
+
+            return BookingConflictResponse(
+              success: false,
+              error: 'Venue not available at selected time',
+              availableSlots: [],
+            );
+          }
+        }
+      }
+
+      // Handle other HTTP errors
+      if (e.response != null) {
+        final statusCode = e.response!.statusCode;
+        final message = e.response!.data?['message'] ??
+            e.response!.data?['detail'] ??
+            'HTTP $statusCode error';
+
+        throw Exception(message);
+      }
+
+      // Handle network errors
+      throw Exception('Network error: ${e.message}');
     } catch (e) {
-      print('Error creating booking via FastAPI: $e');
+      print('Unexpected error: $e');
       throw Exception('Failed to create booking: $e');
     }
   }
 
-  // Cancel booking di FastAPI
-  Future<void> cancelBooking(int bookingId) async {
+  // Cancel booking
+  Future<bool> cancelBooking(int bookingId) async {
     try {
-      await _apiService.patchRequest('/booking/user/cancel/$bookingId', {});
+      final response = await _apiService.patchRequest(
+        '/booking/user/cancel/$bookingId',
+        {},
+      );
+
+      return response != null;
     } catch (e) {
       print('Error cancelling booking: $e');
-      throw Exception('Failed to cancel booking: $e');
+      throw e;
     }
   }
 
@@ -147,5 +211,42 @@ class BookingService extends GetxService {
     }
 
     return enrichedBookings;
+  }
+
+  // CALENDER
+
+  Future<CalendarAvailabilityResponse> getCalendarAvailability({
+    required int placeId,
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    try {
+      final startDateStr = startDate.toIso8601String().split('T')[0];
+      final endDateStr = endDate.toIso8601String().split('T')[0];
+
+      final response = await _apiService.getRequest(
+          '/place/$placeId/calendar-availability?start_date=$startDateStr&end_date=$endDateStr');
+
+      return CalendarAvailabilityResponse.fromJson(response);
+    } catch (e) {
+      throw Exception('Failed to get calendar availability: $e');
+    }
+  }
+
+  // Get detailed time slots for specific date
+  Future<DetailedSlotsResponse> getDetailedTimeSlots({
+    required int placeId,
+    required DateTime date,
+  }) async {
+    try {
+      final dateStr = date.toIso8601String().split('T')[0];
+
+      final response = await _apiService
+          .getRequest('/place/$placeId/detailed-slots?date=$dateStr');
+
+      return DetailedSlotsResponse.fromJson(response);
+    } catch (e) {
+      throw Exception('Failed to get detailed time slots: $e');
+    }
   }
 }

@@ -4,6 +4,7 @@ import 'package:function_mobile/modules/booking/views/bookings_list_page.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/common/bindings/localization_binding.dart';
 import 'package:function_mobile/generated/locale_keys.g.dart';
+import 'package:function_mobile/modules/notification/controllers/notification_controllers.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/home/views/home_page.dart';
 import 'package:function_mobile/modules/profile/views/profile_page.dart';
@@ -59,8 +60,7 @@ class BottomNavView extends StatelessWidget {
               label: LocalizationHelper.tr(LocaleKeys.navigation_favorites),
             ),
             BottomNavigationBarItem(
-              icon: _buildNavIcon(Icons.person_outline, Icons.person,
-                  3), 
+              icon: _buildNavIcon(Icons.person_outline, Icons.person, 3),
               label: LocalizationHelper.tr(LocaleKeys.navigation_profile),
             ),
           ],
@@ -72,13 +72,36 @@ class BottomNavView extends StatelessWidget {
   Widget _buildNavIcon(IconData outlineIcon, IconData filledIcon, int index) {
     return Obx(() {
       final isSelected = controller.currentIndex.value == index;
-      return AnimatedSwitcher(
-        duration: const Duration(milliseconds: 200),
-        child: Icon(
-          isSelected ? filledIcon : outlineIcon,
-          key: ValueKey(isSelected),
-          size: 24,
-        ),
+      final notificationController = Get.find<NotificationController>();
+      final showBadge =
+          index == 1 && notificationController.hasBookingUpdates.value;
+
+      return Stack(
+        clipBehavior: Clip.none,
+        children: [
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            child: Icon(
+              isSelected ? filledIcon : outlineIcon,
+              key: ValueKey(isSelected),
+              size: 24,
+            ),
+          ),
+          // Red dot badge
+          if (showBadge)
+            Positioned(
+              right: -2,
+              top: -2,
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+        ],
       );
     });
   }

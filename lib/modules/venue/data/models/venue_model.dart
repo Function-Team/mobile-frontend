@@ -60,7 +60,6 @@ class VenueModel {
         return _cachedFirstPictureUrl;
       }
     }
-  
     return null;
   }
 
@@ -122,7 +121,6 @@ class VenueModel {
       pictures: (json['pictures'] as List<dynamic>?)
           ?.map((picture) => PictureModel.fromVenueData(picture, json['id']))
           .toList(),
-
       // Relations
       host: json['host'] != null ? HostModel.fromJson(json['host']) : null,
       category: json['category'] != null
@@ -152,6 +150,32 @@ class VenueModel {
       maxCapacity: json['max_capacity'],
     );
   }
+
+  static List<PictureModel>? _parsePictures(dynamic picturesData, int? placeId) {
+  if (picturesData == null) return null;
+  
+  try {
+    final picturesList = picturesData as List<dynamic>;
+    
+    return picturesList.map((item) {
+      if (item is String) {
+        return PictureModel(
+          id: null,
+          filename: item,
+          placeId: placeId,
+        );
+      } else if (item is Map<String, dynamic>) {
+        return PictureModel.fromJson(item);
+      } else {
+        print('⚠️ Unknown picture format: $item');
+        return PictureModel();
+      }
+    }).toList();
+  } catch (e) {
+    print('❌ Error parsing pictures: $e');
+    return null;
+  }
+}
 
   Map<String, dynamic> toJson() {
     return {
@@ -225,7 +249,6 @@ class PictureModel {
     if (filename == null || filename!.isEmpty || filename == 'null') {
       return null;
     }
-
     final fullUrl = '${AppConstants.baseUrl}/img/$filename';
     return fullUrl;
   }

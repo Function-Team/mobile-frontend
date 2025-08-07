@@ -184,31 +184,4 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  void _showLogoutConfirmation(
-      BuildContext context, AuthController authController) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(LocalizationHelper.tr(LocaleKeys.settings_logout)),
-        content:
-            Text(LocalizationHelper.tr(LocaleKeys.settings_logoutConfirmation)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(LocalizationHelper.tr(LocaleKeys.common_cancel)),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              authController.logout();
-            },
-            child: Text(
-              LocalizationHelper.tr(LocaleKeys.settings_logout),
-              style: const TextStyle(color: Colors.red),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

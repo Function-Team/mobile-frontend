@@ -43,8 +43,8 @@ class BookingModel {
     this.amount,
     this.paymentStatus,
     this.placeName,
-    this.isCancelled, 
-    this.cancelReason, 
+    this.isCancelled,
+    this.cancelReason,
     this.cancelledBy,
     this.place,
     this.user,
@@ -107,20 +107,20 @@ class BookingModel {
   bool get isPaid {
     // First check the direct payment_status field
     final validPaidStatuses = ['paid', 'success', 'settlement'];
-  
-  // Check payment_status field
-  if (paymentStatus != null && 
-      validPaidStatuses.contains(paymentStatus!.toLowerCase())) {
-    return true;
-  }
-  
-  // Check payment object status
-  if (payment != null && 
-      validPaidStatuses.contains(payment!.status.toLowerCase())) {
-    return true;
-  }
-  
-  return false;
+
+    // Check payment_status field
+    if (paymentStatus != null &&
+        validPaidStatuses.contains(paymentStatus!.toLowerCase())) {
+      return true;
+    }
+
+    // Check payment object status
+    if (payment != null &&
+        validPaidStatuses.contains(payment!.status.toLowerCase())) {
+      return true;
+    }
+
+    return false;
   }
 
   String get statusDisplayName {
@@ -201,11 +201,11 @@ class BookingModel {
   }
 
   String get startTime {
-    return "${startDateTime.hour.toString().padLeft(2, '0')}:${startDateTime.minute.toString().padLeft(2, '0')}";
+    return DateFormat('HH:mm').format(startDateTime);
   }
 
   String get endTime {
-    return "${endDateTime.hour.toString().padLeft(2, '0')}:${endDateTime.minute.toString().padLeft(2, '0')}";
+    return DateFormat('HH:mm').format(endDateTime);
   }
 
   String get formattedTimeRange {
@@ -216,18 +216,39 @@ class BookingModel {
     return endDateTime.difference(startDateTime);
   }
 
-  factory BookingModel.fromJson(Map<String, dynamic> json) {
-    print('Booking JSON: $json');
+  static DateTime parseDateTime(dynamic value) {
+    if (value == null) return DateTime.now();
 
-    // Parse dates
-    DateTime parseDateTime(dynamic value) {
-      if (value == null) return DateTime.now();
-      if (value is String) return DateTime.parse(value);
-      if (value is DateTime) return value;
-      return DateTime.now();
+    if (value is String) {
+      try {
+        DateTime parsedDateTime;
+
+        if (value.contains('T')) {
+          final cleanValue = value
+              .replaceAll('Z', '')
+              .replaceAll(RegExp(r'[+-]\d{2}:\d{2}$'), '');
+          parsedDateTime = DateTime.parse(cleanValue);
+        } else {
+          // Format lain
+          parsedDateTime = DateTime.parse(value);
+        }
+
+        return parsedDateTime.add(Duration(hours: 7));
+      } catch (e) {
+        print('Error parsing datetime: $value, error: $e');
+        return DateTime.now();
+      }
     }
 
-    // Parse amount
+    if (value is DateTime) {
+      // Return as-is, NO timezone conversion
+      return value;
+    }
+
+    return DateTime.now();
+  }
+
+  factory BookingModel.fromJson(Map<String, dynamic> json) {
     double? parseAmount(dynamic value) {
       if (value == null) return null;
       if (value is double) return value;
@@ -250,7 +271,7 @@ class BookingModel {
       placeName: json['place_name'],
       isCancelled: json['is_cancelled'] as bool?,
       cancelReason: json['cancel_reason'] as String?,
-      cancelledBy: json['cancelled_by'] as String?, 
+      cancelledBy: json['cancelled_by'] as String?,
       place: json['place'] != null ? VenueModel.fromJson(json['place']) : null,
       user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
       reviews: json['reviews'] != null
@@ -277,8 +298,8 @@ class BookingModel {
       'payment_status': paymentStatus,
       'place_name': placeName,
       'is_cancelled': isCancelled,
-      'cancel_reason': cancelReason, 
-      'cancelled_by': cancelledBy, 
+      'cancel_reason': cancelReason,
+      'cancelled_by': cancelledBy,
     };
   }
 
@@ -334,7 +355,6 @@ class BookingModel {
   }
 }
 
-// Supporting classes tetap sama seperti model asli Anda
 class BookingCreateRequest {
   final int placeId;
   final int? userId;
@@ -367,17 +387,15 @@ class BookingCreateRequest {
   Map<String, dynamic> toJson() {
     return {
       'place_id': placeId,
-      'user_id': userId ?? 1,
-      'venue_name': venueName,
-      'user_name': userName,
-      'user_email': userEmail,
-      'user_phone': userPhone,
-      'start_datetime': startDateTime.toIso8601String().split('.')[0],
-      'end_datetime': endDateTime.toIso8601String().split('.')[0],
+      'start_datetime': startDateTime.toIso8601String(),
+      'end_datetime': endDateTime.toIso8601String(),
       'is_confirmed': false,
-      'capacity': capacity,
-      'special_requests': specialRequests,
       'amount': totalPrice ?? 0.0,
+      'guest_name': userName ?? '',
+      'guest_email': userEmail,
+      'guest_phone': userPhone ?? '',
+      'guest_count': capacity,
+      'special_request': specialRequests ?? '',
     };
   }
 
@@ -387,34 +405,37 @@ class BookingCreateRequest {
     required TimeOfDay startTime,
     required TimeOfDay endTime,
     required int capacity,
-    String? specialRequests,
-    String userName = "Test User",
-    String userEmail = "test@example.com",
-    String? userPhone,
+    required String specialRequests,
+    required String userName,
+    required String userEmail,
+    required String userPhone,
   }) {
-    final startDateTime = DateTime(
+    final startDateTimeLocal = DateTime(
       date.year,
       date.month,
       date.day,
       startTime.hour,
       startTime.minute,
-    );
+    ).subtract(Duration(hours: 7));
 
-    final endDateTime = DateTime(
+    final endDateTimeLocal = DateTime(
       date.year,
       date.month,
       date.day,
       endTime.hour,
       endTime.minute,
-    );
+    ).subtract(Duration(hours: 7));
 
-    final durationInHours =
-        endDateTime.difference(startDateTime).inMinutes / 60;
+    final startDateTime = startDateTimeLocal;
+    final endDateTime = endDateTimeLocal;
+
+    final duration = endDateTime.difference(startDateTime);
+    final durationInHours = duration.inMinutes / 60.0;
     final totalPrice = (venue.price ?? 0) * durationInHours;
 
     return BookingCreateRequest(
       placeId: venue.id!,
-      userId: 1,
+      userId: null,
       venueName: venue.name ?? 'Unknown Venue',
       userName: userName,
       userEmail: userEmail,
