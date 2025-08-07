@@ -1,7 +1,6 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/buttons/favorite_button.dart';
+import 'package:function_mobile/modules/venue/controllers/venue_list_controller.dart';
 import 'package:function_mobile/modules/venue/widgets/category_chip.dart';
 import 'package:intl/intl.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
@@ -137,15 +136,15 @@ class VenueCard extends StatelessWidget {
                   //Category
                   Row(
                     children: [
-                      CategoryChip(
-                        label: venue.category?.name ?? "No Category",
-                        color: Theme.of(context)
-                            .colorScheme
-                            .primary
-                            .withOpacity(0.8),
-                        isBackground: true,
-                      ),
-                      const SizedBox(width: 8),
+                      // CategoryChip(
+                      //   label: VenueListController.getCategoryName(venue),
+                      //   color: Theme.of(context)
+                      //       .colorScheme
+                      //       .primary
+                      //       .withOpacity(0.8),
+                      //   isBackground: true,
+                      // ),
+                      // const SizedBox(width: 8),
                       CategoryChip(
                         label: venue.maxCapacity.toString(),
                         icon: Icons.groups_2,

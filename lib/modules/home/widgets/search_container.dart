@@ -79,6 +79,70 @@ class SearchContainer extends StatelessWidget {
     );
   }
 
+ Widget _buildCapacityField({
+  required BuildContext context,
+  required SearchFilterController searchController,
+}) {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    decoration: BoxDecoration(
+      border: Border.all(color: Colors.grey[300]!),
+      borderRadius: BorderRadius.circular(8),
+      color: Colors.white,
+    ),
+    child: Row(
+      children: [
+        // Icon - matching other fields
+        Icon(Icons.people_outline, color: Colors.grey[600], size: 20),
+        const SizedBox(width: 12),
+        
+        // Input field
+        Expanded(
+          child: TextField(
+            controller: searchController.capacityInputController,
+            keyboardType: TextInputType.number,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Colors.black87,
+            ),
+            decoration: InputDecoration(
+              hintText: 'Jumlah tamu',
+              hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.grey[600],
+              ),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.zero,
+              isDense: true,
+            ),
+            onChanged: (value) => searchController.onCapacityInputChanged(value),
+          ),
+        ),
+        
+        // Stepper Controls
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Decrease button
+            _buildStepperButton(
+              icon: Icons.remove_circle_outline,
+              onTap: () => searchController.decrementCapacity(),
+              enabled: true,
+            ),
+            
+            const SizedBox(width: 4),
+            
+            // Increase button
+            _buildStepperButton(
+              icon: Icons.add_circle_outline,
+              onTap: () => searchController.incrementCapacity(),
+              enabled: true,
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
   @override
   Widget build(BuildContext context) {
     final searchController = Get.find<SearchFilterController>();
@@ -160,14 +224,10 @@ class SearchContainer extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // Enhanced Capacity Field
-          _buildSearchField(
+          // Capacity Field
+          _buildCapacityField(
             context: context,
-            controller: searchController.capacityController,
-            icon: Icons.people_outline,
-            hintText: 'Kapasitas',
-            onTap: () => searchController.showCapacityPicker(),
-            textValue: searchController.capacityText, // Tambahkan variabel Rx
+            searchController: searchController,
           ),
 
           const SizedBox(height: 16),
@@ -210,4 +270,23 @@ class SearchContainer extends StatelessWidget {
       ),
     );
   }
+}
+
+Widget _buildStepperButton({
+  required IconData icon,
+  required VoidCallback? onTap,
+  required bool enabled,
+}) {
+  return InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(20),
+    child: Container(
+      padding: const EdgeInsets.all(4),
+      child: Icon(
+        icon,
+        size: 24,
+        color: enabled ? Colors.grey[700] : Colors.grey[400],
+      ),
+    ),
+  );
 }

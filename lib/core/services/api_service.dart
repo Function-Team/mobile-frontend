@@ -63,7 +63,7 @@ class ApiService extends GetxService {
         if (response.statusCode == 200) {
           _retryCount = 0;
         }
-        
+
         // Only log non-GET requests to reduce noise
         if (response.requestOptions.method != 'GET') {
           print("${response.statusCode} ${response.requestOptions.path}");
@@ -75,12 +75,15 @@ class ApiService extends GetxService {
         print("URL: ${e.requestOptions.uri}");
 
         // Handle 401 Unauthorized with refresh token logic
-        if (e.response?.statusCode == 401 && !_isRefreshing && _retryCount < _maxRetries) {
-          print("Authentication failed - attempting token refresh (attempt ${_retryCount + 1}/$_maxRetries)");
+        if (e.response?.statusCode == 401 &&
+            !_isRefreshing &&
+            _retryCount < _maxRetries) {
+          print(
+              "Authentication failed - attempting token refresh (attempt ${_retryCount + 1}/$_maxRetries)");
 
           _retryCount++;
           final refreshSuccess = await _handleTokenRefresh(e.requestOptions);
-          
+
           if (refreshSuccess) {
             // Retry the original request with new token
             try {
@@ -95,7 +98,8 @@ class ApiService extends GetxService {
 
           // If refresh fails or max retries reached, clear tokens and redirect to login
           if (_retryCount >= _maxRetries) {
-            print("Max retry attempts reached. Clearing tokens and redirecting to login.");
+            print(
+                "Max retry attempts reached. Clearing tokens and redirecting to login.");
             await _clearInvalidTokens();
             _retryCount = 0;
             // TODO: Redirect user to login screen
@@ -108,15 +112,14 @@ class ApiService extends GetxService {
     ));
   }
 
-
   Future<void> _addAuthToken(dio.RequestOptions options) async {
     try {
       const storage = FlutterSecureStorage();
       final token = await storage.read(key: AppConstants.tokenKey);
-      
+
       if (token != null && token.isNotEmpty && token != 'null') {
         options.headers['Authorization'] = 'Bearer $token';
-        
+
         // Only log for non-GET requests to reduce noise
         if (options.method != 'GET') {
           print("🔐 Auth: ${options.method} ${options.path}");
@@ -128,7 +131,8 @@ class ApiService extends GetxService {
         }
       }
     } catch (e) {
-      print("Warning: Could not add auth token to ${options.method} ${options.path}: $e");
+      print(
+          "Warning: Could not add auth token to ${options.method} ${options.path}: $e");
     }
   }
 
@@ -150,9 +154,12 @@ class ApiService extends GetxService {
 
     try {
       const storage = FlutterSecureStorage();
-      final refreshToken = await storage.read(key: AppConstants.refreshTokenKey);
+      final refreshToken =
+          await storage.read(key: AppConstants.refreshTokenKey);
 
-      if (refreshToken == null || refreshToken.isEmpty || refreshToken == 'null') {
+      if (refreshToken == null ||
+          refreshToken.isEmpty ||
+          refreshToken == 'null') {
         print("No valid refresh token available");
         return false;
       }
@@ -176,16 +183,12 @@ class ApiService extends GetxService {
           response.data != null &&
           response.data['access_token'] != null &&
           response.data['refresh_token'] != null) {
-        
         // Save new tokens
         await storage.write(
-            key: AppConstants.tokenKey, 
-            value: response.data['access_token']
-        );
+            key: AppConstants.tokenKey, value: response.data['access_token']);
         await storage.write(
             key: AppConstants.refreshTokenKey,
-            value: response.data['refresh_token']
-        );
+            value: response.data['refresh_token']);
 
         print("Token refresh successful");
 
@@ -199,12 +202,12 @@ class ApiService extends GetxService {
       }
     } catch (e) {
       print("Token refresh error: $e");
-      
+
       // If refresh token is also expired/invalid, clear everything
       if (e.toString().contains('401') || e.toString().contains('Invalid')) {
         await _clearInvalidTokens();
       }
-      
+
       return false;
     } finally {
       _isRefreshing = false;
@@ -215,11 +218,11 @@ class ApiService extends GetxService {
   // Retry failed requests after successful token refresh
   Future<void> _retryFailedRequests() async {
     final requestsToRetry = List<dio.RequestOptions>.from(_failedRequests);
-    
+
     // Limit the number of requests to retry
     final maxRetryRequests = 5;
     final limitedRequests = requestsToRetry.take(maxRetryRequests).toList();
-    
+
     for (final request in limitedRequests) {
       try {
         await _addAuthToken(request);
@@ -245,37 +248,29 @@ class ApiService extends GetxService {
     }
   }
 
-  Future<dynamic> getRequest(String endpoint) async {
+  Future<dynamic> getRequest(String endpoint,
+      {Map<String, dynamic>? headers}) async {
     try {
       final options = headers != null ? dio.Options(headers: headers) : null;
       final response = await _dio.get(endpoint, options: options);
+
       if (response.statusCode! >= 200 && response.statusCode! < 300) {
-        // Only log successful responses for non-public endpoints
-        if (!_isPublicEndpoint(endpoint)) {
-          print("✅ GET Success: ${response.statusCode} $endpoint");
-        }
         return response.data;
       } else if (response.statusCode == 401) {
-        print("❌ Auth required for: $endpoint");
         throw Exception("Authentication required. Please login again.");
       } else {
         throw Exception("HTTP ${response.statusCode}: ${response.data}");
       }
     } on dio.DioException catch (e) {
-      // Only log errors, not every request
-      if (e.response?.statusCode != 401) {
-        print("❌ GET Error for $endpoint: ${e.type} - ${e.message}");
-        print("Response data: ${e.response?.data}");
-      }
-      
+      print("GET Error for $endpoint: ${e.type} - ${e.message}");
       if (e.response?.statusCode == 401) {
         throw Exception("Authentication required. Please login again.");
-      } else if (e.response?.statusCode == 500) {
-        throw Exception("Server error. Please try again later.");
       }
-      
       _handleDioError(e, endpoint);
       rethrow;
+    } catch (e) {
+      print("Unexpected error in GET $endpoint: $e");
+      throw Exception("Unexpected error: $e");
     }
   }
 

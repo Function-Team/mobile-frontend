@@ -246,12 +246,12 @@ class VenueDetailPage extends StatelessWidget {
               runSpacing: 8,
               children: [
                 // Category chip
-                CategoryChip(
-                  label: controller.venue.value?.category?.name ??
-                      LocalizationHelper.tr(
-                          LocaleKeys.venue_category_uncategorized),
-                  color: Colors.blue,
-                ),
+                // CategoryChip(
+                //   label: controller.venue.value?.category?.name ??
+                //       LocalizationHelper.tr(
+                //           LocaleKeys.venue_category_uncategorized),
+                //   color: Colors.blue,
+                // ),
 
                 // Capacity chip
                 CategoryChip(

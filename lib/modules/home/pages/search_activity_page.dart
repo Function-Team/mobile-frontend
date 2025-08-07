@@ -153,6 +153,7 @@ class SearchActivityPage extends StatelessWidget {
                 ),
                 Column(
                   children: controller.filteredVenues
+                      .take(5)
                       .map((venue) => _buildVenueItem(venue, controller))
                       .toList(),
                 ),
