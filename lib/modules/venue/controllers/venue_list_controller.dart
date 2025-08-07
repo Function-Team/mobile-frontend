@@ -20,6 +20,7 @@ class VenueListController extends GetxController {
   final RxInt? selectedCategoryId = RxInt(-1);
   final RxList<String> categories = <String>[].obs;
   final RxMap<String, int> categoryMap = <String, int>{}.obs;
+  
 
   // Debouncer untuk menghindari terlalu banyak API calls
   final _debouncer = Debouncer(delay: Duration(milliseconds: 300));
@@ -31,6 +32,7 @@ class VenueListController extends GetxController {
   // Tambahkan variabel untuk menyimpan parameter asli advanced search
   final Rx<Map<String, dynamic>> originalSearchParams =
       Rx<Map<String, dynamic>>({});
+  static final RxMap<int, String> _categoryCache = <int, String>{}.obs;
 
   @override
   void onInit() {
@@ -165,31 +167,29 @@ class VenueListController extends GetxController {
 
   Future<void> loadCategories() async {
     try {
-      final loadedVenues = await _venueRepository.getVenues();
-      Map<String, int> categoryMapping = {};
+      print('🔍 Loading categories directly from /category API...');
+      final categories = await _venueRepository.getCategories();
 
-      // Tambahkan pengecekan null dan empty
-      if (loadedVenues.isEmpty) {
-        print('No venues loaded for categories');
-        return;
-      }
-
-      for (var venue in loadedVenues) {
-        if (venue.category?.name != null && venue.category?.id != null) {
-          categoryMapping[venue.category!.name!] = venue.category!.id!;
+      // ✅ Populate cache (sama seperti VenueDetailController)
+      for (var category in categories) {
+        if (category.id != null && category.name != null) {
+          _categoryCache[category.id!] = category.name!;
+          print('   - ${category.name} (ID: ${category.id})');
         }
       }
 
-      // Tambahkan pengecekan sebelum assign
-      if (categoryMapping.isNotEmpty) {
-        categoryMap.assignAll(categoryMapping);
-        categories.assignAll(categoryMapping.keys.toList());
+      Map<String, int> categoryMapping = {};
+      for (var category in categories) {
+        if (category.name != null && category.id != null) {
+          categoryMapping[category.name!] = category.id!;
+        }
       }
+
+      categoryMap.assignAll(categoryMapping);
+      this.categories.assignAll(categoryMapping.keys.toList());
+      print('✅ Categories loaded and cached: ${this.categories.length}');
     } catch (e) {
-      print('Error loading categories: $e');
-      // Tambahkan penanganan error
-      hasError.value = true;
-      errorMessage.value = 'Failed to load categories. Please try again.';
+      print('❌ Error loading categories: $e');
     }
   }
 
@@ -253,6 +253,44 @@ class VenueListController extends GetxController {
           context: Get.context!,
           message: 'Cannot open venue details',
           type: SnackbarType.error);
+    }
+  }
+  static String getCategoryName(VenueModel venue) {
+    // Priority 1: Use category object from backend
+    if (venue.category?.name != null && venue.category!.name!.isNotEmpty) {
+      return venue.category!.name!;
+    }
+    
+    // Priority 2: Use cached category name
+    if (venue.categoryId != null && _categoryCache.containsKey(venue.categoryId!)) {
+      return _categoryCache[venue.categoryId!]!;
+    }
+    
+    // Priority 3: Fetch from repository if not cached
+    if (venue.categoryId != null) {
+      _fetchAndCacheCategoryName(venue.categoryId!);
+      return 'Category ${venue.categoryId}'; // Temporary while fetching
+    }
+    
+    return 'Uncategorized';
+  }
+  
+  // ✅ TAMBAHAN: Fetch category name dan cache (sama seperti VenueDetailController)
+  static Future<void> _fetchAndCacheCategoryName(int categoryId) async {
+    try {
+      final venueRepo = VenueRepository();
+      final allCategories = await venueRepo.getCategories();
+      
+      // Cache all categories for future use
+      for (var category in allCategories) {
+        if (category.id != null && category.name != null) {
+          _categoryCache[category.id!] = category.name!;
+        }
+      }
+      
+      print('✅ Categories cached: ${_categoryCache.length}');
+    } catch (e) {
+      print('❌ Error fetching category names: $e');
     }
   }
 }

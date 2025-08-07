@@ -13,6 +13,7 @@ class SearchFilterController extends GetxController {
   final capacityController = TextEditingController();
   final dateController = TextEditingController();
   final searchQueryController = TextEditingController();
+  final capacityInputController = TextEditingController();
 
   // Tambahkan variabel Rx untuk melacak nilai field
   final RxString activityText = ''.obs;
@@ -41,7 +42,9 @@ class SearchFilterController extends GetxController {
   // Consistent data structure for cities and activities
   final RxList<CityModel> citiesData = <CityModel>[].obs;
   final RxList<CityModel> filteredCities = <CityModel>[].obs;
-  final RxList<CategoryModel> activitiesData = <CategoryModel>[].obs;
+  final RxList<ActivityModel> activitiesData = <ActivityModel>[].obs;
+  final RxList<CategoryModel> categoriesData = <CategoryModel>[].obs;
+
   final RxString citySearchQuery = ''.obs;
 
   // Category filtering state
@@ -65,16 +68,25 @@ class SearchFilterController extends GetxController {
   Future<void> loadInitialData() async {
     try {
       isLoading.value = true;
+      hasError.value = false;
+      errorMessage.value = '';
 
       // Load cities and activities concurrently
       final results = await Future.wait([
         _venueRepository.getCities(),
         _venueRepository.getActivities(),
+        _venueRepository.getCategories(),
       ]);
 
       citiesData.assignAll(results[0] as List<CityModel>);
       filteredCities.assignAll(results[0] as List<CityModel>);
-      activitiesData.assignAll(results[1] as List<CategoryModel>);
+      activitiesData.assignAll(results[1] as List<ActivityModel>);
+      final categories = results[2] as List<CategoryModel>;
+      // Store categories if needed for search
+      print('✅ Loaded ${categories.length} categories');
+      for (var category in categories) {
+        print('   - ${category.name} (ID: ${category.id})');
+      }
     } catch (e) {
       print('Error loading initial data: $e');
       hasError.value = true;
@@ -134,77 +146,6 @@ class SearchFilterController extends GetxController {
     if (picked != null) {
       endTime.value = picked;
     }
-  }
-
-  // Capacity picker
-  void showCapacityPicker() {
-    Get.bottomSheet(
-      Container(
-        padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Pilih Kapasitas',
-              style: Get.textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 20),
-            Obx(() => Slider(
-                  value: maxCapacity.value.toDouble(),
-                  min: 0,
-                  max: 500,
-                  divisions: 50,
-                  label: maxCapacity.value == 0
-                      ? 'Semua'
-                      : '${maxCapacity.value} orang',
-                  onChanged: (value) {
-                    maxCapacity.value = value.toInt();
-                  },
-                )),
-            const SizedBox(height: 10),
-            Obx(() => Text(
-                  maxCapacity.value == 0
-                      ? 'Semua kapasitas'
-                      : '${maxCapacity.value} orang',
-                  style: Get.textTheme.bodyLarge,
-                )),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      maxCapacity.value = 0;
-                      capacityController.text = 'Semua kapasitas';
-                      Get.back();
-                    },
-                    child: const Text('Reset'),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      capacityController.text = maxCapacity.value == 0
-                          ? 'Semua kapasitas'
-                          : '${maxCapacity.value} orang';
-                      capacityText.value = capacityController.text;
-                      Get.back();
-                    },
-                    child: const Text('Pilih'),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-      isScrollControlled: true,
-    );
   }
 
   // City selection with search
@@ -318,11 +259,72 @@ class SearchFilterController extends GetxController {
     );
   }
 
-  // Navigation methods - PERBAIKAN
+  // Capacity
+  void onCapacityInputChanged(String value) {
+    if (value.isEmpty) {
+      maxCapacity.value = 0;
+      capacityText.value = '';
+      return;
+    }
+
+    final intValue = int.tryParse(value);
+    if (intValue != null && intValue >= 0 && intValue <= 1000) {
+      maxCapacity.value = intValue;
+      capacityText.value = '$intValue orang';
+    } else if (intValue != null && intValue > 1000) {
+      // Auto-correct to max value
+      maxCapacity.value = 1000;
+      capacityInputController.text = '1000';
+      capacityText.value = '1000 orang';
+
+      // Show feedback
+      Get.snackbar(
+        'Maksimal Kapasitas',
+        'Maksimal 1000 orang',
+        duration: const Duration(seconds: 1),
+        backgroundColor: Colors.orange[100],
+        colorText: Colors.orange[800],
+        snackPosition: SnackPosition.TOP,
+        margin: const EdgeInsets.all(16),
+      );
+    }
+  }
+
+  void incrementCapacity() {
+    int currentValue = maxCapacity.value;
+    if (currentValue < 1000) {
+      currentValue += 1;
+      maxCapacity.value = currentValue;
+      capacityInputController.text = currentValue.toString();
+      capacityText.value = '$currentValue orang';
+    }
+  }
+
+  void decrementCapacity() {
+    int currentValue = maxCapacity.value;
+    if (currentValue > 0) {
+      currentValue -= 1;
+      maxCapacity.value = currentValue;
+      capacityInputController.text =
+          currentValue == 0 ? '' : currentValue.toString();
+      capacityText.value = currentValue == 0 ? '' : '$currentValue orang';
+    }
+  }
+
+  void _updateCapacityText() {
+    if (maxCapacity.value == 0) {
+      capacityInputController.text = '';
+      capacityText.value = '';
+    } else {
+      capacityInputController.text = maxCapacity.value.toString();
+      capacityText.value = '${maxCapacity.value} orang';
+    }
+  }
+
+  // Navigation methods
   void goToSearchActivity() async {
     final result = await Get.toNamed(MyRoutes.searchActivity);
     if (result != null && result is Map<String, dynamic>) {
-      // Handle activity selection
       if (result['type'] == 'activity' && result['activityId'] != null) {
         selectedActivityId.value = result['activityId'];
         activityController.text = result['searchQuery'] ?? '';
@@ -490,6 +492,8 @@ class SearchFilterController extends GetxController {
     selectedCategoryId.value = 0;
     selectedActivityId.value = 0;
     maxCapacity.value = 0;
+    capacityInputController.clear();
+    capacityText.value = '';
     selectedCity.value = '';
     searchResults.clear();
   }
@@ -498,7 +502,7 @@ class SearchFilterController extends GetxController {
   void onClose() {
     activityController.dispose();
     locationController.dispose();
-    capacityController.dispose();
+    capacityInputController.dispose();
     dateController.dispose();
     searchQueryController.dispose();
     super.onClose();

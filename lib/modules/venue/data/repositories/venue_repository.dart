@@ -164,19 +164,27 @@ class VenueRepository {
 
   // Get all activities
   Future<List<CategoryModel>> getActivities() async {
-    try {
-      final response = await _apiService.getRequest('/activity');
-      if (response is List) {
-        return response.map((json) => CategoryModel.fromJson(json)).toList();
-      } else {
-        print('Invalid response format for activities: $response');
-        return [];
+  try {
+    print('🔍 Calling /activity endpoint...');
+    final response = await _apiService.getRequest('/activity');
+    print('Activity response: $response');
+    
+    if (response is List) {
+      final activities = response.map((json) => CategoryModel.fromJson(json)).toList();
+      print('Parsed ${activities.length} activities');
+      for (var activity in activities) {
+        print('   - ${activity.name} (ID: ${activity.id})');
       }
-    } catch (e) {
-      print('Error fetching activities: $e');
+      return activities;
+    } else {
+      print('Invalid response format for activities: $response');
       return [];
     }
+  } catch (e) {
+    print('Error fetching activities: $e');
+    return [];
   }
+}
 
   Future<List<FacilityModel>> getFacilities() async {
     try {
@@ -206,37 +214,5 @@ class VenueRepository {
       print('Error fetching categories: $e');
       return [];
     }
-  }
-
-  // Testing method untuk debug ketiga endpoint
-  Future<void> debugActivityFacilityCategory() async {
-    print('=== DEBUG ACTIVITY, FACILITY, CATEGORY ===');
-
-    try {
-      // Test Activity
-      final activities = await getActivities();
-      print('Activities count: ${activities.length}');
-      if (activities.isNotEmpty) {
-        print('First activity: ${activities[0].toJson()}');
-      }
-
-      // Test Facility
-      final facilities = await getFacilities();
-      print('Facilities count: ${facilities.length}');
-      if (facilities.isNotEmpty) {
-        print('First facility: ${facilities[0].toJson()}');
-      }
-
-      // Test Category
-      final categories = await getCategories();
-      print('Categories count: ${categories.length}');
-      if (categories.isNotEmpty) {
-        print('First category: ${categories[0].toJson()}');
-      }
-    } catch (e) {
-      print('Debug error: $e');
-    }
-
-    print('==========================================');
   }
 }
