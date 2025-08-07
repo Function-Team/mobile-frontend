@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:function_mobile/modules/venue/data/repositories/venue_repository.dart';
 import 'package:get/get.dart';
@@ -107,11 +108,7 @@ class SearchActivityController extends GetxController {
   }
 
   void onVenueSelected(VenueModel venue) {
-    Get.back(result: {
-      'searchQuery': venue.name ?? '',
-      'type': 'venue',
-      'venueId': venue.id,
-    });
+    Get.toNamed(MyRoutes.venueDetail, arguments: {'venueId': venue.id});
   }
 
   // Refresh data method

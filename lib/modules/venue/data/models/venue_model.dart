@@ -28,16 +28,23 @@ class VenueModel {
   final List<ScheduleModel>? schedules;
   final int? price;
   final int? maxCapacity;
-
+  
+  String? _cachedFirstPictureUrl; // Tambahkan property cache
+  
   String? get firstPictureUrl {
-    // Priority 1: first_picture from API response
+    // Return cached value if already calculated
+    if (_cachedFirstPictureUrl != null) {
+      return _cachedFirstPictureUrl;
+    }
+    
+    // Existing logic
     if (firstPicture != null &&
         firstPicture!.isNotEmpty &&
         firstPicture != 'null') {
-      return '${AppConstants.imageBaseUrl}/img/$firstPicture';
+      _cachedFirstPictureUrl = '${AppConstants.baseUrl}/img/$firstPicture';
+      return _cachedFirstPictureUrl;
     }
-
-    // Priority 2: first picture from pictures array
+  
     if (pictures != null && pictures!.isNotEmpty) {
       final validPicture = pictures!.firstWhere(
         (pic) =>
@@ -49,10 +56,10 @@ class VenueModel {
       if (validPicture.filename != null &&
           validPicture.filename!.isNotEmpty &&
           validPicture.filename != 'null') {
-        return validPicture.imageUrl;
+        _cachedFirstPictureUrl = validPicture.imageUrl;
+        return _cachedFirstPictureUrl;
       }
     }
-
     return null;
   }
 
@@ -111,7 +118,9 @@ class VenueModel {
 
       // Pictures
       firstPicture: json['first_picture'],
-      pictures: _parsePictures(json['pictures'], json['id']),
+      pictures: (json['pictures'] as List<dynamic>?)
+          ?.map((picture) => PictureModel.fromVenueData(picture, json['id']))
+          .toList(),
       // Relations
       host: json['host'] != null ? HostModel.fromJson(json['host']) : null,
       category: json['category'] != null
@@ -226,7 +235,7 @@ class RoomModel {
 }
 
 class PictureModel {
-  final int? id;
+  final String? id;
   final String? filename;
   final int? placeId;
 
@@ -237,25 +246,26 @@ class PictureModel {
   });
 
   String? get imageUrl {
-    print("PictureModel - Filename: $filename, PlaceId: $placeId");
-
     if (filename == null || filename!.isEmpty || filename == 'null') {
-      print("PictureModel - No valid filename provided");
       return null;
     }
-
-    final fullUrl = '${AppConstants.imageBaseUrl}/img/$filename';
-    print("PictureModel - Constructed URL: $fullUrl");
-
+    final fullUrl = '${AppConstants.baseUrl}/img/$filename';
     return fullUrl;
   }
 
   factory PictureModel.fromJson(Map<String, dynamic> json) {
-    print("📦 PictureModel - Parsing JSON: $json");
     return PictureModel(
       id: json['id'],
       filename: json['filename'],
       placeId: json['place_id'],
+    );
+  }
+
+  factory PictureModel.fromVenueData(String filename, int placeId) {
+    return PictureModel(
+      id: filename,
+      filename: filename,
+      placeId: placeId,
     );
   }
 

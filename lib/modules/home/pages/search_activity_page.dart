@@ -126,7 +126,7 @@ class SearchActivityPage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
-                    LocalizationHelper.tr(LocaleKeys.search_category),
+                    LocalizationHelper.tr(LocaleKeys.search_selectActivity),
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -145,7 +145,7 @@ class SearchActivityPage extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Text(
-                    LocalizationHelper.tr(LocaleKeys.venue_venues),
+                    LocalizationHelper.tr(LocaleKeys.venue_selectVenue),
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -167,10 +167,8 @@ class SearchActivityPage extends StatelessWidget {
   Widget _buildActivityItem(
       CategoryModel activity, SearchActivityController controller) {
     return ListTile(
-      leading: Icon(Icons.work, color: Colors.grey[600]),
       title: Text(
           activity.name ?? LocalizationHelper.tr(LocaleKeys.common_unknown)),
-      subtitle: Text(LocalizationHelper.tr(LocaleKeys.search_category)),
       onTap: () => controller.onActivitySelected(activity),
     );
   }
@@ -179,18 +177,13 @@ class SearchActivityPage extends StatelessWidget {
       VenueModel venue, SearchActivityController controller) {
     return ListTile(
       leading: CircleAvatar(
-        backgroundImage:
-            venue.firstPicture != null && venue.firstPicture!.isNotEmpty
-                ? NetworkImage(venue.firstPicture!)
-                : null,
-        child: venue.firstPicture == null || venue.firstPicture!.isEmpty
-            ? const Icon(Icons.place)
-            : null,
-      ),
+          backgroundImage:
+              venue.firstPicture != null && venue.firstPicture!.isNotEmpty
+                  ? NetworkImage(venue.firstPicture!)
+                  : null,
+          child: const Icon(Icons.place)),
       title: Text(venue.name ??
           LocalizationHelper.tr(LocaleKeys.location_unknownVenue)),
-      subtitle: Text(
-          venue.city?.name ?? LocalizationHelper.tr(LocaleKeys.common_unknown)),
       trailing: venue.price != null
           ? Text(
               'Rp ${venue.price!.toStringAsFixed(0)}/hr',

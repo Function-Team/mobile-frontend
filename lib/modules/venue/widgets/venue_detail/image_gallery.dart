@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 class ImageGallery extends StatelessWidget {
@@ -86,44 +87,39 @@ class ImageGallery extends StatelessWidget {
               padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
               itemCount: images.length > maxImages ? maxImages : images.length,
               itemBuilder: (context, index) {
-                final imageUrl = images[index].imageUrl ?? '';
-                print("Image URL at index $index: $imageUrl");
-
-                return GestureDetector(
-                  onTap: () => onImageTap(index),
-                  child: Container(
-                    width: height, // Square images
-                    height: height,
-                    margin: const EdgeInsets.only(right: 8),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: imageUrl.isNotEmpty
-                          ? Image.network(
-                              imageUrl,
-                              fit: BoxFit.cover,
-                              loadingBuilder: (context, child, loadingProgress) {
-                                if (loadingProgress == null) return child;
-                                return Center(
-                                  child: CircularProgressIndicator(
-                                    value: loadingProgress.expectedTotalBytes != null
-                                        ? loadingProgress.cumulativeBytesLoaded /
-                                            loadingProgress.expectedTotalBytes!
-                                        : null,
-                                  ),
-                                );
-                              },
-                              errorBuilder: (context, error, stackTrace) {
-                                print("Error loading image: $error");
-                                return _buildPlaceholder();
-                              },
-                            )
-                          : _buildPlaceholder(),
-                    ),
-                  ),
+                // Lazy load images only when they're about to be visible
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    // Only build the image when it's needed
+                    return GestureDetector(
+                      onTap: () => onImageTap(index),
+                      child: Container(
+                        width: height,
+                        height: height,
+                        margin: const EdgeInsets.only(right: 8),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: CachedNetworkImage(
+                            // Gunakan CachedNetworkImage
+                            imageUrl: images[index].imageUrl ?? '',
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              color: Colors.grey[200],
+                              child: Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) =>
+                                _buildPlaceholder(),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
             ),

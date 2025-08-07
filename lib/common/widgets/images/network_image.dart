@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
@@ -31,17 +32,8 @@ class NetworkImageWithLoader extends StatelessWidget {
         height: height,
         width: width,
         fit: fit,
-
         placeholder: (context, url) => _buildShimmerPlaceholder(),
-
-        errorWidget: (context, url, error) {
-          return _buildErrorPlaceholder();
-        },
-
-        httpHeaders: {
-          'User-Agent': 'FunctionApp/1.0',
-          'Accept': 'image/*',
-        },
+        errorWidget: (context, url, error) => _buildErrorPlaceholder(),
       ),
     );
   }

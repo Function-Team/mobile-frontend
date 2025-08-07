@@ -164,7 +164,7 @@ class VenueDetailController extends GetxController {
           venue.value!.firstPicture!.isNotEmpty &&
           venue.value!.firstPicture != 'null') {
         final mainImage = PictureModel(
-          id: 0,
+          id: '0',
           filename: venue.value!.firstPicture,
           placeId: venue.value?.id,
         );
@@ -258,7 +258,6 @@ class VenueDetailController extends GetxController {
         }).toList();
 
         activities.assignAll(convertedActivities);
-
         // Debug print
         for (var activity in activities) {
           print('   - ${activity.name} (ID: ${activity.id})');
@@ -293,7 +292,6 @@ class VenueDetailController extends GetxController {
         activities.add(activity);
         return;
       }
-
       print('No activities available for venue ${venue.value?.id}');
     } catch (e) {
       print(' Error extracting venue activities: $e');

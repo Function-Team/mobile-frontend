@@ -12,10 +12,10 @@ class ApiService extends GetxService {
 
   ApiService() {
     _dio = dio.Dio(dio.BaseOptions(
-      baseUrl: AppConstants.currentApiUrl,
-      connectTimeout: const Duration(seconds: 60),
-      receiveTimeout: const Duration(seconds: 60),
-      sendTimeout: const Duration(seconds: 60),
+      baseUrl: AppConstants.baseUrl,
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 10),
+      sendTimeout: const Duration(seconds: 10),
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json",
@@ -247,10 +247,8 @@ class ApiService extends GetxService {
 
   Future<dynamic> getRequest(String endpoint) async {
     try {
-      print("🌐 GET Request: $endpoint");
-      
-      final response = await _dio.get(endpoint);
-      
+      final options = headers != null ? dio.Options(headers: headers) : null;
+      final response = await _dio.get(endpoint, options: options);
       if (response.statusCode! >= 200 && response.statusCode! < 300) {
         // Only log successful responses for non-public endpoints
         if (!_isPublicEndpoint(endpoint)) {

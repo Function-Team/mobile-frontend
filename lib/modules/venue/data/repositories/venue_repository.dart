@@ -10,7 +10,6 @@ class VenueRepository {
       final response = await _apiService.getRequest('/place');
 
       if (response is List) {
-
         return response.map((json) => VenueModel.fromJson(json)).toList();
       } else {
         throw Exception(
