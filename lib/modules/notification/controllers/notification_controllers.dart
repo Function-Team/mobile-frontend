@@ -69,7 +69,7 @@ class NotificationController extends GetxController {
   void _startBackgroundCheck() {
     print('🚀 NotificationController: Starting background check (5s interval)');
 
-    _backgroundTimer = Timer.periodic(const Duration(minutes: 2), (timer) {
+    _backgroundTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       if (Get.currentRoute != '/booking-list') {
         // Only check when NOT on booking page
         _checkForBookingUpdates();
