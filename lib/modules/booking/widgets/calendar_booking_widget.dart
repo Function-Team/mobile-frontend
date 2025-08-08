@@ -341,7 +341,6 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
     );
   }
 
-  // NEW: Time Slots Grid with Availability Colors
   Widget _buildTimeSlotGrid() {
     return Obx(() {
       if (widget.controller.selectedDate.value == null) {
