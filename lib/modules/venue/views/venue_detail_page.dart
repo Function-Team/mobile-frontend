@@ -554,6 +554,26 @@ class VenueDetailPage extends StatelessWidget {
     );
   }
 
+  //Section 3
+  Widget _buildFacilitiesSection(
+      BuildContext context, VenueDetailController controller) {
+    return Container(
+      child: CustomTextButton(
+        text: LocalizationHelper.tr(LocaleKeys.common_seeMore),
+        onTap: () {
+          Get.to(() => AboutDetail(
+                venueName: controller.venue.value?.name ??
+                    LocalizationHelper.tr(LocaleKeys.venue_facilities),
+                venueDescription: controller.venue.value?.description ?? '',
+                initialTabIndex: 1,
+              ));
+        },
+        icon: Icons.arrow_forward,
+        isrightIcon: true,
+      ),
+    );
+  }
+
   //Section 4
   // // Widget _buildScheduleSection(
   // //     BuildContext context, VenueDetailController controller) {

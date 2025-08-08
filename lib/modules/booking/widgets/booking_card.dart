@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/generated/locale_keys.g.dart';
+import 'package:function_mobile/modules/booking/controllers/booking_card_controller.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:intl/intl.dart';
+import 'package:get/get.dart';
 
 class BookingCard extends StatelessWidget {
   final BookingModel bookingModel;
@@ -122,6 +124,32 @@ class BookingCard extends StatelessWidget {
                             ),
                           ],
                         ),
+
+                        if (bookingModel.createdAt != null) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(Icons.history,
+                                  size: 14, color: Colors.grey[500]),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  bookingModel.createdAtDisplay,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey[500],
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+
+                        if (_shouldShowPaymentTimer()) ...[
+                          const SizedBox(height: 8),
+                          _buildPaymentTimer(),
+                        ],
                         if (bookingModel.isInCancelledSection &&
                             bookingModel.cancelReason?.isNotEmpty == true) ...[
                           const SizedBox(height: 8),
@@ -331,5 +359,61 @@ class BookingCard extends StatelessWidget {
   bool _canRebook() {
     // Allow rebooking if the venue is still available
     return bookingModel.place != null;
+  }
+
+
+Widget _buildPaymentTimer() {
+    return GetBuilder<BookingCardController>(
+      init: BookingCardController(),
+      builder: (timerController) {
+        if (bookingModel.payment?.expiresAt != null) {
+          timerController.initializeTimer(bookingModel.payment!.expiresAt);
+        }
+        
+        return Obx(() {
+          if (timerController.remainingTime.value == null) return const SizedBox.shrink();
+          
+          final remaining = timerController.remainingTime.value!;
+          final isUrgent = remaining.inHours < 1;
+          
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: isUrgent ? Colors.red.shade50 : Colors.orange.shade50,
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(
+                color: isUrgent ? Colors.red.shade200 : Colors.orange.shade200,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.timer,
+                  size: 16,
+                  color: isUrgent ? Colors.red : Colors.orange,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'Pay within: ${timerController.formatDuration(remaining)}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isUrgent ? Colors.red.shade700 : Colors.orange.shade700,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          );
+        });
+      },
+    );
+  }
+
+  bool _shouldShowPaymentTimer() {
+    return bookingModel.isConfirmed &&
+           !bookingModel.isPaid &&
+           bookingModel.paymentStatus == 'pending' &&
+           bookingModel.payment?.expiresAt != null;
   }
 }

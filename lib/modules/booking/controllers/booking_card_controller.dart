@@ -11,12 +11,11 @@ class BookingCardController extends GetxController {
   BookingCardController({BookingStatus initialStatus = BookingStatus.pending}) {
     status.value = initialStatus;
 
-    // Pantau perubahan waktu
     ever(remainingTime, (time) {
-      if (time == Duration.zero) {
+      if (time != null && time <= Duration.zero) {
         _timer?.cancel();
         status.value = BookingStatus.expired;
-        // TODO: add Notification when booking expired
+        // Optional: Add notification when booking expires
       }
     });
   }
@@ -25,7 +24,25 @@ class BookingCardController extends GetxController {
     Get.toNamed(MyRoutes.bookingDetail, arguments: bookingId);
   }
 
-  void startTimer() {}
+  void startTimer() {
+    _timer?.cancel();
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      decreaseTime();
+    });
+  }
+  void initializeTimer(DateTime expiresAt) {
+    final now = DateTime.now();
+    final remaining = expiresAt.difference(now);
+
+    if (remaining.isNegative) {
+      remainingTime.value = Duration.zero;
+      status.value = BookingStatus.expired;
+      return;
+    }
+
+    remainingTime.value = remaining;
+    startTimer();
+  }
 
   void decreaseTime() {
     if (remainingTime.value != null && remainingTime.value!.inSeconds > 0) {

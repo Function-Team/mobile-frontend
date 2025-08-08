@@ -24,7 +24,7 @@ class BookingController extends GetxController {
   final capacityController = TextEditingController(text: '10');
   final RxBool isCapacityValid = true.obs;
   final RxString capacityErrorMessage = ''.obs;
-
+  
   // Calendar & Time slots state
   final RxMap<String, String> calendarAvailability = <String, String>{}.obs;
   final RxList<DetailedTimeSlot> detailedTimeSlots = <DetailedTimeSlot>[].obs;
@@ -39,6 +39,8 @@ class BookingController extends GetxController {
   final RxBool isProcessing = false.obs;
   final RxString bookingStatus = 'idle'.obs;
   final RxInt remainingSeconds = 300.obs;
+  final RxInt guestCount = 1.obs;
+  final RxInt maxVenueCapacity = 100.obs;
   Timer? _timer;
 
   // Guest information
@@ -46,10 +48,12 @@ class BookingController extends GetxController {
   final guestEmailController = TextEditingController();
   final guestPhoneController = TextEditingController();
   final specialRequestsController = TextEditingController();
+  final guestCountController = TextEditingController();
 
   @override
   void onInit() {
     super.onInit();
+
     // Set default values
     // Hapus pengecekan capacityOptions
     // if (!capacityOptions.contains(selectedCapacity.value)) {
@@ -62,6 +66,7 @@ class BookingController extends GetxController {
         selectedCapacity.value = capacityController.text;
       }
     });
+
 
     // Set default time slots
     startTime.value = TimeOfDay.now();
@@ -79,6 +84,7 @@ class BookingController extends GetxController {
     guestPhoneController.dispose();
     specialRequestsController.dispose();
     capacityController.dispose(); // Tambahkan dispose untuk controller baru
+
     super.onClose();
   }
 
@@ -543,16 +549,91 @@ class BookingController extends GetxController {
     }
   }
 
-  void setCapacity(String capacity) {
-    selectedCapacity.value = capacity;
-  }
-
   void setStartTime(TimeOfDay time) {
     startTime.value = time;
   }
 
   void setEndTime(TimeOfDay time) {
     endTime.value = time;
+  }
+
+  // CAPACITY
+  void updateGuestCount(String value) {
+    if (value.isEmpty) {
+      guestCount.value = 1;
+      guestCountController.text = '1';
+      return;
+    }
+
+    final intValue = int.tryParse(value);
+    if (intValue != null &&
+        intValue >= 1 &&
+        intValue <= maxVenueCapacity.value) {
+      guestCount.value = intValue;
+    } else if (intValue != null && intValue > maxVenueCapacity.value) {
+      // Auto-correct to venue max capacity
+      guestCount.value = maxVenueCapacity.value;
+      guestCountController.text = maxVenueCapacity.value.toString();
+
+      // Show venue-specific feedback
+      Get.snackbar(
+        'Maximum Capacity Reached',
+        'This venue can accommodate maximum ${maxVenueCapacity.value} guests',
+        duration: Duration(seconds: 2),
+        backgroundColor: Colors.orange[100],
+        colorText: Colors.orange[800],
+        snackPosition: SnackPosition.TOP,
+        margin: EdgeInsets.all(16),
+      );
+    } else if (intValue != null && intValue < 1) {
+      // Auto-correct to minimum value
+      guestCount.value = 1;
+      guestCountController.text = '1';
+    }
+  }
+
+  void incrementGuestCount() {
+    if (guestCount.value < maxVenueCapacity.value) {
+      guestCount.value++;
+      guestCountController.text = guestCount.value.toString();
+    } else {
+      // Show venue-specific feedback when at max
+      Get.snackbar(
+        'Maximum Capacity Reached',
+        'This venue can accommodate maximum ${maxVenueCapacity.value} guests',
+        duration: Duration(seconds: 1),
+        backgroundColor: Colors.orange[100],
+        colorText: Colors.orange[800],
+        snackPosition: SnackPosition.TOP,
+        margin: EdgeInsets.all(16),
+      );
+    }
+  }
+
+  void decrementGuestCount() {
+    if (guestCount.value > 1) {
+      guestCount.value--;
+      guestCountController.text = guestCount.value.toString();
+    }
+  }
+
+  void setVenueData(VenueModel venue) {
+    if (venue.maxCapacity != null && venue.maxCapacity! > 0) {
+      maxVenueCapacity.value = venue.maxCapacity!;
+      print('✅ Max capacity set from venue: ${venue.maxCapacity}');
+
+      // Reset guest count if it exceeds venue capacity
+      if (guestCount.value > venue.maxCapacity!) {
+        guestCount.value = venue.maxCapacity!;
+        guestCountController.text = venue.maxCapacity!.toString();
+        print(
+            '🔄 Guest count adjusted to venue max capacity: ${venue.maxCapacity}');
+      }
+    } else {
+      // Fallback if venue doesn't have max capacity
+      maxVenueCapacity.value = 100;
+      print('⚠️ Venue has no max capacity, using default: 100');
+    }
   }
 
   // PAYMENT METHODS
@@ -619,6 +700,8 @@ class BookingController extends GetxController {
       hour: (TimeOfDay.now().hour + 2) % 24,
       minute: TimeOfDay.now().minute,
     );
+    guestCount.value = 1;
+    guestCountController.text = '1';
     guestNameController.clear();
     guestEmailController.clear();
     guestPhoneController.clear();

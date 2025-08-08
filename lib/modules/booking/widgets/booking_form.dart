@@ -35,7 +35,7 @@ class BookingForm extends StatelessWidget {
           const SizedBox(height: 16),
           _durationDisplay(controller),
           const SizedBox(height: 16),
-          _capacityDropdown(controller),
+          _capacitySection(controller),
           const SizedBox(height: 16),
           _guestInfoForm(controller),
           const SizedBox(height: 24),
@@ -68,7 +68,7 @@ class BookingForm extends StatelessWidget {
       print('✅ BookingForm: Successfully refreshed availability data');
     } catch (e) {
       print('❌ BookingForm: Error refreshing data: $e');
-      rethrow; 
+      rethrow;
     }
   }
 
@@ -131,7 +131,7 @@ class BookingForm extends StatelessWidget {
             child: TimeSlotPicker(
               label: 'End Time',
               selectedTime: controller.endTime.value,
-              timeSlots: timeSlots, // Use venue-specific time slots
+              timeSlots: timeSlots,
               onTimeSelected: (time) {
                 controller.endTime.value = time;
               },
@@ -236,20 +236,19 @@ class BookingForm extends StatelessWidget {
     });
   }
 
-  Widget _capacityDropdown(BookingController controller) {
-    return Obx(() {
-      return Card(
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Number of Guests',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                ),
+  Widget _capacitySection(BookingController controller) {
+    return Card(
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Number of Guests',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
               ),
               SizedBox(height: 8),
               TextField(
@@ -271,11 +270,91 @@ class BookingForm extends StatelessWidget {
                   controller.validateCapacity(venue.maxCapacity ?? 200);
                 },
               ),
-            ],
-          ),
+              child: Row(
+                children: [
+                  // Icon
+                  Icon(Icons.people_outline, color: Colors.grey[600], size: 20),
+                  SizedBox(width: 12),
+
+                  // Input field
+                  Expanded(
+                      child: TextField(
+                    controller: controller.guestCountController,
+                    keyboardType: TextInputType.number,
+                    style: TextStyle(
+                      color: Colors.black87,
+                      fontSize: 16,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Enter number of guests',
+                      hintStyle: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 16,
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
+                      isDense: true,
+                    ),
+                    onChanged: (value) => controller.updateGuestCount(value),
+                  )),
+
+                  // Stepper Controls
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Decrease button
+                      _buildStepperButton(
+                        icon: Icons.remove_circle_outline,
+                        onTap: () => controller.decrementGuestCount(),
+                        enabled: controller.guestCount.value > 1,
+                      ),
+
+                      SizedBox(width: 4),
+
+                      // Increase button
+                      _buildStepperButton(
+                        icon: Icons.add_circle_outline,
+                        onTap: () => controller.incrementGuestCount(),
+                        enabled: controller.guestCount.value <
+                            controller.maxVenueCapacity.value,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // Max capacity info
+            SizedBox(height: 8),
+            Text(
+              'Maximum capacity: ${controller.maxVenueCapacity.value} guests',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600],
+              ),
+            ),
+
+            // Validation message
+            Obx(() {
+              if (controller.guestCount.value >
+                  controller.maxVenueCapacity.value) {
+                return Padding(
+                  padding: EdgeInsets.only(top: 4),
+                  child: Text(
+                    'Guest count exceeds maximum capacity',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.red,
+                    ),
+                  ),
+                );
+              }
+              return SizedBox.shrink();
+            }),
+          ],
         ),
-      );
-    });
+      ),
+    );
   }
 
   Widget _guestInfoForm(BookingController controller) {
@@ -708,5 +787,23 @@ class BookingForm extends StatelessWidget {
     }
 
     return slots;
+  }
+
+  Widget _buildStepperButton({
+    required IconData icon,
+    required VoidCallback onTap,
+    required bool enabled,
+  }) {
+    return GestureDetector(
+      onTap: enabled ? onTap : null,
+      child: Container(
+        padding: EdgeInsets.all(4),
+        child: Icon(
+          icon,
+          color: enabled ? Colors.blue[600] : Colors.grey[400],
+          size: 24,
+        ),
+      ),
+    );
   }
 }

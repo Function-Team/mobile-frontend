@@ -27,7 +27,7 @@ class BookingListController extends GetxController {
   final cancelledCount = 0.obs;
 
   // Sorting and filtering
-  final selectedSort = 'date_desc'.obs;
+  final selectedSort = 'booking_id_desc'.obs;
   final searchQuery = ''.obs;
 
   @override
@@ -46,29 +46,28 @@ class BookingListController extends GetxController {
   }
 
   Future<void> fetchBookings() async {
-  try {
-    isLoading.value = true;
-    hasError.value = false;
-    errorMessage.value = '';
+    try {
+      isLoading.value = true;
+      hasError.value = false;
+      errorMessage.value = '';
 
-    final fetchedBookings = await _bookingService.getUserBookings();
+      final fetchedBookings = await _bookingService.getUserBookings();
 
-    bookings.assignAll(fetchedBookings);
-    updateBookingCounts();
-    filterBookingsByTab();
-    sortBookings();
-    
-    print('Loaded ${bookings.length} bookings successfully');
-    
-  } catch (e) {
-    hasError.value = true;
-    errorMessage.value = 'Failed to load bookings: ${e.toString()}';
-    showError('Failed to load bookings');
-    print('Error fetching bookings: $e');
-  } finally {
-    isLoading.value = false;
+      bookings.assignAll(fetchedBookings);
+      updateBookingCounts();
+      filterBookingsByTab();
+      sortBookings();
+
+      print('Loaded ${bookings.length} bookings successfully');
+    } catch (e) {
+      hasError.value = true;
+      errorMessage.value = 'Failed to load bookings: ${e.toString()}';
+      showError('Failed to load bookings');
+      print('Error fetching bookings: $e');
+    } finally {
+      isLoading.value = false;
+    }
   }
-}
 
   Future<void> refreshBookings() async {
     print('BookingListController: Refreshing bookings...');
@@ -201,6 +200,9 @@ class BookingListController extends GetxController {
       case 'status':
         filteredBookings
             .sort((a, b) => a.status.index.compareTo(b.status.index));
+        break;
+      case 'booking_id_desc':
+        filteredBookings.sort((a, b) => b.id.compareTo(a.id));
         break;
     }
   }

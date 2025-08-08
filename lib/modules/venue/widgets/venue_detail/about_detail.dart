@@ -5,11 +5,13 @@ import '../../../navigation/views/tab_nav.dart';
 class AboutDetail extends StatelessWidget {
   final String venueName;
   final String venueDescription;
+  final int initialTabIndex; // Add this parameter
 
   const AboutDetail({
     super.key,
     required this.venueName,
     required this.venueDescription,
+    this.initialTabIndex = 0, // Default to first tab
   });
 
   @override
@@ -27,6 +29,7 @@ class AboutDetail extends StatelessWidget {
       body: SafeArea(
         child: TabNav(
           length: 3,
+          initialIndex: initialTabIndex, // Use the provided initial index
           tabs: [
             Tab(text: 'About'),
             Tab(text: 'Facilities'),
