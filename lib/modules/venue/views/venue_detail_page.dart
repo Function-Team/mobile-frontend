@@ -132,7 +132,7 @@ class VenueDetailPage extends StatelessWidget {
                         ),
                         _buildVenueInfoSection(context, controller),
                         _buildLocationSection(context, controller),
-                        FacilitiesSection(),
+                        _buildFacilitiesSection(context, controller),
                         _buildReviewsSection(context, controller),
                         _buildScheduleSection(context, controller),
                         const SizedBox(height: 80),
@@ -487,6 +487,26 @@ class VenueDetailPage extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  //Section 3
+  Widget _buildFacilitiesSection(
+      BuildContext context, VenueDetailController controller) {
+    return Container(
+      child: CustomTextButton(
+        text: LocalizationHelper.tr(LocaleKeys.common_seeMore),
+        onTap: () {
+          Get.to(() => AboutDetail(
+                venueName: controller.venue.value?.name ??
+                    LocalizationHelper.tr(LocaleKeys.venue_facilities),
+                venueDescription: controller.venue.value?.description ?? '',
+                initialTabIndex: 1,
+              ));
+        },
+        icon: Icons.arrow_forward,
+        isrightIcon: true,
       ),
     );
   }

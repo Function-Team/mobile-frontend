@@ -1,15 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/common/widgets/images/network_image.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_controller.dart';
 import 'package:function_mobile/modules/booking/widgets/booking_form.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
-class BookingPage extends StatelessWidget {
-  final BookingController controller = Get.put(BookingController());
+class BookingPage extends StatefulWidget {
   final VenueModel venue;
 
   BookingPage({Key? key, required this.venue}) : super(key: key);
+
+  @override
+  State<BookingPage> createState() => _BookingPageState();
+}
+
+class _BookingPageState extends State<BookingPage> {
+  late BookingController controller;
+
+   @override
+  void initState() {
+    super.initState();
+    
+    controller = Get.find<BookingController>();
+    
+    controller.setVenueData(widget.venue);
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +36,7 @@ class BookingPage extends StatelessWidget {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Book ${venue.name}'),
+          title: Text('Book ${widget.venue.name}'),
           titleTextStyle: TextStyle(color: Colors.white),
           elevation: 0,
           backgroundColor: Theme.of(context).primaryColor,
@@ -39,7 +56,7 @@ class BookingPage extends StatelessWidget {
                   // Booking Form
                   BookingForm(
                     controller: controller,
-                    venue: venue,
+                    venue: widget.venue,
                   ),
                   SizedBox(height: 100),
                 ],
@@ -75,12 +92,12 @@ class BookingPage extends StatelessWidget {
       final endOfMonth = DateTime(now.year, now.month + 1, 0);
 
       await controller.loadCalendarAvailability(
-          venue.id!, startOfMonth, endOfMonth);
+          widget.venue.id!, startOfMonth, endOfMonth);
 
       // Refresh time slots if date is selected
       if (controller.selectedDate.value != null) {
         await controller.loadDetailedTimeSlots(
-            venue.id!, controller.selectedDate.value!);
+            widget.venue.id!, controller.selectedDate.value!);
       }
 
       // Success feedback
@@ -118,19 +135,9 @@ class BookingPage extends StatelessWidget {
             children: [
               // Venue Image
               ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: venue.pictures != null && venue.pictures!.isNotEmpty
-                    ? Image.network(
-                        venue.pictures![0].imageUrl ?? '',
-                        width: 80,
-                        height: 80,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return _buildImagePlaceholder();
-                        },
-                      )
-                    : _buildImagePlaceholder(),
-              ),
+              borderRadius: BorderRadius.circular(8),
+              child: _buildVenueImage(),
+            ),
 
               SizedBox(width: 16),
 
@@ -140,7 +147,7 @@ class BookingPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      venue.name ?? 'Venue',
+                      widget.venue.name ?? 'Venue',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -155,7 +162,7 @@ class BookingPage extends StatelessWidget {
                         SizedBox(width: 4),
                         Expanded(
                           child: Text(
-                            venue.city?.name ?? 'Location',
+                            widget.venue.city?.name ?? 'Location',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[600],
@@ -172,7 +179,7 @@ class BookingPage extends StatelessWidget {
                         Icon(Icons.people, size: 16, color: Colors.grey),
                         SizedBox(width: 4),
                         Text(
-                          'Max: ${venue.maxCapacity} guests',
+                          'Max: ${widget.venue.maxCapacity} guests',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey[600],
@@ -182,17 +189,17 @@ class BookingPage extends StatelessWidget {
                     ),
                     SizedBox(height: 4),
                     Row(
-                      children: [
-                        Icon(Icons.category, size: 16, color: Colors.grey),
-                        SizedBox(width: 4),
-                        Text(
-                          venue.category?.name ?? 'Category',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                          ),
+                    children: [
+                      Icon(Icons.category, size: 16, color: Colors.grey),
+                      SizedBox(width: 4),
+                      Text(
+                        widget.venue.category?.name ?? 'Category',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
                         ),
-                      ],
+                      ),
+                    ],
                     ),
                   ],
                 ),
@@ -204,14 +211,49 @@ class BookingPage extends StatelessWidget {
     );
   }
 
-  Widget _buildImagePlaceholder() {
-    return Container(
+  Widget _buildVenueImage() {
+  // Priority 1: Use firstPictureUrl from API response
+  if (widget.venue.firstPictureUrl != null && widget.venue.firstPictureUrl!.isNotEmpty) {
+    return NetworkImageWithLoader(
+      imageUrl: widget.venue.firstPictureUrl!,
       width: 80,
       height: 80,
-      color: Colors.grey[300],
-      child: Icon(Icons.image, color: Colors.grey[600]),
+      fit: BoxFit.cover,
     );
   }
+
+  // Priority 2: Use pictures array if available
+  if (widget.venue.pictures != null && widget.venue.pictures!.isNotEmpty) {
+    final firstPicture = widget.venue.pictures!.first;
+    if (firstPicture.imageUrl != null && firstPicture.imageUrl!.isNotEmpty) {
+      return NetworkImageWithLoader(
+        imageUrl: firstPicture.imageUrl!,
+        width: 80,
+        height: 80,
+        fit: BoxFit.cover,
+      );
+    }
+  }
+
+  // Fallback: Show placeholder
+  return _buildImagePlaceholder();
+}
+
+  Widget _buildImagePlaceholder() {
+  return Container(
+    width: 80,
+    height: 80,
+    decoration: BoxDecoration(
+      color: Colors.grey[300],
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: Icon(
+      Icons.image,
+      color: Colors.grey[600],
+      size: 32,
+    ),
+  );
+}
 
   Widget _buildPriceInfoCard(BuildContext context) {
     return Container(
@@ -240,7 +282,7 @@ class BookingPage extends StatelessWidget {
               ),
               SizedBox(height: 12),
               Text(
-                'Base Price: Rp ${NumberFormat('#,###').format(venue.price ?? 0)} per hour',
+                'Base Price: Rp ${NumberFormat('#,###').format(widget.venue.price ?? 0)} per hour',
                 style: TextStyle(fontSize: 14),
               ),
               SizedBox(height: 4),
@@ -325,7 +367,7 @@ class BookingPage extends StatelessWidget {
 
     final duration = end.difference(start);
     final totalHours = duration.inMinutes / 60.0;
-    final totalAmount = (venue.price ?? 0) * totalHours;
+    final totalAmount = (widget.venue.price ?? 0) * totalHours;
 
     if (duration < Duration(hours: 1)) {
       return Container(
