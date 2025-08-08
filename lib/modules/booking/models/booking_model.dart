@@ -174,6 +174,27 @@ class BookingModel {
     }
   }
 
+  String get formattedCreatedAt {
+    if (createdAt == null) return '';
+    return DateFormat('dd MMM yyyy, HH:mm', 'id_ID').format(createdAt!);
+  }
+
+  String get createdAtDisplay {
+    if (createdAt == null) return '';
+    final now = DateTime.now();
+    final difference = now.difference(createdAt!);
+    
+    if (difference.inDays > 0) {
+      return 'Dibuat ${difference.inDays} hari lalu';
+    } else if (difference.inHours > 0) {
+      return 'Dibuat ${difference.inHours} jam lalu';
+    } else if (difference.inMinutes > 0) {
+      return 'Dibuat ${difference.inMinutes} menit lalu';
+    } else {
+      return 'Baru dibuat';
+    }
+  }
+
   bool get isCompleted {
     return status == BookingStatus.completed;
   }
@@ -487,6 +508,7 @@ class PaymentModel {
   final int bookingId;
   final int amount;
   final DateTime createdAt;
+  final DateTime expiresAt;
   final String status;
 
   PaymentModel({
@@ -494,6 +516,7 @@ class PaymentModel {
     required this.bookingId,
     required this.amount,
     required this.createdAt,
+    required this.expiresAt,
     required this.status,
   });
 
@@ -503,6 +526,7 @@ class PaymentModel {
       bookingId: json['booking_id'],
       amount: json['amount'],
       createdAt: DateTime.parse(json['created_at']),
+      expiresAt: DateTime.parse(json['expires_at']),
       status: json['status'],
     );
   }

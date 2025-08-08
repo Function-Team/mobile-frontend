@@ -488,7 +488,9 @@ class BookingDetailPage extends GetView<BookingDetailController> {
 
     final needsPayment = booking.isConfirmed &&
         !booking.isPaid &&
-        booking.paymentStatus == 'pending';
+        booking.paymentStatus == 'pending' &&
+        booking.payment?.expiresAt != null &&
+        DateTime.now().isBefore(booking.payment!.expiresAt);
 
     return Container(
       padding: const EdgeInsets.all(16),
