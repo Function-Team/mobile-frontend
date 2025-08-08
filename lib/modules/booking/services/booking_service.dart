@@ -99,9 +99,12 @@ class BookingService extends GetxService {
       BookingCreateRequest request) async {
     try {
       print('Creating booking request...');
+      print('Request data: ${request.toJson()}');
 
       final response =
           await _apiService.postRequest('/booking/create', request.toJson());
+
+      print('API Response: $response');
 
       if (response != null) {
         print('Booking created successfully');
@@ -111,9 +114,20 @@ class BookingService extends GetxService {
       throw Exception('Failed to create booking: Empty response');
     } on DioException catch (e) {
       print('DioException: ${e.response?.statusCode}');
+      print('Response data: ${e.response?.data}');
+      print('Error message: ${e.message}');
+      print('Request data: ${e.requestOptions.data}');
+      print('Request headers: ${e.requestOptions.headers}');
 
-      // Handle 409 Conflict specifically
-      if (e.response?.statusCode == 409) {
+      // Handle specific error codes
+      if (e.response?.statusCode == 400) {
+        final errorDetail =
+            e.response?.data?['detail'] ?? 'Invalid request data';
+        throw Exception('Validation Error: $errorDetail');
+      } else if (e.response?.statusCode == 404) {
+        throw Exception('Venue not found');
+      } else if (e.response?.statusCode == 409) {
+        // Handle conflict response as before
         final data = e.response?.data;
 
         if (data != null && data is Map<String, dynamic>) {

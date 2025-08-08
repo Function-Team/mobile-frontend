@@ -166,7 +166,7 @@ class SearchActivityPage extends StatelessWidget {
   }
 
   Widget _buildActivityItem(
-      CategoryModel activity, SearchActivityController controller) {
+      ActivityModel activity, SearchActivityController controller) {
     return ListTile(
       title: Text(
           activity.name ?? LocalizationHelper.tr(LocaleKeys.common_unknown)),

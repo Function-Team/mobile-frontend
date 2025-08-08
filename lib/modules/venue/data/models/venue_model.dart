@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:function_mobile/core/constants/app_constants.dart';
 
 class VenueModel {
-  final int? id;
+  final int id;
   final String? name;
   final String? address;
   final String? description;
@@ -28,15 +28,16 @@ class VenueModel {
   final List<ScheduleModel>? schedules;
   final int? price;
   final int? maxCapacity;
-  
+  final String? size; // Tambahkan field ini
+
   String? _cachedFirstPictureUrl; // Tambahkan property cache
-  
+
   String? get firstPictureUrl {
     // Return cached value if already calculated
     if (_cachedFirstPictureUrl != null) {
       return _cachedFirstPictureUrl;
     }
-    
+
     // Existing logic
     if (firstPicture != null &&
         firstPicture!.isNotEmpty &&
@@ -44,7 +45,7 @@ class VenueModel {
       _cachedFirstPictureUrl = '${AppConstants.baseUrl}/img/$firstPicture';
       return _cachedFirstPictureUrl;
     }
-  
+
     if (pictures != null && pictures!.isNotEmpty) {
       final validPicture = pictures!.firstWhere(
         (pic) =>
@@ -64,7 +65,7 @@ class VenueModel {
   }
 
   VenueModel({
-    this.id,
+    required this.id,
     this.name,
     this.address,
     this.description,
@@ -90,6 +91,7 @@ class VenueModel {
     this.schedules,
     this.price,
     this.maxCapacity,
+    this.size, // Tambahkan parameter ini
   });
 
   factory VenueModel.fromJson(Map<String, dynamic> json) {
@@ -116,11 +118,9 @@ class VenueModel {
           ?.map((room) => RoomModel.fromJson(room))
           .toList(),
 
-      // Pictures
-      firstPicture: json['first_picture'],
-      pictures: (json['pictures'] as List<dynamic>?)
-          ?.map((picture) => PictureModel.fromVenueData(picture, json['id']))
-          .toList(),
+      // Pictures - Replace the existing line
+      pictures: _parsePictures(json['pictures'], json['id']),
+
       // Relations
       host: json['host'] != null ? HostModel.fromJson(json['host']) : null,
       category: json['category'] != null
@@ -148,34 +148,46 @@ class VenueModel {
           .toList(),
       price: json['price'],
       maxCapacity: json['max_capacity'],
+      size: json['size'], // Tambahkan parsing ini
     );
   }
 
-  static List<PictureModel>? _parsePictures(dynamic picturesData, int? placeId) {
-  if (picturesData == null) return null;
-  
-  try {
-    final picturesList = picturesData as List<dynamic>;
-    
-    return picturesList.map((item) {
-      if (item is String) {
-        return PictureModel(
-          id: null,
-          filename: item,
-          placeId: placeId,
-        );
-      } else if (item is Map<String, dynamic>) {
-        return PictureModel.fromJson(item);
-      } else {
-        print('⚠️ Unknown picture format: $item');
-        return PictureModel();
-      }
-    }).toList();
-  } catch (e) {
-    print('❌ Error parsing pictures: $e');
-    return null;
+  static List<PictureModel>? _parsePictures(
+      dynamic picturesData, int? placeId) {
+    if (picturesData == null) return null;
+
+    try {
+      final picturesList = picturesData as List<dynamic>;
+
+      return picturesList
+          .map((item) {
+            if (item is String) {
+              return PictureModel(
+                id: item,
+                filename: item,
+                placeId: placeId,
+              );
+            } else if (item is Map<String, dynamic>) {
+              return PictureModel.fromJson(item);
+            } else {
+              print('⚠️ Unknown picture format: $item');
+              return PictureModel(
+                id: null,
+                filename: null,
+                placeId: placeId,
+              );
+            }
+          })
+          .where((picture) =>
+              picture.filename != null &&
+              picture.filename!.isNotEmpty &&
+              picture.filename != 'null')
+          .toList();
+    } catch (e) {
+      print('❌ Error parsing pictures: $e');
+      return null;
+    }
   }
-}
 
   Map<String, dynamic> toJson() {
     return {
@@ -543,6 +555,30 @@ class ScheduleModel {
       'open_time': openTime,
       'close_time': closeTime,
       'is_closed': isClosed,
+    };
+  }
+}
+
+class RatingStatsModel {
+  final double averageRating;
+  final int totalReviews;
+
+  RatingStatsModel({
+    required this.averageRating,
+    required this.totalReviews,
+  });
+
+  factory RatingStatsModel.fromJson(Map<String, dynamic> json) {
+    return RatingStatsModel(
+      averageRating: (json['average_rating'] ?? 0.0).toDouble(),
+      totalReviews: json['total_reviews'] ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'average_rating': averageRating,
+      'total_reviews': totalReviews,
     };
   }
 }

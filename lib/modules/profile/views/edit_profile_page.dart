@@ -17,7 +17,7 @@ class EditProfilePage extends StatelessWidget {
     // Controllers untuk form
     final TextEditingController usernameController = TextEditingController();
     final TextEditingController emailController = TextEditingController();
-    final TextEditingController phoneController = TextEditingController();
+    // final TextEditingController phoneController = TextEditingController();
 
     // Populate controllers dengan data existing
     if (authController.user.value != null) {
@@ -35,20 +35,20 @@ class EditProfilePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Obx(() => _buildProfilePicture(context,
-                profilePicture: authController.user.value
-                    ?.toString() // TODO: Add profile picture URL
-                )),
+            // Obx(() => _buildProfilePicture(context,
+            //     profilePicture: authController.user.value
+            //         ?.toString() // TODO: Add profile picture URL
+            //     )),
             const SizedBox(height: 24),
             _buildProfileForm(
-                usernameController, emailController, phoneController),
+              usernameController,
+              emailController,
+            ),
             const SizedBox(height: 30),
             SecondaryButton(
               text: LocalizationHelper.tr(LocaleKeys.common_saveChange),
               width: double.infinity,
-              onPressed: () {
-                // TODO: Implement save functionality
-              },
+              onPressed: () {},
             ),
           ],
         ),
@@ -56,70 +56,70 @@ class EditProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildProfilePicture(BuildContext context, {String? profilePicture}) {
-    return Column(
-      children: [
-        Stack(
-          alignment: Alignment.bottomRight,
-          children: [
-            profilePicture != null && profilePicture.isNotEmpty
-                ? ClipOval(
-                    child: NetworkImageWithLoader(
-                      imageUrl: profilePicture,
-                      width: 120,
-                      height: 120,
-                      fit: BoxFit.cover,
-                    ),
-                  )
-                : Container(
-                    height: 120,
-                    width: 120,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.person,
-                      color: Colors.white,
-                      size: 60,
-                    ),
-                  ),
-            Positioned(
-              bottom: 5,
-              right: 5,
-              child: GestureDetector(
-                onTap: () {}, // TODO: Implement image upload
-                child: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.secondary,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        blurRadius: 4,
-                        spreadRadius: 1,
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.camera_alt,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
+  // Widget _buildProfilePicture(BuildContext context, {String? profilePicture}) {
+  //   return Column(
+  //     children: [
+  //       Stack(
+  //         alignment: Alignment.bottomRight,
+  //         children: [
+  //           profilePicture != null && profilePicture.isNotEmpty
+  //               ? ClipOval(
+  //                   child: NetworkImageWithLoader(
+  //                     imageUrl: profilePicture,
+  //                     width: 120,
+  //                     height: 120,
+  //                     fit: BoxFit.cover,
+  //                   ),
+  //                 )
+  //               : Container(
+  //                   height: 120,
+  //                   width: 120,
+  //                   decoration: BoxDecoration(
+  //                     color: Theme.of(context).colorScheme.primary,
+  //                     shape: BoxShape.circle,
+  //                   ),
+  //                   child: const Icon(
+  //                     Icons.person,
+  //                     color: Colors.white,
+  //                     size: 60,
+  //                   ),
+  //                 ),
+  //           Positioned(
+  //             bottom: 5,
+  //             right: 5,
+  //             child: GestureDetector(
+  //               onTap: () {}, // TODO: Implement image upload
+  //               child: Container(
+  //                 padding: const EdgeInsets.all(6),
+  //                 decoration: BoxDecoration(
+  //                   color: Theme.of(context).colorScheme.secondary,
+  //                   shape: BoxShape.circle,
+  //                   boxShadow: [
+  //                     BoxShadow(
+  //                       color: Colors.black.withOpacity(0.2),
+  //                       blurRadius: 4,
+  //                       spreadRadius: 1,
+  //                     ),
+  //                   ],
+  //                 ),
+  //                 child: const Icon(
+  //                   Icons.camera_alt,
+  //                   color: Colors.white,
+  //                   size: 20,
+  //                 ),
+  //               ),
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ],
+  //   );
+  // }
 
   Widget _buildProfileForm(
-      TextEditingController usernameController,
-      TextEditingController emailController,
-      TextEditingController phoneController) {
+    TextEditingController usernameController,
+    TextEditingController emailController,
+  ) {
     return Column(
       children: [
         PrimaryTextField(
@@ -138,13 +138,13 @@ class EditProfilePage extends StatelessWidget {
           controller: emailController,
         ),
         SizedBox(height: 16),
-        PrimaryTextField(
-          label: LocalizationHelper.tr(LocaleKeys.auth_phoneNumber),
-          hintText: LocalizationHelper.tr(LocaleKeys.booking_enterPhoneNumber),
-          prefixIcon: Icon(Icons.phone),
-          keyboardType: TextInputType.phone,
-          controller: phoneController,
-        ),
+        // PrimaryTextField(
+        //   label: LocalizationHelper.tr(LocaleKeys.auth_phoneNumber),
+        //   hintText: LocalizationHelper.tr(LocaleKeys.booking_enterPhoneNumber),
+        //   prefixIcon: Icon(Icons.phone),
+        //   keyboardType: TextInputType.phone,
+        //   controller: phoneController,
+        // ),
       ],
     );
   }

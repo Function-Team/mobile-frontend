@@ -83,9 +83,13 @@ class VenueRecommendCard extends StatelessWidget {
                       children: [
                         const Icon(Icons.star, size: 14, color: Colors.amber),
                         const SizedBox(width: 4),
-                        Text(
-                          rating,
-                          style: Theme.of(context).textTheme.bodyMedium,
+                        Expanded(
+                          child: Text(
+                            rating,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
                         ),
                       ],
                     ),

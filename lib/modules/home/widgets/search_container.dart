@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
-import 'package:function_mobile/core/helpers/localization_helper.dart';
-import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/home/controllers/search_filter_controller.dart';
 import 'package:get/get.dart';
 

@@ -344,6 +344,7 @@ class BookingCard extends StatelessWidget {
   bool _shouldShowCancelButton() {
     return !bookingModel.isInCancelledSection &&
         !isCompleted &&
+        !bookingModel.isConfirmed &&
         bookingModel.startDateTime.isAfter(DateTime.now());
   }
 

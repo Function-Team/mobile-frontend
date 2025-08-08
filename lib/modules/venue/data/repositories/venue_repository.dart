@@ -33,6 +33,7 @@ class VenueRepository {
       print('Error fetching venue: $e');
       return null;
     }
+    return null;
   }
 
   Future<List<VenueModel>> searchVenues(
@@ -162,30 +163,25 @@ class VenueRepository {
     }
   }
 
+  // Add these methods to the VenueRepository class
+  
   // Get all activities
-  Future<List<CategoryModel>> getActivities() async {
-  try {
-    print('🔍 Calling /activity endpoint...');
-    final response = await _apiService.getRequest('/activity');
-    print('Activity response: $response');
-    
-    if (response is List) {
-      final activities = response.map((json) => CategoryModel.fromJson(json)).toList();
-      print('Parsed ${activities.length} activities');
-      for (var activity in activities) {
-        print('   - ${activity.name} (ID: ${activity.id})');
+  Future<List<ActivityModel>> getActivities() async {
+    try {
+      final response = await _apiService.getRequest('/activity');
+      if (response is List) {
+        return response.map((json) => ActivityModel.fromJson(json)).toList();
+      } else {
+        print('Invalid response format for activities: $response');
+        return [];
       }
-      return activities;
-    } else {
-      print('Invalid response format for activities: $response');
+    } catch (e) {
+      print('Error fetching activities: $e');
       return [];
     }
-  } catch (e) {
-    print('Error fetching activities: $e');
-    return [];
   }
-}
 
+  // Get all facilities
   Future<List<FacilityModel>> getFacilities() async {
     try {
       final response = await _apiService.getRequest('/facility');
@@ -201,6 +197,32 @@ class VenueRepository {
     }
   }
 
+  // Get activity by ID
+  Future<ActivityModel?> getActivityById(int id) async {
+    try {
+      final response = await _apiService.getRequest('/activity/$id');
+      if (response is Map<String, dynamic>) {
+        return ActivityModel.fromJson(response);
+      }
+    } catch (e) {
+      print('Error fetching activity $id: $e');
+    }
+    return null;
+  }
+
+  // Get facility by ID
+  Future<FacilityModel?> getFacilityById(int id) async {
+    try {
+      final response = await _apiService.getRequest('/facility/$id');
+      if (response is Map<String, dynamic>) {
+        return FacilityModel.fromJson(response);
+      }
+    } catch (e) {
+      print('Error fetching facility $id: $e');
+    }
+    return null;
+  }
+
   Future<List<CategoryModel>> getCategories() async {
     try {
       final response = await _apiService.getRequest('/category');
@@ -213,6 +235,38 @@ class VenueRepository {
     } catch (e) {
       print('Error fetching categories: $e');
       return [];
+    }
+  }
+
+  // Get venue rating stats
+  Future<RatingStatsModel?> getVenueRatingStats(int venueId) async {
+    try {
+      final response = await _apiService.getRequest('/place/$venueId/rating-stats');
+      
+      if (response is Map<String, dynamic>) {
+        return RatingStatsModel.fromJson(response);
+      } else {
+        throw Exception('Failed to load rating stats. Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching rating stats for venue $venueId: $e');
+      return null;
+    }
+  }
+
+  // Get venue average rating only
+  Future<double> getVenueAverageRating(int venueId) async {
+    try {
+      final response = await _apiService.getRequest('/place/$venueId/rating');
+      
+      if (response is Map<String, dynamic>) {
+        return (response['average_rating'] ?? 0.0).toDouble();
+      } else {
+        throw Exception('Failed to load average rating. Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching average rating for venue $venueId: $e');
+      return 0.0;
     }
   }
 }

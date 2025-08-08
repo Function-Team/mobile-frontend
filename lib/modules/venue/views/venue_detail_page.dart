@@ -5,8 +5,6 @@ import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 import 'package:function_mobile/common/widgets/buttons/secondary_button.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
-import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
-import 'package:function_mobile/modules/venue/services/whatsapp_contact_service.dart';
 import 'package:function_mobile/modules/venue/widgets/category_chip.dart';
 import 'package:function_mobile/modules/venue/widgets/venue_detail/about_detail.dart';
 import 'package:function_mobile/modules/venue/widgets/venue_detail/contact_host_widget.dart';
@@ -60,88 +58,92 @@ class VenueDetailPage extends StatelessWidget {
       BuildContext context, VenueDetailController controller) {
     return Stack(
       children: [
-        SingleChildScrollView(
-          child: Column(
-            children: [
-              Stack(
-                children: [
-                  // Single Main Image
-                  Skeleton.ignore(
-                    child: SizedBox(
-                      height: 250,
-                      width: double.infinity,
-                      child: Obx(() {
-                        // Cek gambar utama
-                        String? imageUrl =
-                            controller.venue.value?.firstPictureUrl;
-                        // Jika null/kosong, fallback ke venueImages
-                        if (imageUrl == null || imageUrl.isEmpty) {
-                          if (controller.venueImages.isNotEmpty) {
-                            imageUrl = controller.venueImages.first.imageUrl;
-                          }
-                        }
-                        return GestureDetector(
-                          onTap: () {
-                            if (imageUrl != null && imageUrl.isNotEmpty) {
-                              controller.openImageAtIndex(context, 0);
+        RefreshIndicator(
+          onRefresh: controller.refreshVenueDetails,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              children: [
+                Stack(
+                  children: [
+                    // Single Main Image
+                    Skeleton.ignore(
+                      child: SizedBox(
+                        height: 250,
+                        width: double.infinity,
+                        child: Obx(() {
+                          // Cek gambar utama
+                          String? imageUrl =
+                              controller.venue.value?.firstPictureUrl;
+                          // Jika null/kosong, fallback ke venueImages
+                          if (imageUrl == null || imageUrl.isEmpty) {
+                            if (controller.venueImages.isNotEmpty) {
+                              imageUrl = controller.venueImages.first.imageUrl;
                             }
-                          },
-                          child: NetworkImageWithLoader(
-                            imageUrl: imageUrl ?? "",
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            height: 250,
-                          ),
-                        );
-                      }),
+                          }
+                          return GestureDetector(
+                            onTap: () {
+                              if (imageUrl != null && imageUrl.isNotEmpty) {
+                                controller.openImageAtIndex(context, 0);
+                              }
+                            },
+                            child: NetworkImageWithLoader(
+                              imageUrl: imageUrl ?? "",
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: 250,
+                            ),
+                          );
+                        }),
+                      ),
                     ),
-                  ),
-
-                  // Back button
-                  Positioned(
-                    top: 40,
-                    left: 16,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
+                    // Back button
+                    Positioned(
+                      top: 40,
+                      left: 16,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: IconButton(
+                          icon:
+                              const Icon(Icons.arrow_back, color: Colors.black),
+                          onPressed: () => Get.back(result: true),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      margin: const EdgeInsets.only(top: 150),
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                      child: Column(
+                        children: [
+                          ImageGallery(
+                            images: controller.venueImages,
+                            onImageTap: (index) {
+                              controller.openImageAtIndex(context, index);
+                            },
                           ),
+                          _buildVenueInfoSection(context, controller),
+                          _buildLocationSection(context, controller),
+                          FacilitiesSection(),
+                          _buildReviewsSection(context, controller),
+                          // _buildScheduleSection(context, controller),
+                          const SizedBox(height: 80),
                         ],
                       ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.black),
-                        onPressed: () => Get.back(result: true),
-                      ),
                     ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.only(top: 150),
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-                    child: Column(
-                      children: [
-                        ImageGallery(
-                          images: controller.venueImages,
-                          onImageTap: (index) {
-                            controller.openImageAtIndex(context, index);
-                          },
-                        ),
-                        _buildVenueInfoSection(context, controller),
-                        _buildLocationSection(context, controller),
-                        _buildFacilitiesSection(context, controller),
-                        _buildReviewsSection(context, controller),
-                        _buildScheduleSection(context, controller),
-                        const SizedBox(height: 80),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
         Positioned(
@@ -158,13 +160,14 @@ class VenueDetailPage extends StatelessWidget {
   Widget _buildVenueInfoSection(
       BuildContext context, VenueDetailController controller) {
     return Container(
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
             offset: const Offset(0, 2),
           ),
         ],
@@ -174,7 +177,7 @@ class VenueDetailPage extends StatelessWidget {
         children: [
           // Name
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -192,31 +195,70 @@ class VenueDetailPage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          const Icon(Icons.star, color: Colors.amber, size: 18),
-                          Text(
-                            ' ${controller.venue.value?.rating?.toStringAsFixed(1) ?? '0'} (${controller.venue.value?.ratingCount ?? '0'} ${LocalizationHelper.tr(LocaleKeys.venue_reviews)})',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[700],
+                      // Rating section with new API data
+                      Obx(() {
+                        if (controller.isLoadingRatingStats.value) {
+                          return const Row(
+                            children: [
+                              SizedBox(
+                                width: 16,
+                                height: 16,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                              SizedBox(width: 8),
+                              Text('Loading rating...'),
+                            ],
+                          );
+                        }
+
+                        final stats = controller.ratingStats.value;
+                        if (stats == null || stats.totalReviews == 0) {
+                          return const Row(
+                            children: [
+                              Icon(Icons.star_border,
+                                  color: Colors.grey, size: 20),
+                              SizedBox(width: 4),
+                              Text(
+                                'No reviews yet',
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            ],
+                          );
+                        }
+
+                        return Row(
+                          children: [
+                            // Star rating display
+                            Row(
+                              children: List.generate(5, (index) {
+                                return Icon(
+                                  index < stats.averageRating.floor()
+                                      ? Icons.star
+                                      : index < stats.averageRating
+                                          ? Icons.star_half
+                                          : Icons.star_border,
+                                  color: Colors.amber,
+                                  size: 20,
+                                );
+                              }),
                             ),
-                          ),
-                          const Icon(Icons.arrow_forward,
-                              color: Colors.grey, size: 16),
-                        ],
-                      ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '${stats.averageRating.toStringAsFixed(1)} (${stats.totalReviews} ${stats.totalReviews == 1 ? 'review' : 'reviews'})',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        );
+                      }),
                     ],
                   ),
                 ),
                 Row(
                   children: [
-                    IconButton(
-                      icon: const Icon(Icons.share, size: 22),
-                      onPressed: () {},
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
                     const SizedBox(width: 16),
                     Obx(() {
                       return IconButton(
@@ -238,21 +280,13 @@ class VenueDetailPage extends StatelessWidget {
               ],
             ),
           ),
-          // Categories
+          // Categories and Capacity
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 5),
             child: Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
-                // Category chip
-                // CategoryChip(
-                //   label: controller.venue.value?.category?.name ??
-                //       LocalizationHelper.tr(
-                //           LocaleKeys.venue_category_uncategorized),
-                //   color: Colors.blue,
-                // ),
-
                 // Capacity chip
                 CategoryChip(
                   label:
@@ -263,127 +297,156 @@ class VenueDetailPage extends StatelessWidget {
 
                 // Area chip
                 CategoryChip(
-                  label: '1000 m²',
+                  label:
+                      controller.venue.value?.size ?? 'Ukuran tidak tersedia',
                   color: Colors.blue,
                   icon: Icons.straighten,
                 ),
-
-                // Activities chips - ONLY THIS ONE, remove the duplicate
-                ...controller.activities
-                    .map((activity) => CategoryChip(
-                          label: activity.name ?? 'Unknown Activity',
-                          color: Colors.green,
-                          icon: Icons.local_activity,
-                        ))
-                    .toList(),
               ],
             ),
           ),
+
+          // Activities - Container terpisah
+          if (controller.activities.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Aktivitas',
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: controller.activities
+                        .map((activity) => CategoryChip(
+                              label: activity.name ?? 'Unknown Activity',
+                              color: Colors.green,
+                              icon: Icons.local_activity,
+                            ))
+                        .toList(),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           // About
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      LocalizationHelper.tr(LocaleKeys.venue_aboutVenue),
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    LocalizationHelper.tr(LocaleKeys.venue_aboutVenue),
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
-                    CustomTextButton(
-                      text: LocalizationHelper.tr(LocaleKeys.common_showMore),
-                      onTap: () {
-                        Get.to(() => AboutDetail(
-                            venueName: controller.venue.value?.name ??
-                                LocalizationHelper.tr(LocaleKeys.venue_details),
-                            venueDescription:
-                                controller.venue.value?.description ?? ''));
-                      },
-                      icon: Icons.arrow_forward,
-                      isrightIcon: true,
-                    ),
-                  ],
-                ),
-                Text(
-                  controller.venue.value?.description ??
-                      LocalizationHelper.tr(
-                          LocaleKeys.venue_description_default),
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[700],
                   ),
+                  CustomTextButton(
+                    text: LocalizationHelper.tr(LocaleKeys.common_showMore),
+                    onTap: () {
+                      Get.to(() => AboutDetail(
+                          venueName: controller.venue.value?.name ??
+                              LocalizationHelper.tr(LocaleKeys.venue_details),
+                          venueDescription:
+                              controller.venue.value?.description ?? ''));
+                    },
+                    icon: Icons.arrow_forward,
+                    isrightIcon: true,
+                  ),
+                ],
+              ),
+              Text(
+                controller.venue.value?.description ??
+                    LocalizationHelper.tr(LocaleKeys.venue_description_default),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[700],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
           const SizedBox(height: 10),
           // Venue Owner
-          Padding(
+          Container(
             padding: const EdgeInsets.all(16),
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey[50],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey[200]!),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        backgroundColor: Colors.blue[100],
-                        radius: 20,
-                        child: Text(
-                          (controller.venue.value?.host?.user?.username
-                                      ?.isNotEmpty ??
-                                  false)
-                              ? controller.venue.value!.host!.user!.username![0]
-                                  .toUpperCase()
-                              : 'H',
-                          style: const TextStyle(color: Colors.white),
-                        ),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey[200]!),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: Colors.blue[100],
+                      radius: 20,
+                      child: Text(
+                        (controller.venue.value?.host?.displayName.isNotEmpty ??
+                                false)
+                            ? controller.venue.value!.host!.displayName[0]
+                                .toUpperCase()
+                            : 'H',
+                        style: const TextStyle(color: Colors.white),
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        controller.venue.value?.host?.user?.username ??
-                            LocalizationHelper.tr(
-                                LocaleKeys.venue_owner_defaultName),
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
+                    ),
+                    const SizedBox(width: 8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Host',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  Obx(() {
-                    final venue = controller.venue.value;
+                        Text(
+                          controller.venue.value?.host?.displayName ??
+                              LocalizationHelper.tr(
+                                  LocaleKeys.venue_owner_defaultName),
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                Obx(() {
+                  final venue = controller.venue.value;
 
-                    return venue != null
-                        ? ContactHostWidget(
-                            venue: venue,
-                            style: ContactHostStyle.button,
-                            customText: 'Contact',
-                          )
-                        : const SizedBox(
-                            width: 80,
-                            height: 42,
-                            child: Center(
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                          );
-                  }),
-                ],
-              ),
+                  return venue != null
+                      ? ContactHostWidget(
+                          venue: venue,
+                          style: ContactHostStyle.button,
+                          customText: 'Contact',
+                        )
+                      : const SizedBox(
+                          width: 80,
+                          height: 42,
+                          child: Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        );
+                }),
+              ],
             ),
           ),
         ],
@@ -512,91 +575,91 @@ class VenueDetailPage extends StatelessWidget {
   }
 
   //Section 4
-  Widget _buildScheduleSection(
-      BuildContext context, VenueDetailController controller) {
-    return Container(
-      margin: const EdgeInsets.only(top: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                LocalizationHelper.tr(LocaleKeys.venue_schedule),
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              CustomTextButton(
-                text: LocalizationHelper.tr(LocaleKeys.common_showMore),
-                onTap: () {},
-                icon: Icons.arrow_forward,
-                isrightIcon: true,
-              ),
-            ],
-          ),
-          Column(
-            children: [
-              _buildScheduleItem(
-                  LocalizationHelper.tr(LocaleKeys.common_monday),
-                  '7:00 - 21:00'),
-              _buildScheduleItem(
-                  LocalizationHelper.tr(LocaleKeys.common_tuesday),
-                  '7:00 - 21:00'),
-              _buildScheduleItem(
-                  LocalizationHelper.tr(LocaleKeys.common_wednesday),
-                  '7:00 - 21:00'),
-              _buildScheduleItem(
-                  LocalizationHelper.tr(LocaleKeys.common_thursday),
-                  '7:00 - 21:00'),
-              _buildScheduleItem(
-                  LocalizationHelper.tr(LocaleKeys.common_friday),
-                  '7:00 - 21:00'),
-              _buildScheduleItem(
-                  LocalizationHelper.tr(LocaleKeys.common_saturday),
-                  '7:00 - 21:00'),
-              _buildScheduleItem(
-                  LocalizationHelper.tr(LocaleKeys.common_sunday),
-                  LocalizationHelper.tr(LocaleKeys.venue_closed)),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+  // // Widget _buildScheduleSection(
+  // //     BuildContext context, VenueDetailController controller) {
+  // //   return Container(
+  // //     margin: const EdgeInsets.only(top: 16),
+  // //     padding: const EdgeInsets.all(16),
+  // //     decoration: BoxDecoration(
+  // //       color: Colors.white,
+  // //       borderRadius: BorderRadius.circular(8),
+  // //       border: Border.all(color: Colors.grey[300]!),
+  // //     ),
+  // //     child: Column(
+  // //       crossAxisAlignment: CrossAxisAlignment.start,
+  // //       children: [
+  // //         Row(
+  // //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  // //           children: [
+  // //             Text(
+  // //               LocalizationHelper.tr(LocaleKeys.venue_schedule),
+  // //               style: const TextStyle(
+  // //                 color: Colors.black,
+  // //                 fontSize: 16,
+  // //                 fontWeight: FontWeight.bold,
+  // //               ),
+  // //             ),
+  // //             CustomTextButton(
+  // //               text: LocalizationHelper.tr(LocaleKeys.common_showMore),
+  // //               onTap: () {},
+  // //               icon: Icons.arrow_forward,
+  // //               isrightIcon: true,
+  // //             ),
+  // //           ],
+  // //         ),
+  // //         Column(
+  // //           children: [
+  // //             _buildScheduleItem(
+  // //                 LocalizationHelper.tr(LocaleKeys.common_monday),
+  // //                 '7:00 - 21:00'),
+  // //             _buildScheduleItem(
+  // //                 LocalizationHelper.tr(LocaleKeys.common_tuesday),
+  // //                 '7:00 - 21:00'),
+  // //             _buildScheduleItem(
+  // //                 LocalizationHelper.tr(LocaleKeys.common_wednesday),
+  // //                 '7:00 - 21:00'),
+  // //             _buildScheduleItem(
+  // //                 LocalizationHelper.tr(LocaleKeys.common_thursday),
+  // //                 '7:00 - 21:00'),
+  // //             _buildScheduleItem(
+  // //                 LocalizationHelper.tr(LocaleKeys.common_friday),
+  // //                 '7:00 - 21:00'),
+  // //             _buildScheduleItem(
+  // //                 LocalizationHelper.tr(LocaleKeys.common_saturday),
+  // //                 '7:00 - 21:00'),
+  // //             _buildScheduleItem(
+  // //                 LocalizationHelper.tr(LocaleKeys.common_sunday),
+  // //                 LocalizationHelper.tr(LocaleKeys.venue_closed)),
+  // //           ],
+  // //         ),
+  // //       ],
+  // //     ),
+  // //   );
+  // // }
 
-  Widget _buildScheduleItem(String day, String time) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      margin: const EdgeInsets.only(top: 8),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            day,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-          ),
-          Text(
-            time,
-            style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-          ),
-        ],
-      ),
-    );
-  }
+  // // Widget _buildScheduleItem(String day, String time) {
+  //   return Container(
+  //     padding: const EdgeInsets.all(8),
+  //     margin: const EdgeInsets.only(top: 8),
+  //     decoration: BoxDecoration(
+  //       borderRadius: BorderRadius.circular(8),
+  //       border: Border.all(color: Colors.grey[300]!),
+  //     ),
+  //     child: Row(
+  //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //       children: [
+  //         Text(
+  //           day,
+  //           style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+  //         ),
+  //         Text(
+  //           time,
+  //           style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   // Float Section
   Widget _buildPriceAndBooking(

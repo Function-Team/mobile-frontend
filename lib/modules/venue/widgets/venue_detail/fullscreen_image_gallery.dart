@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:get/get.dart';
 
 class FullscreenImageGallery extends StatefulWidget {
@@ -165,7 +166,22 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery> {
                   itemCount: widget.images.length,
                   itemBuilder: (context, index) {
                     final image = widget.images[index];
-                    final imageUrl = image?.imageUrl ?? image?.toString() ?? '';
+                    // Perbaikan di sini - pastikan kita mendapatkan URL gambar dengan benar
+                    String? imageUrl;
+                    
+                    // Cek apakah image adalah PictureModel
+                    if (image is PictureModel) {
+                      imageUrl = image.imageUrl;
+                    } else if (image != null && image.imageUrl != null) {
+                      // Jika objek memiliki properti imageUrl langsung
+                      imageUrl = image.imageUrl;
+                    } else if (image is String) {
+                      // Jika image adalah string URL langsung
+                      imageUrl = image;
+                    }
+                    
+                    // Pastikan imageUrl tidak null
+                    final url = imageUrl ?? '';
                     
                     return GestureDetector(
                       onTap: () {
@@ -188,9 +204,9 @@ class _FullscreenImageGalleryState extends State<FullscreenImageGallery> {
                           ),
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: imageUrl.isNotEmpty
+                        child: url.isNotEmpty
                             ? Image.network(
-                                imageUrl,
+                                url,
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) {
                                   return Container(

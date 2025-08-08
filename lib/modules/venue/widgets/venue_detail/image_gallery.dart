@@ -104,17 +104,27 @@ class ImageGallery extends StatelessWidget {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
                           child: CachedNetworkImage(
-                            // Gunakan CachedNetworkImage
                             imageUrl: images[index].imageUrl ?? '',
                             fit: BoxFit.cover,
                             placeholder: (context, url) => Container(
                               color: Colors.grey[200],
                               child: Center(
-                                child: CircularProgressIndicator(),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Theme.of(context).primaryColor,
+                                  ),
+                                ),
                               ),
                             ),
-                            errorWidget: (context, url, error) =>
-                                _buildPlaceholder(),
+                            errorWidget: (context, url, error) {
+                              print('Image load error for URL: $url, Error: $error');
+                              return _buildPlaceholder();
+                            },
+                            // Add timeout and retry logic
+                            httpHeaders: const {
+                              'Cache-Control': 'max-age=3600',
+                            },
                           ),
                         ),
                       ),

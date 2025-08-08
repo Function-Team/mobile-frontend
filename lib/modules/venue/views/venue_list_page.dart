@@ -211,7 +211,7 @@ class VenueListPage extends GetView<VenueListController> {
         itemCount: 5,
         itemBuilder: (context, index) {
           return VenueCard(
-            venue: VenueModel(),
+            venue: VenueModel(id: 0),
             onTap: () {},
           );
         },

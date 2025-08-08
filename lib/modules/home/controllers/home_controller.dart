@@ -1,4 +1,3 @@
-import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 import 'package:function_mobile/modules/navigation/controllers/bottom_nav_controller.dart';
 import 'package:function_mobile/common/routes/routes.dart';
@@ -20,18 +19,77 @@ class HomeController extends GetxController {
   }
 
   void goToVenueDetails(VenueModel venue) {
-    if (venue.id != null) {
-      Get.toNamed(MyRoutes.venueDetail, arguments: {'venueId': venue.id});
-    } else {
-      CustomSnackbar.show(
-          context: Get.context!,
-          message: 'Cannot open venue details',
-          type: SnackbarType.error);
-    }
+    Get.toNamed(MyRoutes.venueDetail, arguments: {'venueId': venue.id});
   }
 
   void goToProfile() {
-    Get.find<BottomNavController>().changePage(4);
+    Get.find<BottomNavController>().changePage(2);
+  }
+
+  // Tambahkan property ini di class HomeController
+  final Map<int, RatingStatsModel> _venueRatings =
+      <int, RatingStatsModel>{}.obs;
+
+  String ratingStats(VenueModel venue) {
+    try {
+      // Pastikan venue memiliki ID yang valid
+      if (_venueRatings.containsKey(venue.id)) {
+        final stats = _venueRatings[venue.id]!;
+        final formattedRating = stats.averageRating.toStringAsFixed(1);
+
+        if (stats.totalReviews > 0) {
+          return "$formattedRating (${stats.totalReviews})";
+        } else {
+          return formattedRating;
+        }
+      }
+
+      // Jika belum ada di cache, ambil dari API secara asynchronous
+      _loadVenueRatingStats(venue.id);
+
+      // Sementara gunakan nilai dari venue model sebagai fallback
+      final rating = venue.rating ?? 0.0;
+      final formattedRating = rating.toStringAsFixed(1);
+
+      // Include rating count if available
+      final ratingCount = venue.ratingCount ?? 0;
+      if (ratingCount > 0) {
+        return "$formattedRating ($ratingCount)";
+      } else {
+        return formattedRating;
+      }
+    } catch (e) {
+      print('Error getting rating stats: $e');
+      return "0.0";
+    }
+  }
+
+  // Method baru untuk mengambil rating stats
+  Future<void> _loadVenueRatingStats(int venueId) async {
+    try {
+      // Hindari request berulang untuk venue yang sama
+      if (_venueRatings.containsKey(venueId)) {
+        return;
+      }
+
+      final stats = await _venueRepository.getVenueRatingStats(venueId);
+
+      if (stats != null) {
+        _venueRatings[venueId] = stats;
+        // Trigger refresh UI
+        update();
+        print(
+            'Rating stats loaded for venue $venueId: ${stats.averageRating} (${stats.totalReviews} reviews)');
+      } else {
+        // Simpan nilai default jika gagal
+        _venueRatings[venueId] =
+            RatingStatsModel(averageRating: 0.0, totalReviews: 0);
+      }
+    } catch (e) {
+      print('Error loading rating stats for venue $venueId: $e');
+      _venueRatings[venueId] =
+          RatingStatsModel(averageRating: 0.0, totalReviews: 0);
+    }
   }
 
   Future<void> fetchRecommendedVenues() async {
@@ -44,8 +102,7 @@ class HomeController extends GetxController {
 
       // Filter out venues with missing critical data
       final filteredVenues = venues
-          .where((venue) =>
-              venue.id != null && venue.name != null && venue.price != null)
+          .where((venue) => venue.name != null && venue.price != null)
           .toList();
 
       if (filteredVenues.isEmpty) {
@@ -58,7 +115,13 @@ class HomeController extends GetxController {
       }
 
       // Limit to 6 venues for the recommendation section
-      recommendedVenues.assignAll(filteredVenues.take(6).toList());
+      final limitedVenues = filteredVenues.take(6).toList();
+      recommendedVenues.assignAll(limitedVenues);
+
+      // Preload rating stats for all recommended venues
+      for (final venue in limitedVenues) {
+        _loadVenueRatingStats(venue.id);
+      }
     } catch (e) {
       hasError.value = true;
       errorMessage.value =

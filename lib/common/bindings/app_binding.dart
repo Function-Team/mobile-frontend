@@ -14,7 +14,7 @@ class AppBinding extends Bindings {
   void dependencies() {
     // Initialize localization controller first
     LocalizationBinding().dependencies();
-    
+
     // Core controllers that are used across multiple screens
     Get.put(AuthController(), permanent: true);
     Get.put(SearchFilterController(), permanent: true);
@@ -23,9 +23,9 @@ class AppBinding extends Bindings {
     Get.put(BookingListController(), permanent: true);
     Get.put(AuthService(), permanent: true);
     Get.put(NotificationController(), permanent: true);
-    
+    Get.put(HomeController(), permanent: true);
+
     // Non-permanent controllers that can be lazy-loaded
-    Get.lazyPut<HomeController>(() => HomeController(), fenix: true);
 
     // Add other app-wide dependencies here
   }

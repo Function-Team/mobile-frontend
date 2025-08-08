@@ -12,7 +12,17 @@ class BookingListPage extends GetView<BookingListController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: _buildAppBar(),
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).primaryColor,
+        title: Text(
+          'Booking List',
+          style: Theme.of(context)
+              .textTheme
+              .displaySmall!
+              .copyWith(color: Colors.white),
+        ),
+        actions: [Icon(Icons.refresh)],
+      ),
       body: Column(
         children: [
           _buildSortIndicator(),
