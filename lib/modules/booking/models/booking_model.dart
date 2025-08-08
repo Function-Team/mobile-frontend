@@ -410,26 +410,43 @@ class BookingCreateRequest {
     required String userEmail,
     required String userPhone,
   }) {
+    // Pastikan menit selalu 0 atau 30
+    final adjustedStartTime = TimeOfDay(
+      hour: startTime.hour,
+      minute: startTime.minute < 30 ? 0 : 30,
+    );
+
+    final adjustedEndTime = TimeOfDay(
+      hour: endTime.hour,
+      minute: endTime.minute < 30 ? 0 : 30,
+    );
+
     final startDateTimeLocal = DateTime(
       date.year,
       date.month,
       date.day,
-      startTime.hour,
-      startTime.minute,
-    ).subtract(Duration(hours: 7));
+      adjustedStartTime.hour,
+      adjustedStartTime.minute,
+    );
 
     final endDateTimeLocal = DateTime(
       date.year,
       date.month,
       date.day,
-      endTime.hour,
-      endTime.minute,
-    ).subtract(Duration(hours: 7));
+      adjustedEndTime.hour,
+      adjustedEndTime.minute,
+    );
 
+    // JANGAN konversi ke UTC, kirim sebagai local time
     final startDateTime = startDateTimeLocal;
     final endDateTime = endDateTimeLocal;
 
+    // Validasi durasi minimum 1 jam
     final duration = endDateTime.difference(startDateTime);
+    if (duration.inMinutes < 60) {
+      throw Exception('Minimum booking duration is 1 hour');
+    }
+
     final durationInHours = duration.inMinutes / 60.0;
     final totalPrice = (venue.price ?? 0) * durationInHours;
 

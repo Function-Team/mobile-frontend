@@ -252,23 +252,23 @@ class BookingForm extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                value: controller.selectedCapacity.value,
+              TextField(
+                controller: controller.capacityController,
+                keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
                   contentPadding:
                       EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  hintText: 'Enter number of guests',
+                  suffixText: 'guests',
+                  errorText: !controller.isCapacityValid.value
+                      ? controller.capacityErrorMessage.value
+                      : null,
+                  helperText:
+                      'Maximum capacity: ${venue.maxCapacity ?? "Not specified"}',
                 ),
-                items: controller.capacityOptions.map((String capacity) {
-                  return DropdownMenuItem<String>(
-                    value: capacity,
-                    child: Text('$capacity guests'),
-                  );
-                }).toList(),
                 onChanged: (value) {
-                  if (value != null) {
-                    controller.selectedCapacity.value = value;
-                  }
+                  controller.validateCapacity(venue.maxCapacity ?? 200);
                 },
               ),
             ],
@@ -440,14 +440,12 @@ class BookingForm extends StatelessWidget {
 
       return Column(
         children: [
-          // Optional: Show helpful hints (tidak affect button state)
           _buildFormHints(controller),
           SizedBox(height: 16),
 
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              // ALWAYS ACTIVE kecuali saat processing
               onPressed: !isProcessing
                   ? () {
                       // Validate only when button is pressed
@@ -526,6 +524,14 @@ class BookingForm extends StatelessWidget {
     // Check duration
     if (!_isValidDuration(controller)) return false;
 
+    // Check capacity
+    try {
+      final capacity = int.parse(controller.capacityController.text.trim());
+      if (capacity <= 0 || capacity > (venue.maxCapacity ?? 200)) return false;
+    } catch (e) {
+      return false;
+    }
+
     return true;
   }
 
@@ -558,6 +564,19 @@ class BookingForm extends StatelessWidget {
 
     if (controller.guestPhoneController.text.trim().isEmpty) {
       return 'Please enter your phone number';
+    }
+
+    // Validasi kapasitas
+    try {
+      final capacity = int.parse(controller.capacityController.text.trim());
+      if (capacity <= 0) {
+        return 'Capacity must be greater than 0';
+      }
+      if (capacity > (venue.maxCapacity ?? 200)) {
+        return 'Capacity cannot exceed venue maximum of ${venue.maxCapacity ?? 200}';
+      }
+    } catch (e) {
+      return 'Please enter a valid number for capacity';
     }
 
     return 'Please complete all required fields';

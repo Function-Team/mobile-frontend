@@ -12,7 +12,17 @@ class BookingListPage extends GetView<BookingListController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: _buildAppBar(),
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).primaryColor,
+        title: Text(
+          'Booking List',
+          style: Theme.of(context)
+              .textTheme
+              .displaySmall!
+              .copyWith(color: Colors.white),
+        ),
+        actions: [Icon(Icons.refresh)],
+      ),
       body: Column(
         children: [
           _buildTabBar(),
@@ -21,28 +31,6 @@ class BookingListPage extends GetView<BookingListController> {
           ),
         ],
       ),
-    );
-  }
-
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: Colors.white,
-      foregroundColor: Colors.black,
-      elevation: 0,
-      title: const Text(
-        'My Bookings',
-        style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      actions: [
-        IconButton(
-          onPressed: controller.refreshBookings,
-          icon: const Icon(Icons.refresh),
-        ),
-        const SizedBox(width: 8),
-      ],
     );
   }
 

@@ -27,18 +27,19 @@ class ContactHostWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (style) {
       case ContactHostStyle.button:
-        return _buildContactButton();
+        return _buildContactButton(context);
       case ContactHostStyle.card:
-        return _buildContactCard();
+        return _buildContactCard(context);
       case ContactHostStyle.floating:
-        return _buildFloatingButton();
+        return _buildFloatingButton(context);
       case ContactHostStyle.listTile:
-        return _buildListTile();
+        return _buildListTile(context);
     }
   }
 
   /// contact button - for venue detail
-  Widget _buildContactButton() {
+  Widget _buildContactButton(BuildContext context) {
+    final theme = Theme.of(context);
     final isBookingContext = booking != null;
 
     return ElevatedButton.icon(
@@ -59,7 +60,7 @@ class ContactHostWidget extends StatelessWidget {
         ),
       ),
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.green[600],
+        backgroundColor: theme.primaryColor,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(
           horizontal: 20,
@@ -74,7 +75,8 @@ class ContactHostWidget extends StatelessWidget {
   }
 
   /// Contact card - for booking detail
-  Widget _buildContactCard() {
+  Widget _buildContactCard(BuildContext context) {
+    final theme = Theme.of(context);
     final hostName = _getHostName();
 
     return Container(
@@ -164,7 +166,7 @@ class ContactHostWidget extends StatelessWidget {
             onPressed: _handleContactHost,
             label: const Text('Contact'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green[600],
+              backgroundColor: theme.primaryColor,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(
                 horizontal: 16,
@@ -182,10 +184,11 @@ class ContactHostWidget extends StatelessWidget {
   }
 
   /// Floating action button
-  Widget _buildFloatingButton() {
+  Widget _buildFloatingButton(BuildContext context) {
+    final theme = Theme.of(context);
     return FloatingActionButton.extended(
       onPressed: _handleContactHost,
-      backgroundColor: Colors.green[600],
+      backgroundColor: theme.primaryColor,
       icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
       label: const Text(
         'Contact Host',
@@ -198,15 +201,16 @@ class ContactHostWidget extends StatelessWidget {
   }
 
   /// List tile style
-  Widget _buildListTile() {
+  Widget _buildListTile(BuildContext context) {
+    final theme = Theme.of(context);
     final hostName = _getHostName();
 
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: Colors.green[100],
+        backgroundColor: theme.primaryColor,
         child: Icon(
           Icons.person,
-          color: Colors.green[700],
+          color: theme.primaryColor,
         ),
       ),
       title: Text(hostName),

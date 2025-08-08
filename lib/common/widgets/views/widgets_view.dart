@@ -47,7 +47,7 @@ class ComponentsView extends StatelessWidget {
               SizedBox(height: 18),
               VenueCard(
                 onTap: () {},
-                venue: VenueModel(),
+                venue: VenueModel(id: 1),
               )
             ],
           ),

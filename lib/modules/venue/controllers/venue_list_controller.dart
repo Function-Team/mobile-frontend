@@ -255,6 +255,7 @@ class VenueListController extends GetxController {
           type: SnackbarType.error);
     }
   }
+
   static String getCategoryName(VenueModel venue) {
     // Priority 1: Use category object from backend
     if (venue.category?.name != null && venue.category!.name!.isNotEmpty) {
@@ -262,7 +263,8 @@ class VenueListController extends GetxController {
     }
     
     // Priority 2: Use cached category name
-    if (venue.categoryId != null && _categoryCache.containsKey(venue.categoryId!)) {
+    if (venue.categoryId != null &&
+        _categoryCache.containsKey(venue.categoryId!)) {
       return _categoryCache[venue.categoryId!]!;
     }
     

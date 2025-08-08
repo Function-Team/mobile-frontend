@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/common/widgets/images/network_image.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_controller.dart';
 import 'package:function_mobile/modules/booking/widgets/booking_form.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
@@ -9,7 +10,7 @@ class BookingPage extends StatelessWidget {
   final BookingController controller = Get.put(BookingController());
   final VenueModel venue;
 
-  BookingPage({Key? key, required this.venue}) : super(key: key);
+  BookingPage({super.key, required this.venue});
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +20,13 @@ class BookingPage extends StatelessWidget {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Book ${venue.name}'),
+          title: Text(
+            'Book ${venue.name}',
+            style: Theme.of(context)
+                .textTheme
+                .headlineMedium!
+                .copyWith(color: Colors.white),
+          ),
           titleTextStyle: TextStyle(color: Colors.white),
           elevation: 0,
           backgroundColor: Theme.of(context).primaryColor,
@@ -75,12 +82,12 @@ class BookingPage extends StatelessWidget {
       final endOfMonth = DateTime(now.year, now.month + 1, 0);
 
       await controller.loadCalendarAvailability(
-          venue.id!, startOfMonth, endOfMonth);
+          venue.id, startOfMonth, endOfMonth);
 
       // Refresh time slots if date is selected
       if (controller.selectedDate.value != null) {
         await controller.loadDetailedTimeSlots(
-            venue.id!, controller.selectedDate.value!);
+            venue.id, controller.selectedDate.value!);
       }
 
       // Success feedback
@@ -114,88 +121,86 @@ class BookingPage extends StatelessWidget {
         elevation: 2,
         child: Padding(
           padding: EdgeInsets.all(16),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Venue Image
               ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: venue.pictures != null && venue.pictures!.isNotEmpty
-                    ? Image.network(
-                        venue.pictures![0].imageUrl ?? '',
-                        width: 80,
-                        height: 80,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return _buildImagePlaceholder();
-                        },
-                      )
-                    : _buildImagePlaceholder(),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(16)),
+                child: SizedBox(
+                    height: 200,
+                    width: double.infinity,
+                    child: venue.firstPictureUrl != null
+                        ? NetworkImageWithLoader(
+                            imageUrl: venue.firstPictureUrl!,
+                            fit: BoxFit.cover,
+                          )
+                        : _buildImagePlaceholder()),
               ),
 
-              SizedBox(width: 16),
+              SizedBox(height: 16),
 
-              // Venue Info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      venue.name ?? 'Venue',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+              // Venue Details
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    venue.name ?? 'Venue',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(Icons.location_on, size: 16, color: Colors.grey),
+                      SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          venue.city?.name ?? 'Location',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(Icons.location_on, size: 16, color: Colors.grey),
-                        SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            venue.city?.name ?? 'Location',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[600],
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                    ],
+                  ),
+                  SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(Icons.people, size: 16, color: Colors.grey),
+                      SizedBox(width: 4),
+                      Text(
+                        'Max: ${venue.maxCapacity} guests',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
                         ),
-                      ],
-                    ),
-                    SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(Icons.people, size: 16, color: Colors.grey),
-                        SizedBox(width: 4),
-                        Text(
-                          'Max: ${venue.maxCapacity} guests',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                          ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(Icons.category, size: 16, color: Colors.grey),
+                      SizedBox(width: 4),
+                      Text(
+                        venue.category?.name ?? 'Category',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
                         ),
-                      ],
-                    ),
-                    SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(Icons.category, size: 16, color: Colors.grey),
-                        SizedBox(width: 4),
-                        Text(
-                          venue.category?.name ?? 'Category',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),

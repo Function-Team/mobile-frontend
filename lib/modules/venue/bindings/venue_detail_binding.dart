@@ -6,6 +6,5 @@ class VenueDetailBinding extends Bindings {
   @override
   void dependencies() {
     Get.lazyPut<VenueDetailController>(() => VenueDetailController());
-
   }
 }

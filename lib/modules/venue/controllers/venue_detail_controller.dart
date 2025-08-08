@@ -2,7 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
-import 'package:function_mobile/modules/venue/services/whatsapp_contact_service.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:function_mobile/modules/venue/data/repositories/venue_repository.dart';
@@ -25,7 +24,7 @@ class VenueDetailController extends GetxController {
   final RxBool isLoadingImages = true.obs;
   final RxInt currentImageIndex = 0.obs;
 
-  final RxList<CategoryModel> activities = <CategoryModel>[].obs;
+  final RxList<ActivityModel> activities = <ActivityModel>[].obs;
   final RxBool isLoadingActivities = true.obs;
 
   final RxList<ReviewModel> reviews = <ReviewModel>[].obs;
@@ -33,6 +32,9 @@ class VenueDetailController extends GetxController {
 
   final RxList<FacilityModel> facilities = <FacilityModel>[].obs;
   final RxBool isLoadingFacilities = true.obs;
+
+  final Rx<RatingStatsModel?> ratingStats = Rx<RatingStatsModel?>(null);
+  final RxBool isLoadingRatingStats = true.obs;
 
   final Map<String, IconData> facilityIcons = {
     'Chair': Icons.chair,
@@ -43,8 +45,6 @@ class VenueDetailController extends GetxController {
     'AC': Icons.ac_unit,
     'Projector': Icons.videocam,
     'Whiteboard': Icons.edit,
-    'Coffee': Icons.coffee,
-    'Food': Icons.restaurant,
     'Power Outlets': Icons.power,
   };
 
@@ -63,9 +63,8 @@ class VenueDetailController extends GetxController {
 
   Future<void> toggleFavorite() async {
     if (venue.value?.id != null) {
-      await _favoritesController.toggleFavorite(venue.value!.id!);
-      isFavorite.value =
-          await _favoritesController.isFavorite(venue.value!.id!);
+      await _favoritesController.toggleFavorite(venue.value!.id);
+      isFavorite.value = await _favoritesController.isFavorite(venue.value!.id);
     }
   }
 
@@ -94,23 +93,16 @@ class VenueDetailController extends GetxController {
       final venueData = await _venueRepository.getVenueById(venueId);
 
       if (venueData != null) {
-        // Changed from 'response' to 'venueData'
-        venue.value = venueData; // Changed from 'response' to 'venueData'
-
-        print('=== PICTURES PARSED SUCCESSFULLY ===');
-        print('Pictures count: ${venue.value!.pictures?.length ?? 0}');
-        if (venue.value!.pictures != null &&
-            venue.value!.pictures!.isNotEmpty) {
-          print('First image URL: ${venue.value!.pictures![0].imageUrl}');
-          print('First picture URL: ${venue.value!.firstPictureUrl}');
-        }
-        print('====================================');
+        venue.value = venueData;
+        print(
+            'Venue rating: ${venue.value?.rating}, count: ${venue.value?.ratingCount}');
 
         _extractVenueImages();
+        _extractVenueCategory();
         _extractVenueFacilities();
         _extractVenueActivities();
         await loadVenueReviews(venueId);
-
+        await loadVenueRatingStats(venueId);
         _preloadImages();
       } else {
         hasError.value = true;
@@ -122,6 +114,113 @@ class VenueDetailController extends GetxController {
       print('Error loading venue details: $e');
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  // Add new method to load rating stats
+  Future<void> loadVenueRatingStats(int venueId) async {
+    try {
+      isLoadingRatingStats.value = true;
+      final stats = await _venueRepository.getVenueRatingStats(venueId);
+
+      if (stats != null) {
+        ratingStats.value = stats;
+        print(
+            'Rating stats loaded: ${stats.averageRating} (${stats.totalReviews} reviews)');
+      } else {
+        ratingStats.value =
+            RatingStatsModel(averageRating: 0.0, totalReviews: 0);
+      }
+    } catch (e) {
+      print('Error loading rating stats: $e');
+      ratingStats.value = RatingStatsModel(averageRating: 0.0, totalReviews: 0);
+    } finally {
+      isLoadingRatingStats.value = false;
+    }
+  }
+
+  void _extractVenueActivities() {
+    try {
+      isLoadingActivities.value = true;
+      activities.clear();
+
+      // Debug: Print raw venue data
+      print('🔍 Debug venue activities data:');
+      print('venue.value?.activities: ${venue.value?.activities}');
+      print('venue.value?.activityIds: ${venue.value?.activityIds}');
+
+      // Priority 1: Use activities array from backend (proper way)
+      if (venue.value?.activities != null &&
+          venue.value!.activities!.isNotEmpty) {
+        activities.assignAll(venue.value!.activities!);
+        print('✅ Loaded ${activities.length} activities from activities array');
+        
+        // Debug: Print each activity
+        for (var activity in activities) {
+          print('Activity: id=${activity.id}, name=${activity.name}');
+        }
+        return;
+      }
+
+      // Priority 2: Fallback to activity_ids - fetch from API
+      if (venue.value?.activityIds != null &&
+          venue.value!.activityIds!.isNotEmpty) {
+        print('⚠️ Using activity_ids fallback for venue ${venue.value?.id}');
+        _fetchActivitiesByIds(venue.value!.activityIds!);
+        return;
+      }
+
+      print('❌ No activities available for venue ${venue.value?.id}');
+    } catch (e) {
+      print('❌ Error extracting venue activities: $e');
+      activities.clear();
+    } finally {
+      isLoadingActivities.value = false;
+    }
+  }
+
+  // Add this new method
+  Future<void> _fetchActivitiesByIds(List<int> activityIds) async {
+    try {
+      isLoadingActivities.value = true;
+      final List<ActivityModel> fetchedActivities = [];
+
+      for (int id in activityIds) {
+        final activity = await _venueRepository.getActivityById(id);
+        if (activity != null) {
+          fetchedActivities.add(activity);
+          print('✅ Fetched activity: id=${activity.id}, name=${activity.name}');
+        } else {
+          print('❌ Failed to fetch activity with ID: $id');
+        }
+      }
+      
+      if (fetchedActivities.isNotEmpty) {
+        activities.assignAll(fetchedActivities);
+        print('✅ Successfully fetched ${fetchedActivities.length} activities from API');
+      } else {
+        print('⚠️ No activities fetched, using placeholder');
+        // Fallback to placeholder if API fails
+        final placeholderActivities = activityIds.map((id) {
+          return ActivityModel(
+            id: id,
+            name: 'Activity $id',
+          );
+        }).toList();
+        activities.assignAll(placeholderActivities);
+      }
+    } catch (e) {
+      print('❌ Error fetching activities by IDs: $e');
+      // Fallback to placeholder if API fails
+      final placeholderActivities = activityIds.map((id) {
+        return ActivityModel(
+          id: id,
+          name: 'Activity $id',
+        );
+      }).toList();
+      activities.assignAll(placeholderActivities);
+    } finally {
+      isLoadingActivities.value = false;
     }
   }
 
@@ -238,78 +337,6 @@ class VenueDetailController extends GetxController {
       facilities.clear();
     } finally {
       isLoadingFacilities.value = false;
-    }
-  }
-
-  void _extractVenueActivities() {
-    try {
-      isLoadingActivities.value = true;
-      activities.clear();
-
-      // Priority 1: Use activities array from backend (proper way)
-      if (venue.value?.activities != null &&
-          venue.value!.activities!.isNotEmpty) {
-        final convertedActivities = venue.value!.activities!.map((activity) {
-          return CategoryModel(
-            id: activity.id,
-            name: activity.name,
-          );
-        }).toList();
-
-        activities.assignAll(convertedActivities);
-        // Debug print
-        for (var activity in activities) {
-          print('   - ${activity.name} (ID: ${activity.id})');
-        }
-        return;
-      }
-
-      // Priority 2: Check if activityIds array exists (backward compatibility)
-      if (venue.value?.activityIds != null &&
-          venue.value!.activityIds!.isNotEmpty) {
-        // Create placeholder activities from IDs
-        final placeholderActivities = venue.value!.activityIds!.map((id) {
-          return CategoryModel(
-            id: id,
-            name: 'Activity $id', // Placeholder name
-          );
-        }).toList();
-
-        activities.assignAll(placeholderActivities);
-        _fetchActivityNames(venue.value!.activityIds!);
-        return;
-      }
-      print('No activities available for venue ${venue.value?.id}');
-    } catch (e) {
-      print(' Error extracting venue activities: $e');
-      activities.clear();
-    } finally {
-      isLoadingActivities.value = false;
-    }
-  }
-
-  Future<void> _fetchActivityNames(List<int> activityIds) async {
-    try {
-      print('Fetching activity names for IDs: $activityIds');
-      final venueRepo = VenueRepository();
-      final allActivities = await venueRepo.getActivities();
-
-      final updatedActivities = activityIds.map((id) {
-        final activity = allActivities.firstWhere(
-          (a) => a.id == id,
-          orElse: () => CategoryModel(id: id, name: 'Activity $id'),
-        );
-
-        return CategoryModel(
-          id: activity.id,
-          name: activity.name,
-        );
-      }).toList();
-
-      activities.assignAll(updatedActivities);
-      print('✅ Updated activity names');
-    } catch (e) {
-      print('❌ Error fetching activity names: $e');
     }
   }
 
@@ -465,11 +492,16 @@ class VenueDetailController extends GetxController {
 
   // Retry loading data
   void retryLoading() {
+    // Method untuk refresh data venue
+    refreshVenueDetails();
+  }
+
+  Future<void> refreshVenueDetails() async {
     if (venue.value?.id != null) {
-      loadVenueDetails(venue.value!.id!);
+      await loadVenueDetails(venue.value!.id);
     } else {
       final venueId = Get.arguments?['venueId'] ?? 1;
-      loadVenueDetails(venueId);
+      await loadVenueDetails(venueId);
     }
   }
 

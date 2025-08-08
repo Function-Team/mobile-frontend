@@ -8,9 +8,8 @@ class SearchActivityController extends GetxController {
   final VenueRepository _venueRepository = VenueRepository();
   final TextEditingController searchController = TextEditingController();
 
-  // Observable lists for dynamic data - renamed for clarity
-  final RxList<CategoryModel> allActivities = <CategoryModel>[].obs;
-  final RxList<CategoryModel> filteredActivities = <CategoryModel>[].obs;
+  final RxList<ActivityModel> allActivities = <ActivityModel>[].obs;
+  final RxList<ActivityModel> filteredActivities = <ActivityModel>[].obs;
   final RxList<VenueModel> allVenues = <VenueModel>[].obs;
   final RxList<VenueModel> filteredVenues = <VenueModel>[].obs;
   final RxBool isLoading = true.obs;
@@ -33,8 +32,8 @@ class SearchActivityController extends GetxController {
         _venueRepository.getVenues(),
       ]);
 
-      allActivities.assignAll(results[0] as List<CategoryModel>);
-      filteredActivities.assignAll(results[0] as List<CategoryModel>);
+      allActivities.assignAll(results[0] as List<ActivityModel>);
+      filteredActivities.assignAll(results[0] as List<ActivityModel>);
 
       // Tampilkan semua venue, bukan hanya 5
       final venues = results[1] as List<VenueModel>;
@@ -99,7 +98,7 @@ class SearchActivityController extends GetxController {
     }
   }
 
-  void onActivitySelected(CategoryModel activity) {
+  void onActivitySelected(ActivityModel activity) {
     Get.back(result: {
       'searchQuery': activity.name ?? '',
       'type': 'activity',

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/home/controllers/home_controller.dart';
@@ -95,17 +94,10 @@ Widget buildRecommendation(BuildContext context, HomeController controller) {
                   capacity: '${venue.maxCapacity ?? 100} people',
                   price:
                       'Rp ${NumberFormat("#,##0", "id_ID").format(venue.price ?? 0)}',
-                  rating: venue.rating?.toStringAsFixed(1) ?? '4.5',
+                  rating: controller.ratingStats(venue),
                   onTap: () {
-                    if (venue.id != null) {
-                      controller.goToVenueDetails(venue);
-                    } else {
-                      CustomSnackbar.show(
-                          context: Get.context!,
-                          message: 'Cannot open venue details',
-                          type: SnackbarType.error);
-                    }
-                  },
+                    controller.goToVenueDetails(venue);
+                                    },
                 ),
               );
             },
