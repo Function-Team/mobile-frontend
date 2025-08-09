@@ -6,27 +6,11 @@ import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
-class BookingPage extends StatefulWidget {
+class BookingPage extends StatelessWidget {
+  final BookingController controller = Get.put(BookingController());
   final VenueModel venue;
 
   BookingPage({super.key, required this.venue});
-
-  @override
-  State<BookingPage> createState() => _BookingPageState();
-}
-
-class _BookingPageState extends State<BookingPage> {
-  late BookingController controller;
-
-   @override
-  void initState() {
-    super.initState();
-    
-    controller = Get.find<BookingController>();
-    
-    controller.setVenueData(widget.venue);
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +46,7 @@ class _BookingPageState extends State<BookingPage> {
                   // Booking Form
                   BookingForm(
                     controller: controller,
-                    venue: widget.venue,
+                    venue: venue,
                   ),
                   SizedBox(height: 100),
                 ],
@@ -104,7 +88,6 @@ class _BookingPageState extends State<BookingPage> {
       if (controller.selectedDate.value != null) {
         await controller.loadDetailedTimeSlots(
             venue.id, controller.selectedDate.value!);
-
       }
 
       // Success feedback
@@ -226,49 +209,14 @@ class _BookingPageState extends State<BookingPage> {
     );
   }
 
-  Widget _buildVenueImage() {
-  // Priority 1: Use firstPictureUrl from API response
-  if (widget.venue.firstPictureUrl != null && widget.venue.firstPictureUrl!.isNotEmpty) {
-    return NetworkImageWithLoader(
-      imageUrl: widget.venue.firstPictureUrl!,
+  Widget _buildImagePlaceholder() {
+    return Container(
       width: 80,
       height: 80,
-      fit: BoxFit.cover,
+      color: Colors.grey[300],
+      child: Icon(Icons.image, color: Colors.grey[600]),
     );
   }
-
-  // Priority 2: Use pictures array if available
-  if (widget.venue.pictures != null && widget.venue.pictures!.isNotEmpty) {
-    final firstPicture = widget.venue.pictures!.first;
-    if (firstPicture.imageUrl != null && firstPicture.imageUrl!.isNotEmpty) {
-      return NetworkImageWithLoader(
-        imageUrl: firstPicture.imageUrl!,
-        width: 80,
-        height: 80,
-        fit: BoxFit.cover,
-      );
-    }
-  }
-
-  // Fallback: Show placeholder
-  return _buildImagePlaceholder();
-}
-
-  Widget _buildImagePlaceholder() {
-  return Container(
-    width: 80,
-    height: 80,
-    decoration: BoxDecoration(
-      color: Colors.grey[300],
-      borderRadius: BorderRadius.circular(8),
-    ),
-    child: Icon(
-      Icons.image,
-      color: Colors.grey[600],
-      size: 32,
-    ),
-  );
-}
 
   Widget _buildPriceInfoCard(BuildContext context) {
     return Container(
@@ -297,7 +245,7 @@ class _BookingPageState extends State<BookingPage> {
               ),
               SizedBox(height: 12),
               Text(
-                'Base Price: Rp ${NumberFormat('#,###').format(widget.venue.price ?? 0)} per hour',
+                'Base Price: Rp ${NumberFormat('#,###').format(venue.price ?? 0)} per hour',
                 style: TextStyle(fontSize: 14),
               ),
               SizedBox(height: 4),
@@ -382,7 +330,7 @@ class _BookingPageState extends State<BookingPage> {
 
     final duration = end.difference(start);
     final totalHours = duration.inMinutes / 60.0;
-    final totalAmount = (widget.venue.price ?? 0) * totalHours;
+    final totalAmount = (venue.price ?? 0) * totalHours;
 
     if (duration < Duration(hours: 1)) {
       return Container(
