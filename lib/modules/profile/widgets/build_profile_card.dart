@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
-import 'package:function_mobile/core/helpers/localization_helper.dart';
-import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/profile/models/profile_model.dart';
+import 'package:function_mobile/modules/auth/models/auth_model.dart';
+import 'package:function_mobile/modules/profile/controllers/profile_controller.dart';
 
-Widget buildProfileCard(
-    {required BuildContext context,
-    required ProfileModel profile,
-    required VoidCallback onEdit,
-    required VoidCallback onTapViewProfile}) {
+Widget buildProfileCard(BuildContext context, User? user, ProfileModel profile,
+    VoidCallback onEdit, ProfileController profileController) {
   return Container(
     decoration: BoxDecoration(
       color: Theme.of(context).colorScheme.background,

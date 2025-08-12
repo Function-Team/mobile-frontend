@@ -5,8 +5,9 @@ import 'package:function_mobile/modules/profile/views/faq_page.dart';
 import 'package:function_mobile/modules/profile/widgets/follow_us_bottomsheets.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/profile/controllers/profile_options_controller.dart';
+import 'package:function_mobile/modules/profile/controllers/profile_controller.dart';
 
-Widget buildProfileOptions(BuildContext context) {
+Widget buildProfileOptions(BuildContext context, ProfileController profileController) {
   final ProfileOptionsController controller =
       Get.put(ProfileOptionsController());
 

@@ -623,10 +623,10 @@ extension AuthControllerLogout on AuthController {
       isLoading.value = false;
 
       // Tampilkan pesan sukses
-      Get.snackbar(
-        'Password Reset Email Sent',
-        'If your email is registered, you will receive a password reset link.',
-        snackPosition: SnackPosition.BOTTOM,
+      CustomSnackbar.show(
+        context: Get.context!,
+        message: 'If your email is registered, you will receive a password reset link.',
+        type: SnackbarType.success,
       );
 
       // Kembali ke halaman login
