@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
+import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:function_mobile/core/services/api_service.dart';
 import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 import 'package:function_mobile/modules/auth/services/auth_service.dart';
@@ -182,12 +183,7 @@ class SplashController extends GetxController {
 
         Future.delayed(const Duration(seconds: 1), () {
           if (Get.isRegistered<SplashController>()) {
-            Get.snackbar(
-              'Initialization Error',
-              'Please try restarting the app',
-              snackPosition: SnackPosition.TOP,
-              duration: const Duration(seconds: 3),
-            );
+            CustomSnackbar.show(context: Get.context!, message: 'Please try restarting the app', type: SnackbarType.error);
           }
         });
       }
@@ -205,12 +201,7 @@ class SplashController extends GetxController {
 
     Future.delayed(const Duration(seconds: 1), () {
       if (Get.isRegistered<SplashController>()) {
-        Get.snackbar(
-          'Loading Timeout',
-          'App took too long to initialize',
-          snackPosition: SnackPosition.TOP,
-          duration: const Duration(seconds: 3),
-        );
+        CustomSnackbar.show(context: Get.context!, message: 'App took too long to initialize', type: SnackbarType.error);
       }
     });
   }

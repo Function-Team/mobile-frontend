@@ -658,11 +658,12 @@ extension AuthControllerLogout on AuthController {
       isLoading.value = false;
 
       // Tampilkan pesan sukses
-      Get.snackbar(
-        'Password Reset Successful',
-        'Your password has been reset successfully. Please login with your new password.',
-        snackPosition: SnackPosition.BOTTOM,
+      CustomSnackbar.show(
+        context: Get.context!,
+        message: 'Password reset successful. You can now login with your new password.',
+        type: SnackbarType.success,
       );
+
 
       // Kembali ke halaman login
       Get.offAllNamed(MyRoutes.login);

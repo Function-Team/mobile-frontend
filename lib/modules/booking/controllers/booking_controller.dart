@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
+import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:function_mobile/core/services/api_service.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_list_controller.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
@@ -576,14 +577,10 @@ class BookingController extends GetxController {
       guestCountController.text = maxVenueCapacity.value.toString();
 
       // Show venue-specific feedback
-      Get.snackbar(
-        'Maximum Capacity Reached',
-        'This venue can accommodate maximum ${maxVenueCapacity.value} guests',
-        duration: Duration(seconds: 2),
-        backgroundColor: Colors.orange[100],
-        colorText: Colors.orange[800],
-        snackPosition: SnackPosition.TOP,
-        margin: EdgeInsets.all(16),
+      CustomSnackbar.show(
+        context: Get.context!,
+        message: 'Maximum capacity reached. Please choose a different venue.',
+        type: SnackbarType.warning,
       );
     } else if (intValue != null && intValue < 1) {
       // Auto-correct to minimum value
@@ -598,15 +595,12 @@ class BookingController extends GetxController {
       guestCountController.text = guestCount.value.toString();
     } else {
       // Show venue-specific feedback when at max
-      Get.snackbar(
-        'Maximum Capacity Reached',
-        'This venue can accommodate maximum ${maxVenueCapacity.value} guests',
-        duration: Duration(seconds: 1),
-        backgroundColor: Colors.orange[100],
-        colorText: Colors.orange[800],
-        snackPosition: SnackPosition.TOP,
-        margin: EdgeInsets.all(16),
+      CustomSnackbar.show(
+        context: Get.context!,
+        message: 'Maximum capacity reached. Please choose a different venue.',
+        type: SnackbarType.warning,
       );
+
     }
   }
 
@@ -738,19 +732,10 @@ class BookingController extends GetxController {
   }
 
   void showError(String message) {
-    String userFriendlyMessage = _makeErrorUserFriendly(message);
+    _makeErrorUserFriendly(message);
 
-    Get.snackbar(
-      'Booking Error',
-      userFriendlyMessage,
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: Colors.red[600],
-      colorText: Colors.white,
-      duration: Duration(seconds: 4),
-      margin: EdgeInsets.all(16),
-      borderRadius: 8,
-      icon: Icon(Icons.error_outline, color: Colors.white),
-    );
+    CustomSnackbar.show(
+        context: Get.context!, message: message, type: SnackbarType.error);
   }
 
   String _makeErrorUserFriendly(String technicalError) {
@@ -782,17 +767,8 @@ class BookingController extends GetxController {
   }
 
   void _showSuccess(String message) {
-    Get.snackbar(
-      'Booking Successful! 🎉',
-      message,
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: Colors.green[600],
-      colorText: Colors.white,
-      duration: Duration(seconds: 3),
-      margin: EdgeInsets.all(16),
-      borderRadius: 8,
-      icon: Icon(Icons.check_circle_outline, color: Colors.white),
-    );
+    CustomSnackbar.show(
+        context: Get.context!, message: message, type: SnackbarType.success);
   }
 
   // NAVIGATION

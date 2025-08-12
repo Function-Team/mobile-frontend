@@ -2,13 +2,11 @@ import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 import 'package:function_mobile/modules/auth/models/auth_model.dart';
-import 'package:function_mobile/modules/profile/services/profile_service.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 
 class ProfileController extends GetxController {
   // Get auth controller untuk akses user data
   final AuthController _authController = Get.find<AuthController>();
-  final ProfileService _profileService = ProfileService();
   
   // Loading state
   final RxBool isLoading = false.obs;
@@ -81,8 +79,6 @@ class ProfileController extends GetxController {
   String get username => _authController.user.value?.username ?? 'Guest';
   String get email => _authController.user.value?.email ?? 'No Email';
   String? get profilePicture => null;
-
-  get profile => null; // TODO: Add profile picture support
 
   Future<void> updateProfile({
     String? name,

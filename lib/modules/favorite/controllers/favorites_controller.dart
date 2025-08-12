@@ -1,3 +1,4 @@
+import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/core/services/secure_storage_service.dart';
 import 'package:function_mobile/modules/favorite/models/favorite_model.dart';
@@ -77,11 +78,7 @@ class FavoritesController extends GetxController {
       // Get current user
       final currentUser = _authController.user.value;
       if (currentUser == null) {
-        Get.snackbar(
-          'Error',
-          'Please log in to manage favorites',
-          snackPosition: SnackPosition.BOTTOM,
-        );
+        CustomSnackbar.show(context: Get.context!, message: 'Please log in to manage favorites', type: SnackbarType.error);
         return;
       }
       
@@ -92,12 +89,7 @@ class FavoritesController extends GetxController {
         await _storageService.removeFavorite(venueId, currentUser.id);
         favorites.removeWhere((favorite) => favorite.id == venueId);
         
-        Get.snackbar(
-          'Removed',
-          'Removed from favorites',
-          snackPosition: SnackPosition.BOTTOM,
-          duration: Duration(seconds: 1),
-        );
+        CustomSnackbar.show(context: Get.context!, message: 'Removed from favorites', type: SnackbarType.success);
       } else {
         // Add to favorites
         final venue = await _venueRepository.getVenueById(venueId);
@@ -109,27 +101,14 @@ class FavoritesController extends GetxController {
             createdAt: DateTime.now(),
           ));
           
-          Get.snackbar(
-            'Added',
-            'Added to favorites',
-            snackPosition: SnackPosition.BOTTOM,
-            duration: Duration(seconds: 1),
-          );
+          CustomSnackbar.show(context: Get.context!, message: 'Added to favorites', type: SnackbarType.success);
         } else {
-          Get.snackbar(
-            'Error',
-            'Venue not found',
-            snackPosition: SnackPosition.BOTTOM,
-          );
+          CustomSnackbar.show(context: Get.context!, message: 'Venue not found', type: SnackbarType.error);
         }
       }
     } catch (e) {
       print('Error toggling favorite: $e');
-      Get.snackbar(
-        'Error',
-        'Failed to update favorites',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      CustomSnackbar.show(context: Get.context!, message: 'Failed to update favorites', type: SnackbarType.error);
     }
   }
   
@@ -154,19 +133,11 @@ class FavoritesController extends GetxController {
       
       await _storageService.clearFavoritesForUser(currentUser.id);
       favorites.clear();
-      
-      Get.snackbar(
-        'Cleared',
-        'All favorites cleared',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      CustomSnackbar.show(context: Get.context!, message: 'All favorites cleared', type: SnackbarType.success);
     } catch (e) {
       print('Error clearing favorites: $e');
-      Get.snackbar(
-        'Error',
-        'Failed to clear favorites',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+
+      CustomSnackbar.show(context: Get.context!, message: 'Failed to clear favorites', type: SnackbarType.error);
     }
   }
   
@@ -187,19 +158,10 @@ class FavoritesController extends GetxController {
       await _storageService.removeFavorite(venueId, currentUser.id);
       favorites.removeWhere((favorite) => favorite.id == venueId);
       
-      Get.snackbar(
-        'Removed',
-        'Removed from favorites',
-        snackPosition: SnackPosition.BOTTOM,
-        duration: Duration(seconds: 1),
-      );
+      CustomSnackbar.show(context: Get.context!, message: 'Removed from favorites', type: SnackbarType.success);
     } catch (e) {
       print('Error removing favorite: $e');
-      Get.snackbar(
-        'Error',
-        'Failed to remove favorite',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      CustomSnackbar.show(context: Get.context!, message: 'Failed to remove favorite', type: SnackbarType.error);
     }
   }
   

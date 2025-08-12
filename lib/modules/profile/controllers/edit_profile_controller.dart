@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 import 'package:function_mobile/modules/profile/services/profile_service.dart';
@@ -194,14 +195,8 @@ class EditProfileController extends GetxController {
           currentPasswordController.clear();
           
           // Show success and go back
-          Get.snackbar(
-            'Success',
-            message,
-            backgroundColor: Colors.green.withOpacity(0.1),
-            colorText: Colors.green,
-            snackPosition: SnackPosition.TOP,
-          );
-          
+          CustomSnackbar.show(context: Get.context!, message: message, type: SnackbarType.success);
+
           // Go back after a short delay
           Future.delayed(const Duration(seconds: 1), () {
             Get.back();

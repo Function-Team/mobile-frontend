@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/payment/services/payment_service.dart';
 import 'package:function_mobile/modules/payment/models/payment_model.dart'
@@ -49,22 +50,13 @@ class PaymentController extends GetxController {
       paymentStatus.value = payment.PaymentStatus.pending;
       currentPayment.value = response.paymentModel;
 
-      Get.snackbar(
-        'Payment Initialized',
-        'Amount: Rp ${_formatCurrency(amount)}',
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
+      CustomSnackbar.show(context: Get.context!, message: 'Payment Initialized, Amount: Rp ${_formatCurrency(amount)}', type: SnackbarType.success);
+
 
       return true;
     } catch (e) {
       errorMessage.value = e.toString();
-      Get.snackbar(
-        'Error',
-        'Failed to initialize payment: ${e.toString()}',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      CustomSnackbar.show(context: Get.context!, message: 'Failed to initialize payment: ${e.toString()}', type: SnackbarType.error);
       return false;
     } finally {
       isLoading.value = false;
@@ -242,36 +234,15 @@ class PaymentController extends GetxController {
   }
 
   void _showSuccessSnackbar(String title, String message) {
-    Get.snackbar(
-      title,
-      message,
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: Colors.green,
-      colorText: Colors.white,
-      duration: const Duration(seconds: 3),
-    );
+    CustomSnackbar.show(context: Get.context!, message: message, type: SnackbarType.success);
   }
 
   void _showErrorSnackbar(String title, String message) {
-    Get.snackbar(
-      title,
-      message,
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: Colors.red,
-      colorText: Colors.white,
-      duration: const Duration(seconds: 4),
-    );
+    CustomSnackbar.show(context: Get.context!, message: message, type: SnackbarType.error);
   }
 
   void _showInfoSnackbar(String title, String message) {
-    Get.snackbar(
-      title,
-      message,
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: Colors.orange,
-      colorText: Colors.white,
-      duration: const Duration(seconds: 3),
-    );
+    CustomSnackbar.show(context: Get.context!, message: message, type: SnackbarType.info);
   }
 
   @override

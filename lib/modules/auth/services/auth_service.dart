@@ -1,3 +1,4 @@
+import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:function_mobile/core/services/api_service.dart';
 import 'package:function_mobile/core/services/secure_storage_service.dart';
@@ -541,11 +542,10 @@ class AuthService extends GetxService {
       // Fallback: Direct navigation
       try {
         Get.offAllNamed('/login');
-        Get.snackbar(
-          'Session Expired',
-          'Please login again to continue',
-          snackPosition: SnackPosition.TOP,
-          duration: const Duration(seconds: 3),
+        CustomSnackbar.show(
+          context: Get.context!,
+          message: 'Session expired. Please login again to continue',
+          type: SnackbarType.error,
         );
       } catch (e) {
         print('AuthService: Error handling session expiry: $e');

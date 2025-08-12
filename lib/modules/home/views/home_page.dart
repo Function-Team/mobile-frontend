@@ -63,14 +63,15 @@ class HomePage extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
-                        buildHeader(
-                          context,
-                          profilePicture: ProfileModel().profilePicture,
-                          name: authController.username,
-                          onTapProfile: () {
-                            homeController.goToProfile();
-                          },
-                        ),
+                        // Wrap header with Obx to make it reactive to profile changes
+                        Obx(() => buildHeader(
+                              context,
+                              profilePicture: ProfileModel().profilePicture,
+                              name: authController.username,
+                              onTapProfile: () {
+                                homeController.goToProfile();
+                              },
+                            )),
                         const SizedBox(height: 40),
                         SearchContainer(
                           onTapSearch: () {
@@ -95,7 +96,7 @@ class HomePage extends StatelessWidget {
                 child: buildBlog(),
               ),
               const SizedBox(
-                  height: 50), // Add some space at the bottom of the conten
+                  height: 50), // Add some space at the bottom of the content
             ],
           ),
         ),
