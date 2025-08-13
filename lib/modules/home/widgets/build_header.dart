@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/generated/locale_keys.g.dart';
+import 'package:function_mobile/modules/notification/controllers/notification_controllers.dart';
 
 Widget buildHeader(
   BuildContext context, {
@@ -60,10 +62,53 @@ Widget buildHeader(
       ),
       Expanded(
         flex: 1,
-        child: Icon(
-          Icons.notifications,
-          color: Theme.of(context).colorScheme.onPrimary,
-          size: 24,
+        child: GetBuilder<NotificationController>(
+          builder: (controller) {
+            return GestureDetector(
+              onTap: () => controller.goToNotifications(),
+              child: Stack(
+                children: [
+                  Icon(
+                    Icons.notifications,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                    size: 24,
+                  ),
+                  Obx(() {
+                    if (controller.hasBookingUpdates.value &&
+                        controller.updateCount.value > 0) {
+                      return Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 16,
+                            minHeight: 16,
+                          ),
+                          child: Text(
+                            controller.updateCount.value > 99
+                                ? '99+'
+                                : controller.updateCount.value.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  }),
+                ],
+              ),
+            );
+          },
         ),
       ),
     ],

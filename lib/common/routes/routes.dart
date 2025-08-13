@@ -17,6 +17,8 @@ import 'package:function_mobile/modules/legal/privacy_policy_page.dart';
 import 'package:function_mobile/modules/auth/views/login_page.dart';
 import 'package:function_mobile/modules/legal/terms_of_service_page.dart';
 import 'package:function_mobile/common/widgets/views/widgets_view.dart';
+import 'package:function_mobile/modules/notification/views/notification_page.dart';
+import 'package:function_mobile/modules/notification/views/notification_page.dart';
 import 'package:function_mobile/modules/payment/models/payment_model.dart';
 import 'package:function_mobile/modules/payment/views/payment_page.dart';
 import 'package:function_mobile/modules/payment/views/payment_status_page.dart';
@@ -78,6 +80,10 @@ class MyRoutes {
 
   // Settings
   static const String settings = '/settings';
+  static const String settingsPassword = '/settings/password';
+
+  // Notification
+  static const String notifications = '/notifications';
 
   // SearchFilter
   static const String searchActivity = '/searchActivity';
@@ -114,9 +120,13 @@ class MyRoutes {
     GetPage(name: login, page: () => LoginPage()),
     GetPage(name: signup, page: () => SignupPage()),
     GetPage(name: emailVerification, page: () => EmailVerificationPage()),
+    GetPage(name: forgotPassword, page: () => ForgotPasswordPage()),
 
     // Home (no HomeBinding needed - controllers are in AppBinding)
     GetPage(name: home, page: () => HomePage()),
+
+    // Notification
+    GetPage(name: notifications, page: () => const NotificationPage()),
 
     // Booking
     GetPage(
@@ -223,16 +233,6 @@ class MyRoutes {
       name: reviewForm,
       page: () => const ReviewFormPage(),
       binding: ReviewBinding(),
-    ),
-  ];
-  static List<GetPage> getPages = [
-    GetPage(
-      name: MyRoutes.forgotPassword,
-      page: () => const ForgotPasswordPage(),
-    ),
-    GetPage(
-      name: MyRoutes.resetPassword,
-      page: () => const ResetPasswordPage(),
     ),
   ];
 }
