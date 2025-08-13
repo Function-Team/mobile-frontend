@@ -1,3 +1,5 @@
+import 'dart:convert' show json;
+
 import 'package:dio/dio.dart';
 import 'package:function_mobile/core/services/api_service.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
@@ -92,7 +94,6 @@ class BookingService extends GetxService {
   Future<dynamic> createBookingWithBuiltInValidation(
       BookingCreateRequest request) async {
     try {
-      print('Creating booking request...');
       print('Request data: ${request.toJson()}');
 
       final response =
@@ -107,22 +108,20 @@ class BookingService extends GetxService {
 
       throw Exception('Failed to create booking: Empty response');
     } on DioException catch (e) {
-      print('DioException: ${e.response?.statusCode}');
-      print('Response data: ${e.response?.data}');
-      print('Error message: ${e.message}');
-      print('Request data: ${e.requestOptions.data}');
-      print('Request headers: ${e.requestOptions.headers}');
-
       // Handle specific error codes
       if (e.response?.statusCode == 400) {
         final errorDetail =
             e.response?.data?['detail'] ?? 'Invalid request data';
+        print('400 Error detail: $errorDetail');
         throw Exception('Validation Error: $errorDetail');
       } else if (e.response?.statusCode == 404) {
+        print('404 Error: Venue not found');
         throw Exception('Venue not found');
       } else if (e.response?.statusCode == 409) {
-        // Handle conflict response as before
+        print('409 Conflict detected - handling conflict response');
+
         final data = e.response?.data;
+        print('Conflict response data: $data');
 
         if (data != null && data is Map<String, dynamic>) {
           print('🔍 Parsing conflict response...');
@@ -132,29 +131,54 @@ class BookingService extends GetxService {
 
             if (data['available_slots'] != null &&
                 data['available_slots'] is List) {
+              print(
+                  'Found ${data['available_slots'].length} available slots to parse');
+
               for (final slot in data['available_slots']) {
                 if (slot is Map<String, dynamic>) {
-                  availableSlots.add(TimeSlot.fromJson(slot));
+                  try {
+                    final timeSlot = TimeSlot.fromJson(slot);
+                    availableSlots.add(timeSlot);
+                    print('Parsed slot: ${timeSlot.displayTime}');
+                  } catch (slotError) {
+                    print('Slot data: $slot');
+                  }
                 }
               }
             }
 
-            print('Parsed ${availableSlots.length} available slots');
+            print(
+                'Successfully parsed ${availableSlots.length} available slots');
 
-            return BookingConflictResponse(
+            final conflictResponse = BookingConflictResponse(
               success: false,
               error: data['error'] ?? 'Venue not available at selected time',
               availableSlots: availableSlots,
             );
+
+            print(
+                'Returning BookingConflictResponse with ${availableSlots.length} slots');
+            return conflictResponse;
           } catch (parseError) {
             print('Error parsing conflict response: $parseError');
+            print('Conflict data structure: $data');
 
+            // Return conflict response with empty slots if parsing fails
             return BookingConflictResponse(
               success: false,
-              error: 'Venue not available at selected time',
+              error: data['error'] ?? 'Venue not available at selected time',
               availableSlots: [],
             );
           }
+        } else {
+          print('Invalid conflict response data format');
+
+          // Return basic conflict response if data is invalid
+          return BookingConflictResponse(
+            success: false,
+            error: 'Venue not available at selected time',
+            availableSlots: [],
+          );
         }
       }
 
@@ -163,16 +187,40 @@ class BookingService extends GetxService {
         final statusCode = e.response!.statusCode;
         final message = e.response!.data?['message'] ??
             e.response!.data?['detail'] ??
-            'HTTP $statusCode error';
+            'HTTP Error $statusCode';
 
-        throw Exception(message);
+        print('HTTP Error $statusCode: $message');
+        throw Exception('Server Error ($statusCode): $message');
       }
 
-      // Handle network errors
-      throw Exception('Network error: ${e.message}');
+      // Handle network/connection errors
+      switch (e.type) {
+        case DioExceptionType.connectionTimeout:
+        case DioExceptionType.sendTimeout:
+        case DioExceptionType.receiveTimeout:
+          print('Timeout error: ${e.type}');
+          throw Exception(
+              'Connection timeout. Please check your internet connection.');
+
+        case DioExceptionType.connectionError:
+          print('Connection error: ${e.message}');
+          throw Exception(
+              'Network error. Please check your internet connection.');
+
+        default:
+          print('Other DioException: ${e.type} - ${e.message}');
+          throw Exception('Network error: ${e.message}');
+      }
     } catch (e) {
-      print('Unexpected error: $e');
-      throw Exception('Failed to create booking: $e');
+      // Handle non-Dio exceptions
+      if (e is Exception && e.toString().startsWith('Exception: ')) {
+        print('Re-throwing known exception: $e');
+        rethrow; // Re-throw our custom exceptions
+      }
+
+      print('Unexpected error in createBookingWithBuiltInValidation: $e');
+      print('Error type: ${e.runtimeType}');
+      throw Exception('Unexpected error: $e');
     }
   }
 

@@ -35,7 +35,7 @@ class BookingForm extends StatelessWidget {
           const SizedBox(height: 16),
           _durationDisplay(controller),
           const SizedBox(height: 16),
-          _capacityDropdown(controller),
+          _capacitySection(controller),
           const SizedBox(height: 16),
           _guestInfoForm(controller),
           const SizedBox(height: 24),
@@ -65,10 +65,10 @@ class BookingForm extends StatelessWidget {
             venue.id!, controller.selectedDate.value!);
       }
 
-      print('✅ BookingForm: Successfully refreshed availability data');
+      print('BookingForm: Successfully refreshed availability data');
     } catch (e) {
-      print('❌ BookingForm: Error refreshing data: $e');
-      rethrow; 
+      print('BookingForm: Error refreshing data: $e');
+      rethrow;
     }
   }
 
@@ -236,40 +236,127 @@ class BookingForm extends StatelessWidget {
     });
   }
 
-  Widget _capacityDropdown(BookingController controller) {
+  Widget _capacitySection(BookingController controller) {
     return Obx(() {
+      final maxCapacity = venue.maxCapacity ?? 100;
+
       return Card(
         child: Padding(
           padding: EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Number of Guests',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
+              Row(
+                children: [
+                  Text(
+                    'Number of Guests',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[800],
+                    ),
+                  ),
+                  Spacer(),
+                  Text(
+                    'Max: $maxCapacity',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 12),
+
+              // Container dengan style seperti search capacity
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey[300]!),
+                  borderRadius: BorderRadius.circular(8),
+                  color: Colors.white,
+                ),
+                child: Row(
+                  children: [
+                    // Icon - matching other fields
+                    Icon(Icons.people_outline,
+                        color: Colors.grey[600], size: 20),
+                    const SizedBox(width: 12),
+
+                    // Input field
+                    Expanded(
+                      child: TextField(
+                        controller: controller.capacityController,
+                        keyboardType: TextInputType.number,
+                        style: TextStyle(
+                          color: Colors.black87,
+                          fontSize: 16,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Enter number of guests',
+                          hintStyle: TextStyle(
+                            color: Colors.grey[600],
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
+                          isDense: true,
+                        ),
+                        onChanged: (value) => _handleCapacityInput(
+                            value, maxCapacity, controller),
+                      ),
+                    ),
+
+                    // Stepper Controls - sama seperti search
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Decrease button
+                        _buildStepperButton(
+                          icon: Icons.remove_circle_outline,
+                          onTap: () => _decrementCapacity(controller),
+                          enabled: true,
+                        ),
+
+                        const SizedBox(width: 4),
+
+                        // Increase button
+                        _buildStepperButton(
+                          icon: Icons.add_circle_outline,
+                          onTap: () =>
+                              _incrementCapacity(controller, maxCapacity),
+                          enabled: true,
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(height: 8),
-              TextField(
-                controller: controller.capacityController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  hintText: 'Enter number of guests',
-                  suffixText: 'guests',
-                  errorText: !controller.isCapacityValid.value
-                      ? controller.capacityErrorMessage.value
-                      : null,
-                  helperText:
-                      'Maximum capacity: ${venue.maxCapacity ?? "Not specified"}',
+
+              // Error message (kalau ada)
+              if (!controller.isCapacityValid.value &&
+                  controller.capacityErrorMessage.value.isNotEmpty)
+                Padding(
+                  padding: EdgeInsets.only(top: 8),
+                  child: Text(
+                    controller.capacityErrorMessage.value,
+                    style: TextStyle(
+                      color: Colors.red[600],
+                      fontSize: 12,
+                    ),
+                  ),
                 ),
-                onChanged: (value) {
-                  controller.validateCapacity(venue.maxCapacity ?? 200);
-                },
+
+              // Helper text
+              Padding(
+                padding: EdgeInsets.only(top: 4),
+                child: Text(
+                  'Maximum capacity: $maxCapacity guests',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
+                ),
               ),
             ],
           ),
@@ -285,42 +372,79 @@ class BookingForm extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Guest Information',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              children: [
+                Text(
+                  'Guest Information',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Spacer(),
+                // Form completion indicator
+                Obx(() => controller.isFormComplete.value
+                    ? Icon(Icons.check_circle, color: Colors.green, size: 20)
+                    : Icon(Icons.radio_button_unchecked,
+                        color: Colors.grey, size: 20)),
+              ],
             ),
             SizedBox(height: 16),
-            TextField(
-              controller: controller.guestNameController,
-              decoration: InputDecoration(
-                labelText: 'Guest Name',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.person),
-              ),
-            ),
+            Obx(() => TextField(
+                  controller: controller.guestNameController,
+                  decoration: InputDecoration(
+                    labelText: 'Guest Name',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.person),
+                    errorText: controller.nameError.isEmpty
+                        ? null
+                        : controller.nameError.value,
+                    suffixIcon: controller.nameError.isEmpty &&
+                            controller.guestNameController.text.isNotEmpty
+                        ? Icon(Icons.check, color: Colors.green, size: 20)
+                        : controller.nameError.isNotEmpty
+                            ? Icon(Icons.error, color: Colors.red, size: 20)
+                            : null,
+                  ),
+                )),
             SizedBox(height: 12),
-            TextField(
-              controller: controller.guestEmailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(
-                labelText: 'Email',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.email),
-              ),
-            ),
+            Obx(() => TextField(
+                  controller: controller.guestEmailController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.email),
+                    errorText: controller.emailError.isEmpty
+                        ? null
+                        : controller.emailError.value,
+                    suffixIcon: controller.emailError.isEmpty &&
+                            controller.guestEmailController.text.isNotEmpty
+                        ? Icon(Icons.check, color: Colors.green, size: 20)
+                        : controller.emailError.isNotEmpty
+                            ? Icon(Icons.error, color: Colors.red, size: 20)
+                            : null,
+                  ),
+                )),
             SizedBox(height: 12),
-            TextField(
-              controller: controller.guestPhoneController,
-              keyboardType: TextInputType.phone,
-              decoration: InputDecoration(
-                labelText: 'Phone Number',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.phone),
-              ),
-            ),
+            Obx(() => TextField(
+                  controller: controller.guestPhoneController,
+                  keyboardType: TextInputType.phone,
+                  decoration: InputDecoration(
+                    labelText: 'Phone Number',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.phone),
+                    errorText: controller.phoneError.isEmpty
+                        ? null
+                        : controller.phoneError.value,
+                    suffixIcon: controller.phoneError.isEmpty &&
+                            controller.guestPhoneController.text.isNotEmpty
+                        ? Icon(Icons.check, color: Colors.green, size: 20)
+                        : controller.phoneError.isNotEmpty
+                            ? Icon(Icons.error, color: Colors.red, size: 20)
+                            : null,
+                  ),
+                )),
             SizedBox(height: 12),
             TextField(
               controller: controller.specialRequestsController,
@@ -433,7 +557,6 @@ class BookingForm extends StatelessWidget {
     });
   }
 
-  // ALWAYS ACTIVE BOOKING BUTTON - Super Simple Approach
   Widget _bookNowButton(BookingController controller) {
     return Obx(() {
       final isProcessing = controller.isProcessing.value;
@@ -442,20 +565,30 @@ class BookingForm extends StatelessWidget {
         children: [
           _buildFormHints(controller),
           SizedBox(height: 16),
-
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: !isProcessing
                   ? () {
-                      // Validate only when button is pressed
-                      if (!_isFormComplete(controller)) {
-                        final errorMessage = _getValidationError(controller);
-                        controller.showError(errorMessage);
+                      final validationResult = controller.validationService
+                          .validateBookingFormWithSpecificError(
+                        selectedDate: controller.selectedDate.value,
+                        startTime: controller.startTime.value,
+                        endTime: controller.endTime.value,
+                        guestName: controller.guestNameController.text,
+                        guestEmail: controller.guestEmailController.text,
+                        guestPhone: controller.guestPhoneController.text,
+                        capacityText: controller.capacityController.text,
+                        venueMaxCapacity: venue.maxCapacity ?? 200,
+                      );
+
+                      if (!validationResult.isValid) {
+                        // Show specific validation error using CustomSnackbar
+                        controller.showError(validationResult.message);
                         return;
                       }
 
-                      // Proceed with booking
+                      // All validations passed, proceed with booking
                       controller.createBooking(venue);
                     }
                   : null,
@@ -505,179 +638,75 @@ class BookingForm extends StatelessWidget {
     });
   }
 
-  // Simple form completion check (no reactive state)
-  bool _isFormComplete(BookingController controller) {
-    // Check basic fields
-    if (controller.selectedDate.value == null) return false;
-    if (controller.startTime.value == null || controller.endTime.value == null)
-      return false;
-
-    // Check guest info
-    if (controller.guestNameController.text.trim().isEmpty) return false;
-    if (controller.guestEmailController.text.trim().isEmpty) return false;
-    if (controller.guestPhoneController.text.trim().isEmpty) return false;
-
-    // Check email format
-    if (!_isValidEmail(controller.guestEmailController.text.trim()))
-      return false;
-
-    // Check duration
-    if (!_isValidDuration(controller)) return false;
-
-    // Check capacity
-    try {
-      final capacity = int.parse(controller.capacityController.text.trim());
-      if (capacity <= 0 || capacity > (venue.maxCapacity ?? 200)) return false;
-    } catch (e) {
-      return false;
-    }
-
-    return true;
-  }
-
-  // Get specific validation error message
-  String _getValidationError(BookingController controller) {
-    if (controller.selectedDate.value == null) {
-      return 'Please select a booking date';
-    }
-
-    if (controller.startTime.value == null ||
-        controller.endTime.value == null) {
-      return 'Please select start and end times';
-    }
-
-    if (!_isValidDuration(controller)) {
-      return 'Booking duration must be between 1 hour and 7 days';
-    }
-
-    if (controller.guestNameController.text.trim().isEmpty) {
-      return 'Please enter your name';
-    }
-
-    if (controller.guestEmailController.text.trim().isEmpty) {
-      return 'Please enter your email address';
-    }
-
-    if (!_isValidEmail(controller.guestEmailController.text.trim())) {
-      return 'Please enter a valid email address';
-    }
-
-    if (controller.guestPhoneController.text.trim().isEmpty) {
-      return 'Please enter your phone number';
-    }
-
-    // Validasi kapasitas
-    try {
-      final capacity = int.parse(controller.capacityController.text.trim());
-      if (capacity <= 0) {
-        return 'Capacity must be greater than 0';
-      }
-      if (capacity > (venue.maxCapacity ?? 200)) {
-        return 'Capacity cannot exceed venue maximum of ${venue.maxCapacity ?? 200}';
-      }
-    } catch (e) {
-      return 'Please enter a valid number for capacity';
-    }
-
-    return 'Please complete all required fields';
-  }
-
-  // Helper: Show friendly form hints (optional visual feedback)
   Widget _buildFormHints(BookingController controller) {
-    final incomplete = <String>[];
+    return Obx(() {
+      final incomplete = <String>[];
 
-    if (controller.selectedDate.value == null) incomplete.add('Date');
-    if (controller.startTime.value == null || controller.endTime.value == null)
-      incomplete.add('Time');
-    if (controller.guestNameController.text.trim().isEmpty)
-      incomplete.add('Name');
-    if (controller.guestEmailController.text.trim().isEmpty)
-      incomplete.add('Email');
-    if (controller.guestPhoneController.text.trim().isEmpty)
-      incomplete.add('Phone');
+      if (controller.selectedDate.value == null) incomplete.add('Date');
+      if (controller.startTime.value == null ||
+          controller.endTime.value == null ||
+          controller.dateTimeError.isNotEmpty) incomplete.add('Time');
+      if (controller.guestNameController.text.trim().isEmpty ||
+          controller.nameError.isNotEmpty) incomplete.add('Name');
+      if (controller.guestEmailController.text.trim().isEmpty ||
+          controller.emailError.isNotEmpty) incomplete.add('Email');
+      if (controller.guestPhoneController.text.trim().isEmpty ||
+          controller.phoneError.isNotEmpty) incomplete.add('Phone');
+      if (!controller.isCapacityValid.value) incomplete.add('Capacity');
 
-    if (incomplete.isEmpty) return SizedBox.shrink();
+      if (incomplete.isEmpty) {
+        return Container(
+          padding: EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.green[50],
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.green[200]!),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.green[600], size: 18),
+              SizedBox(width: 8),
+              Text(
+                'Form lengkap dan siap untuk booking!',
+                style: TextStyle(
+                  color: Colors.green[700],
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        );
+      }
 
-    return Container(
-      padding: EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.blue[200]!),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.info_outline, color: Colors.blue[600], size: 18),
-          SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              'Complete: ${incomplete.join(', ')}',
-              style: TextStyle(
-                color: Colors.blue[700],
-                fontSize: 13,
+      return Container(
+        padding: EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.blue[50],
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.blue[200]!),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.info_outline, color: Colors.blue[600], size: 18),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Lengkapi: ${incomplete.join(', ')}',
+                style: TextStyle(
+                  color: Colors.blue[700],
+                  fontSize: 13,
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Email validation
-  bool _isValidEmail(String email) {
-    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
-  }
-
-  // Duration validation
-  bool _isValidDuration(BookingController controller) {
-    if (controller.selectedDate.value == null ||
-        controller.startTime.value == null ||
-        controller.endTime.value == null) {
-      return false;
-    }
-
-    final selectedDate = controller.selectedDate.value!;
-    final startTime = controller.startTime.value!;
-    final endTime = controller.endTime.value!;
-
-    final start = DateTime(
-      selectedDate.year,
-      selectedDate.month,
-      selectedDate.day,
-      startTime.hour,
-      startTime.minute,
-    );
-
-    final end = DateTime(
-      selectedDate.year,
-      selectedDate.month,
-      selectedDate.day,
-      endTime.hour,
-      endTime.minute,
-    );
-
-    final duration = end.difference(start);
-    return duration >= Duration(hours: 1) && duration <= Duration(days: 7);
+          ],
+        ),
+      );
+    });
   }
 
   // Helper: Generate time slots based on venue operating hours
   List<TimeOfDay> _generateTimeSlots() {
-    // Get venue operating hours from time slots data (8 AM - 10 PM default)
-    final timeSlots = controller.detailedTimeSlots;
-
-    if (timeSlots.isNotEmpty) {
-      // Extract operating hours from available slots
-      final firstSlot = timeSlots.first;
-      final lastSlot = timeSlots.last;
-
-      final startHour = int.parse(firstSlot.start.split(':')[0]);
-      final endHour = int.parse(lastSlot.end.split(':')[0]);
-      final endMinute = int.parse(lastSlot.end.split(':')[1]);
-
-      return _generateTimeSlotsInRange(startHour, 0, endHour, endMinute);
-    }
-
-    // Default: 8 AM - 10 PM (based on backend operating hours)
     return _generateTimeSlotsInRange(8, 0, 22, 0);
   }
 
@@ -703,10 +732,78 @@ class BookingForm extends StatelessWidget {
     }
 
     // Add final time slot at closing time
-    if (currentHour == endHour && currentMinute == endMinute) {
-      slots.add(TimeOfDay(hour: currentHour, minute: currentMinute));
+    if (currentHour == endHour && currentMinute == 0) {
+      slots.add(TimeOfDay(hour: endHour, minute: 0));
     }
 
     return slots;
+  }
+}
+
+Widget _buildStepperButton({
+  required IconData icon,
+  required VoidCallback onTap,
+  required bool enabled,
+}) {
+  return GestureDetector(
+    onTap: enabled ? onTap : null,
+    child: Container(
+      padding: EdgeInsets.all(4),
+      child: Icon(
+        icon,
+        size: 20,
+        color: enabled ? Colors.grey[600] : Colors.grey[400],
+      ),
+    ),
+  );
+}
+
+void _handleCapacityInput(String value, int maxCapacity, BookingController controller) {
+  // Allow empty or 0 temporarily untuk input flexibility
+  if (value.isEmpty || value == '0') {
+    return; // Don't auto-correct, let user continue typing
+  }
+
+  // Parse input
+  int? inputValue = int.tryParse(value);
+  
+  if (inputValue == null) {
+    // Invalid input - revert to previous valid value or 1
+    controller.capacityController.text = '1';
+    controller.capacityController.selection = TextSelection.fromPosition(
+      TextPosition(offset: controller.capacityController.text.length),
+    );
+    return;
+  }
+
+  // Auto-correct immediately if exceeds max capacity
+  if (inputValue > maxCapacity) {
+    controller.capacityController.text = maxCapacity.toString();
+    controller.capacityController.selection = TextSelection.fromPosition(
+      TextPosition(offset: controller.capacityController.text.length),
+    );
+    controller.showInfo('Maximum capacity is $maxCapacity guests');
+  }
+}
+
+// Decrease capacity
+void _decrementCapacity(BookingController controller) {
+  final currentValue = int.tryParse(controller.capacityController.text) ?? 1;
+  if (currentValue > 0) {
+    controller.capacityController.text = (currentValue - 1).toString();
+    // Trigger validation after change
+    controller.validateField('capacity');
+  }
+}
+
+// Increase capacity dengan respect max capacity
+void _incrementCapacity(BookingController controller, int maxCapacity) {
+  final currentValue = int.tryParse(controller.capacityController.text) ?? 0;
+  if (currentValue < maxCapacity) {
+    controller.capacityController.text = (currentValue + 1).toString();
+    // Trigger validation after change
+    controller.validateField('capacity');
+  } else {
+    controller.showInfo('Maximum capacity is $maxCapacity guests');
   }
 }

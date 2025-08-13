@@ -6,6 +6,8 @@ import 'package:function_mobile/modules/booking/controllers/booking_list_control
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:function_mobile/modules/booking/models/booking_response_models.dart';
 import 'package:function_mobile/modules/booking/services/booking_service.dart';
+import 'package:function_mobile/modules/booking/services/booking_validation_service.dart';
+import 'package:function_mobile/modules/booking/widgets/conflict_dialog.dart';
 import 'package:function_mobile/modules/navigation/controllers/bottom_nav_controller.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:get/get.dart';
@@ -15,17 +17,28 @@ import 'package:url_launcher/url_launcher.dart';
 
 class BookingController extends GetxController {
   final ApiService _apiService = ApiService();
+  final BookingValidationService validationService =
+      Get.put(BookingValidationService());
 
   final Rx<DateTime?> selectedDate = Rx<DateTime?>(null);
 
-  // Form data
-  final RxString selectedCapacity = '10'.obs;
+  // Debounce timer
+  Timer? _validationTimer;
 
-  // Tambahkan controller untuk input kapasitas dan status validasi
-  final capacityController = TextEditingController(text: '10');
+  // Real-time validation states
+  final RxString nameError = ''.obs;
+  final RxString emailError = ''.obs;
+  final RxString phoneError = ''.obs;
+  final RxString dateTimeError = ''.obs;
+
+  final RxBool isFormComplete = false.obs;
+  final RxDouble formProgress = 0.0.obs;
+
+  // Capacity controller and validation
+  final capacityController = TextEditingController(text: '1');
   final RxBool isCapacityValid = true.obs;
   final RxString capacityErrorMessage = ''.obs;
-  
+
   // Calendar & Time slots state
   final RxMap<String, String> calendarAvailability = <String, String>{}.obs;
   final RxList<DetailedTimeSlot> detailedTimeSlots = <DetailedTimeSlot>[].obs;
@@ -40,7 +53,6 @@ class BookingController extends GetxController {
   final RxBool isProcessing = false.obs;
   final RxString bookingStatus = 'idle'.obs;
   final RxInt remainingSeconds = 300.obs;
-  final RxInt guestCount = 1.obs;
   final RxInt maxVenueCapacity = 100.obs;
   Timer? _timer;
 
@@ -49,25 +61,11 @@ class BookingController extends GetxController {
   final guestEmailController = TextEditingController();
   final guestPhoneController = TextEditingController();
   final specialRequestsController = TextEditingController();
-  final guestCountController = TextEditingController();
 
   @override
   void onInit() {
     super.onInit();
-
-    // Set default values
-    // Hapus pengecekan capacityOptions
-    // if (!capacityOptions.contains(selectedCapacity.value)) {
-    //   selectedCapacity.value = capacityOptions[0];
-    // }
-
-    // Tambahkan listener untuk memperbarui selectedCapacity saat input berubah
-    capacityController.addListener(() {
-      if (capacityController.text.isNotEmpty) {
-        selectedCapacity.value = capacityController.text;
-      }
-    });
-
+    _formValidation();
 
     // Set default time slots
     startTime.value = TimeOfDay.now();
@@ -80,12 +78,12 @@ class BookingController extends GetxController {
   @override
   void onClose() {
     _timer?.cancel();
+    _validationTimer?.cancel();
     guestNameController.dispose();
     guestEmailController.dispose();
     guestPhoneController.dispose();
     specialRequestsController.dispose();
-    capacityController.dispose(); // Tambahkan dispose untuk controller baru
-
+    capacityController.dispose();
     super.onClose();
   }
 
@@ -109,6 +107,16 @@ class BookingController extends GetxController {
     } finally {
       isLoadingCalendar.value = false;
     }
+  }
+
+  List<TimeSlot> _filterOperatingHourSlots(List<TimeSlot> slots) {
+    return slots.where((slot) {
+      final startHour = int.parse(slot.start.split(':')[0]);
+      final endHour = int.parse(slot.end.split(':')[0]);
+
+      // Only include slots that start >= 8 and end <= 22
+      return startHour >= 8 && endHour <= 22;
+    }).toList();
   }
 
   Future<void> loadDetailedTimeSlots(int venueId, DateTime date) async {
@@ -135,57 +143,28 @@ class BookingController extends GetxController {
     return calendarAvailability[dateStr] ?? 'unknown';
   }
 
-  bool validateCapacity(int maxCapacity) {
-    try {
-      final capacity = int.parse(capacityController.text.trim());
-      if (capacity <= 0) {
-        isCapacityValid.value = false;
-        capacityErrorMessage.value =
-            'Please enter a valid capacity greater than 0';
-        return false;
-      }
-      if (capacity > maxCapacity) {
-        isCapacityValid.value = false;
-        capacityErrorMessage.value =
-            'Capacity cannot exceed venue maximum of $maxCapacity';
-        return false;
-      }
-      isCapacityValid.value = true;
-      capacityErrorMessage.value = '';
-      return true;
-    } catch (e) {
-      isCapacityValid.value = false;
-      capacityErrorMessage.value = 'Please enter a valid number';
-      return false;
-    }
-  }
-
   Future<void> createBooking(VenueModel venue) async {
-    // Validasi kapasitas maksimum venue
-    if (!validateCapacity(venue.maxCapacity ?? 200)) {
-      showError(capacityErrorMessage.value);
-      return;
-    }
-
+    // Pre-validate form before processing
     if (!isFormValid()) return;
 
     try {
       isProcessing.value = true;
       bookingStatus.value = 'processing';
 
+      // Validate time increments
       if (startTime.value!.minute != 0 && startTime.value!.minute != 30) {
         showError(
-            'Start time must be on 30-minute increments (e.g., 09:00, 09:30)');
+            'Waktu mulai harus dalam kelipatan 30 menit (09:00, 09:30, dst)');
         return;
       }
 
       if (endTime.value!.minute != 0 && endTime.value!.minute != 30) {
         showError(
-            'End time must be on 30-minute increments (e.g., 09:00, 09:30)');
+            'Waktu selesai harus dalam kelipatan 30 menit (09:00, 09:30, dst)');
         return;
       }
 
-      // Validasi durasi minimum
+      // Validate duration
       final startDateTime = DateTime(
         selectedDate.value!.year,
         selectedDate.value!.month,
@@ -208,35 +187,23 @@ class BookingController extends GetxController {
         return;
       }
 
-      // Log data yang akan dikirim untuk debugging
-      print('DEBUG: Creating booking with data:');
-      print('- Venue: ${venue.name} (ID: ${venue.id})');
-      print('- Date: ${selectedDate.value}');
-      print('- Time: ${startTime.value} - ${endTime.value}');
-      print('- Duration: ${duration.inHours} hours');
-      print(
-          '- Capacity: ${capacityController.text.trim()}'); // Gunakan controller baru
-      print('- Guest: ${guestNameController.text.trim()}');
-      print('- Email: ${guestEmailController.text.trim()}');
-
       final bookingRequest = BookingCreateRequest.fromVenueAndForm(
         venue: venue,
         date: selectedDate.value!,
         startTime: startTime.value!,
         endTime: endTime.value!,
-        capacity: int.parse(
-            capacityController.text.trim()), // Gunakan controller baru
+        capacity: int.parse(capacityController.text.trim()),
         specialRequests: specialRequestsController.text.trim(),
         userName: guestNameController.text.trim(),
         userEmail: guestEmailController.text.trim(),
         userPhone: guestPhoneController.text.trim(),
       );
 
-      // Log JSON yang akan dikirim
+      // Log request JSON
       final requestJson = bookingRequest.toJson();
       print('DEBUG: Request JSON: $requestJson');
 
-      // Validasi final sebelum kirim
+      // Final validation
       if (requestJson['amount'] == null || requestJson['amount'] <= 0) {
         showError('Invalid booking amount calculated');
         return;
@@ -247,306 +214,275 @@ class BookingController extends GetxController {
           await service.createBookingWithBuiltInValidation(bookingRequest);
 
       if (response is BookingCreateWithResponse) {
-        // Success
         bookingStatus.value = 'success';
-        _showSuccess('Booking created successfully!\n'
+        showSuccess('Booking created successfully!\n'
             'Duration: ${response.totalHours} hours\n'
             'Total: Rp ${NumberFormat('#,###').format(response.totalAmount)}');
 
         clearForm();
         await Future.delayed(Duration(seconds: 2));
         Get.back();
+        goToBookingListPage();
       } else if (response is BookingConflictResponse) {
+        // CONFLICT - Time slot not available
         bookingStatus.value = 'failed';
-        _showConflictDialog(response.availableSlots, venue);
+        handleBookingConflict(response.availableSlots, venue);
       }
     } catch (e) {
       print('ERROR: Booking creation failed: $e');
       bookingStatus.value = 'failed';
 
-      // Tampilkan error yang lebih user-friendly
-      String errorMessage = 'Failed to create booking';
-
-      if (e.toString().contains('Minimum booking duration')) {
-        errorMessage = 'Minimum booking duration is 1 hour';
-      } else if (e.toString().contains('30-minute increments')) {
-        errorMessage =
-            'Please select times in 30-minute increments (e.g., 09:00, 09:30)';
-      } else if (e.toString().contains('Network')) {
-        errorMessage = 'Network error. Please check your connection.';
-      } else if (e.toString().contains('timeout')) {
-        errorMessage = 'Request timeout. Please try again.';
-      } else if (e.toString().contains('409')) {
-        errorMessage = 'Time slot is no longer available.';
-      } else if (e.toString().contains('400')) {
-        errorMessage = 'Invalid booking data. Please check your input.';
-      }
-
+      String errorMessage = _getUserFriendlyErrorMessage(e.toString());
       showError(errorMessage);
     } finally {
       isProcessing.value = false;
-      goToBookingListPage();
     }
   }
 
-  bool isFormValid() {
-    // Validasi tanggal
-    if (selectedDate.value == null) {
-      showError('Please select booking date');
-      return false;
+  // friendly error messages
+  String _getUserFriendlyErrorMessage(String error) {
+    final lowerError = error.toLowerCase();
+
+    print('🔍 Analyzing error: $error');
+
+    // Specific conflict detection - multiple patterns
+    if (lowerError.contains('venue not available') ||
+        lowerError.contains('conflict') ||
+        lowerError.contains('slot') && lowerError.contains('available') ||
+        lowerError.contains('booking') && lowerError.contains('conflict') ||
+        lowerError.contains('time') && lowerError.contains('booked') ||
+        lowerError.contains('already booked') ||
+        lowerError.contains('409')) {
+      print('Detected conflict/venue unavailable error');
+      return 'Waktu yang dipilih sudah dibooking. Silakan pilih waktu lain.';
     }
 
-    // Validasi tanggal tidak boleh di masa lalu
-    final today = DateTime.now();
-    final selectedDateOnly = DateTime(
-      selectedDate.value!.year,
-      selectedDate.value!.month,
-      selectedDate.value!.day,
+    // Network/connection errors
+    if (lowerError.contains('network') ||
+        lowerError.contains('connection') ||
+        lowerError.contains('timeout') ||
+        lowerError.contains('internet')) {
+      print('Detected network error');
+      return 'Masalah koneksi. Periksa internet Anda dan coba lagi.';
+    }
+
+    // Validation errors
+    if (lowerError.contains('validation') ||
+        lowerError.contains('invalid') ||
+        lowerError.contains('required') ||
+        lowerError.contains('format')) {
+      print('Detected validation error');
+      return 'Data tidak valid. Silakan periksa input Anda.';
+    }
+
+    // Authentication errors
+    if (lowerError.contains('unauthorized') ||
+        lowerError.contains('401') ||
+        lowerError.contains('authentication') ||
+        lowerError.contains('login')) {
+      print('Detected auth error');
+      return 'Silakan login ulang untuk melanjutkan.';
+    }
+
+    // Business rule errors
+    if (lowerError.contains('minimum') && lowerError.contains('duration')) {
+      print('Detected duration error');
+      return 'Durasi booking minimal 1 jam';
+    }
+
+    if (lowerError.contains('30-minute') || lowerError.contains('increments')) {
+      print('Detected time increment error');
+      return 'Pilih waktu dalam kelipatan 30 menit (09:00, 09:30, dst)';
+    }
+
+    // Server errors
+    if (lowerError.contains('server error') ||
+        lowerError.contains('500') ||
+        lowerError.contains('502') ||
+        lowerError.contains('503')) {
+      print('Detected server error');
+      return 'Server sedang bermasalah. Silakan coba lagi nanti.';
+    }
+
+    // Client errors
+    if (lowerError.contains('400') || lowerError.contains('bad request')) {
+      print('Detected client error');
+      return 'Data booking tidak valid. Periksa kembali input Anda.';
+    }
+
+    // Default fallback
+    print('Using fallback error message');
+    return 'Terjadi kesalahan. Silakan coba lagi atau hubungi support.';
+  }
+
+  void _formValidation() {
+    guestNameController.addListener(() => _debounceValidation('name'));
+    guestEmailController.addListener(() => _debounceValidation('email'));
+    guestPhoneController.addListener(() => _debounceValidation('phone'));
+    capacityController.addListener(() => _debounceValidation('capacity'));
+
+    // Instant validation for reactive fields
+    selectedDate.listen((_) => _validateDateTime());
+    startTime.listen((_) => _validateDateTime());
+    endTime.listen((_) => _validateDateTime());
+
+    // Listen to all changes for form completion
+    ever(
+        isFormComplete,
+        (complete) =>
+            formProgress.value = complete ? 1.0 : _calculateProgress());
+  }
+
+  void _debounceValidation(String field) {
+    _validationTimer?.cancel();
+    _validationTimer =
+        Timer(Duration(milliseconds: 400), () => validateField(field));
+  }
+
+  void validateField(String field) {
+    switch (field) {
+      case 'name':
+        final result =
+            validationService.validateGuestName(guestNameController.text);
+        nameError.value = result.isValid ? '' : result.message;
+        break;
+      case 'email':
+        final result =
+            validationService.validateGuestEmail(guestEmailController.text);
+        emailError.value = result.isValid ? '' : result.message;
+        break;
+      case 'phone':
+        final result =
+            validationService.validateGuestPhone(guestPhoneController.text);
+        phoneError.value = result.isValid ? '' : result.message;
+        break;
+      case 'capacity':
+        validateCapacity(maxVenueCapacity.value);
+        break;
+    }
+    _updateFormCompletion();
+  }
+
+  void _validateDateTime() {
+    final result = validationService.validateTimeSlot(
+      date: selectedDate.value,
+      startTime: startTime.value,
+      endTime: endTime.value,
     );
-    final todayOnly = DateTime(today.year, today.month, today.day);
+    dateTimeError.value = result.isValid ? '' : result.message;
+    _updateFormCompletion();
+  }
 
-    if (selectedDateOnly.isBefore(todayOnly)) {
-      showError('Cannot book for past dates');
+  void _updateFormCompletion() {
+    final status = validationService.getFormCompletionStatus(
+      selectedDate: selectedDate.value,
+      startTime: startTime.value,
+      endTime: endTime.value,
+      guestName: guestNameController.text,
+      guestEmail: guestEmailController.text,
+      guestPhone: guestPhoneController.text,
+      capacityText: capacityController.text,
+      venueMaxCapacity: maxVenueCapacity.value,
+    );
+
+    isFormComplete.value = status['isComplete'];
+    formProgress.value = status['completionPercentage'];
+  }
+
+  double _calculateProgress() {
+    int completed = 0;
+    int total = 6; // total required fields
+
+    if (selectedDate.value != null) completed++;
+    if (startTime.value != null &&
+        endTime.value != null &&
+        dateTimeError.isEmpty) completed++;
+    if (guestNameController.text.isNotEmpty && nameError.isEmpty) completed++;
+    if (guestEmailController.text.isNotEmpty && emailError.isEmpty) completed++;
+    if (guestPhoneController.text.isNotEmpty && phoneError.isEmpty) completed++;
+    if (capacityController.text.isNotEmpty && isCapacityValid.value)
+      completed++;
+
+    return completed / total;
+  }
+
+  bool isFormValid() {
+    // Use validation service to check form
+    final result = validationService.validateBookingFormWithSpecificError(
+      selectedDate: selectedDate.value,
+      startTime: startTime.value,
+      endTime: endTime.value,
+      guestName: guestNameController.text,
+      guestEmail: guestEmailController.text,
+      guestPhone: guestPhoneController.text,
+      capacityText: capacityController.text,
+      venueMaxCapacity: maxVenueCapacity.value,
+    );
+
+    if (!result.isValid) {
+      showError(result.message);
       return false;
     }
 
-    // Validasi waktu
-    if (startTime.value == null || endTime.value == null) {
-      showError('Please select start and end times');
-      return false;
-    }
-
-    // Validasi urutan waktu
-    final startMinutes = startTime.value!.hour * 60 + startTime.value!.minute;
-    final endMinutes = endTime.value!.hour * 60 + endTime.value!.minute;
-
-    if (startMinutes >= endMinutes) {
-      showError('End time must be after start time');
-      return false;
-    }
-
-    // Validasi nama
-    if (guestNameController.text.trim().isEmpty) {
-      showError('Please enter guest name');
-      return false;
-    }
-
-    // Validasi email dengan regex
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (guestEmailController.text.trim().isEmpty) {
-      showError('Please enter email address');
-      return false;
-    }
-
-    if (!emailRegex.hasMatch(guestEmailController.text.trim())) {
-      showError('Please enter a valid email address');
-      return false;
-    }
-
-    // Validasi phone
-    if (guestPhoneController.text.trim().isEmpty) {
-      showError('Please enter phone number');
+    if (!validateCapacityForSubmit(maxVenueCapacity.value)) {
+      showError(capacityErrorMessage.value);
       return false;
     }
 
     return true;
   }
 
-  // CONFLICT DIALOG
-  void _showConflictDialog(List<TimeSlot> availableSlots, VenueModel venue) {
-    Get.dialog(
-      AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.schedule, color: Colors.orange, size: 24),
-            SizedBox(width: 8),
-            Text('Time Not Available'),
-          ],
-        ),
-        content: Container(
-          width: double.maxFinite,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'The selected time slot is already booked.',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[700],
-                ),
-              ),
-              SizedBox(height: 16),
-              if (availableSlots.isNotEmpty) ...[
-                Text(
-                  'Available time slots today:',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-                SizedBox(height: 8),
-                Container(
-                  height: 200,
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: availableSlots.length,
-                    itemBuilder: (context, index) {
-                      final slot = availableSlots[index];
-                      return _buildAvailableSlotItem(slot, venue);
-                    },
-                  ),
-                ),
-              ] else ...[
-                Container(
-                  padding: EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.red[50],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red[200]!),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.info_outline, color: Colors.red, size: 20),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'No available slots for today. Please choose a different date.',
-                          style: TextStyle(
-                            color: Colors.red[700],
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-          ),
-          if (availableSlots.isEmpty)
-            ElevatedButton(
-              onPressed: () {
-                Get.back();
-                // Focus on date picker to let user choose different date
-                _focusOnDatePicker();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-              ),
-              child: Text('Choose Different Date'),
-            ),
-        ],
-      ),
-      barrierDismissible: true,
-    );
+  void handleBookingConflict(List<TimeSlot> availableSlots, VenueModel venue) {
+    // Let UI layer handle the dialog display
+    final filteredSlots = _filterOperatingHourSlots(availableSlots);
+
+    // Use callback or event to notify UI layer
+    Get.dialog(ConflictDialog(
+        availableSlots: filteredSlots,
+        venue: venue,
+        onSlotSelected: (TimeSlot slot) => useAvailableSlot(slot)));
   }
 
-  Widget _buildAvailableSlotItem(TimeSlot slot, VenueModel venue) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.green[200]!),
-        borderRadius: BorderRadius.circular(8),
-        color: Colors.green[50],
-      ),
-      child: ListTile(
-        dense: true,
-        leading: Icon(
-          Icons.access_time,
-          color: Colors.green[600],
-          size: 20,
-        ),
-        title: Text(
-          slot.displayTime,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: Colors.green[700],
-          ),
-        ),
-        trailing: ElevatedButton(
-          onPressed: () => _useAvailableSlot(slot, venue),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green,
-            foregroundColor: Colors.white,
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            minimumSize: Size(60, 32),
-            textStyle: TextStyle(fontSize: 12),
-          ),
-          child: Text('Use This'),
-        ),
-      ),
-    );
-  }
-
-// Use the selected available slot
-  void _useAvailableSlot(TimeSlot slot, VenueModel venue) {
-    // Close dialog first
-    Get.back();
-
+  // Use the selected available slot
+  void useAvailableSlot(TimeSlot slot) {
     try {
-      // Parse and update the form with selected time slot
+      // Parse start time from available slot
       final startParts = slot.start.split(':');
-      final endParts = slot.end.split(':');
+      final startHour = int.parse(startParts[0]);
+      final startMinute = int.parse(startParts[1]);
 
+      // Set start time
       startTime.value = TimeOfDay(
-        hour: int.parse(startParts[0]),
-        minute: int.parse(startParts[1]),
+        hour: startHour,
+        minute: startMinute,
       );
 
+      // Calculate end time (1 hour after start time)
+      final startTotalMinutes = startHour * 60 + startMinute;
+      final endTotalMinutes = startTotalMinutes + 60;
+      final endHour = (endTotalMinutes ~/ 60) % 24;
+      final endMinute = endTotalMinutes % 60;
+
+      // Set end time (1 hour duration)
       endTime.value = TimeOfDay(
-        hour: int.parse(endParts[0]),
-        minute: int.parse(endParts[1]),
+        hour: endHour,
+        minute: endMinute,
       );
 
-      // Show confirmation dialog
-      Get.dialog(
-        AlertDialog(
-          title: Text('Confirm Time Change'),
-          content: Text(
-            'Change booking time to ${slot.displayTime}?',
-            style: TextStyle(fontSize: 16),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Get.back(),
-              child: Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Get.back();
-                // Show success message and auto-submit
-                _showSuccess(
-                    'Time updated to ${slot.displayTime}. Creating booking...');
+      // Format display times for success message
+      final startTimeDisplay =
+          '${startHour.toString().padLeft(2, '0')}:${startMinute.toString().padLeft(2, '0')}';
+      final endTimeDisplay =
+          '${endHour.toString().padLeft(2, '0')}:${endMinute.toString().padLeft(2, '0')}';
+      final timeRangeDisplay = '$startTimeDisplay - $endTimeDisplay';
 
-                // Small delay for user to see the message
-                Future.delayed(Duration(milliseconds: 500), () {
-                  createBooking(venue);
-                });
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-              ),
-              child: Text('Confirm & Book'),
-            ),
-          ],
-        ),
-      );
+      // Use event/callback instead of direct snackbar
+      showSuccess(
+          'Waktu booking diperbarui ke $timeRangeDisplay\nSilakan review detail booking dan tekan "Book Now" jika sudah yakin.');
+
+      print('Time updated successfully: $timeRangeDisplay');
     } catch (e) {
-      showError('Failed to update time slot: $e');
+      showError('Gagal memperbarui slot waktu: $e');
     }
   }
 
@@ -558,76 +494,157 @@ class BookingController extends GetxController {
     endTime.value = time;
   }
 
-  // CAPACITY
-  void updateGuestCount(String value) {
-    if (value.isEmpty) {
-      guestCount.value = 1;
-      guestCountController.text = '1';
-      return;
-    }
-
-    final intValue = int.tryParse(value);
-    if (intValue != null &&
-        intValue >= 1 &&
-        intValue <= maxVenueCapacity.value) {
-      guestCount.value = intValue;
-    } else if (intValue != null && intValue > maxVenueCapacity.value) {
-      // Auto-correct to venue max capacity
-      guestCount.value = maxVenueCapacity.value;
-      guestCountController.text = maxVenueCapacity.value.toString();
-
-      // Show venue-specific feedback
-      CustomSnackbar.show(
-        context: Get.context!,
-        message: 'Maximum capacity reached. Please choose a different venue.',
-        type: SnackbarType.warning,
-      );
-    } else if (intValue != null && intValue < 1) {
-      // Auto-correct to minimum value
-      guestCount.value = 1;
-      guestCountController.text = '1';
-    }
-  }
-
-  void incrementGuestCount() {
-    if (guestCount.value < maxVenueCapacity.value) {
-      guestCount.value++;
-      guestCountController.text = guestCount.value.toString();
-    } else {
-      // Show venue-specific feedback when at max
-      CustomSnackbar.show(
-        context: Get.context!,
-        message: 'Maximum capacity reached. Please choose a different venue.',
-        type: SnackbarType.warning,
-      );
-
-    }
-  }
-
-  void decrementGuestCount() {
-    if (guestCount.value > 1) {
-      guestCount.value--;
-      guestCountController.text = guestCount.value.toString();
-    }
-  }
-
   void setVenueData(VenueModel venue) {
     if (venue.maxCapacity != null && venue.maxCapacity! > 0) {
       maxVenueCapacity.value = venue.maxCapacity!;
-      print('✅ Max capacity set from venue: ${venue.maxCapacity}');
-
-      // Reset guest count if it exceeds venue capacity
-      if (guestCount.value > venue.maxCapacity!) {
-        guestCount.value = venue.maxCapacity!;
-        guestCountController.text = venue.maxCapacity!.toString();
-        print(
-            '🔄 Guest count adjusted to venue max capacity: ${venue.maxCapacity}');
+      final currentCapacity = int.tryParse(capacityController.text) ?? 1;
+      if (currentCapacity > venue.maxCapacity!) {
+        capacityController.text = venue.maxCapacity!.toString();
+        showInfo(
+            'Capacity adjusted to venue maximum: ${venue.maxCapacity} guests');
       }
     } else {
-      // Fallback if venue doesn't have max capacity
       maxVenueCapacity.value = 100;
-      print('⚠️ Venue has no max capacity, using default: 100');
     }
+    // Trigger validation after setting venue data
+    validateField('capacity');
+  }
+
+  bool validateCapacity(int maxCapacity) {
+    final inputText = capacityController.text.trim();
+
+    // Allow empty input (user sedang ngetik)
+    if (inputText.isEmpty) {
+      isCapacityValid.value = true; // Don't show error while typing
+      capacityErrorMessage.value = '';
+      return true;
+    }
+
+    int? capacity;
+    try {
+      capacity = int.parse(inputText);
+    } catch (e) {
+      isCapacityValid.value = false;
+      capacityErrorMessage.value = 'Please enter a valid number';
+      return false;
+    }
+
+    // Allow 0 during input (user bisa temporary input 0)
+    if (capacity == 0) {
+      isCapacityValid.value = true; // Allow 0 temporarily
+      capacityErrorMessage.value = '';
+      return true;
+    }
+
+    if (capacity < 0) {
+      isCapacityValid.value = false;
+      capacityErrorMessage.value = 'Capacity cannot be negative';
+      return false;
+    }
+
+    if (capacity > maxCapacity) {
+      isCapacityValid.value = false;
+      capacityErrorMessage.value =
+          'Capacity cannot exceed venue maximum of $maxCapacity';
+      return false;
+    }
+
+    // Valid capacity
+    isCapacityValid.value = true;
+    capacityErrorMessage.value = '';
+    return true;
+  }
+
+// Strict validation untuk submit (tidak allow 0)
+  bool validateCapacityForSubmit(int maxCapacity) {
+    final inputText = capacityController.text.trim();
+
+    if (inputText.isEmpty) {
+      isCapacityValid.value = false;
+      capacityErrorMessage.value = 'Number of guests is required';
+      return false;
+    }
+
+    int? capacity;
+    try {
+      capacity = int.parse(inputText);
+    } catch (e) {
+      isCapacityValid.value = false;
+      capacityErrorMessage.value = 'Please enter a valid number';
+      return false;
+    }
+
+    // Strict validation - tidak allow 0 saat submit
+    if (capacity <= 0) {
+      isCapacityValid.value = false;
+      capacityErrorMessage.value = 'Number of guests must be at least 1';
+      return false;
+    }
+
+    if (capacity > maxCapacity) {
+      isCapacityValid.value = false;
+      capacityErrorMessage.value =
+          'Cannot exceed venue maximum of $maxCapacity guests';
+      return false;
+    }
+
+    // Valid capacity
+    isCapacityValid.value = true;
+    capacityErrorMessage.value = '';
+    return true;
+  }
+
+  void incrementCapacity() {
+    final currentValue = int.tryParse(capacityController.text) ?? 0;
+    final maxCapacity = maxVenueCapacity.value;
+
+    if (currentValue < maxCapacity) {
+      capacityController.text = (currentValue + 1).toString();
+      validateField('capacity');
+    } else {
+      showInfo('Maximum capacity is $maxCapacity guests');
+    }
+  }
+
+  void decrementCapacity() {
+    final currentValue = int.tryParse(capacityController.text) ?? 1;
+    if (currentValue > 0) {
+      capacityController.text = (currentValue - 1).toString();
+      validateField('capacity');
+    }
+  }
+
+// Handle auto-correction saat user input > max capacity
+  void handleCapacityInput(String value) {
+    final maxCapacity = maxVenueCapacity.value;
+
+    // Allow empty atau 0 untuk flexibility
+    if (value.isEmpty || value == '0') {
+      validateCapacity(maxCapacity); // Use lenient validation
+      return;
+    }
+
+    final inputValue = int.tryParse(value);
+    if (inputValue == null) {
+      // Invalid input - keep previous value or reset to 1
+      capacityController.text = '1';
+      capacityController.selection = TextSelection.fromPosition(
+        TextPosition(offset: capacityController.text.length),
+      );
+      return;
+    }
+
+    // Auto-correct immediately jika > max capacity
+    if (inputValue > maxCapacity) {
+      capacityController.text = maxCapacity.toString();
+      capacityController.selection = TextSelection.fromPosition(
+        TextPosition(offset: capacityController.text.length),
+      );
+      showInfo('Maximum capacity is $maxCapacity guests');
+    }
+
+    // Validate with lenient rules (allow 0 temporarily)
+    validateCapacity(maxCapacity);
   }
 
   // PAYMENT METHODS
@@ -665,7 +682,7 @@ class BookingController extends GetxController {
             mode: LaunchMode.externalApplication,
           );
 
-          _showSuccess('Payment page opened. Complete your payment.');
+          showSuccess('Payment page opened. Complete your payment.');
 
           await Future.delayed(Duration(seconds: 3));
           if (Get.isRegistered<BookingListController>()) {
@@ -687,15 +704,12 @@ class BookingController extends GetxController {
   // UTILITY METHODS
   void clearForm() {
     selectedDate.value = null;
-    capacityController.text = '10'; // Update untuk menggunakan controller baru
-    selectedCapacity.value = '10';
+    capacityController.text = '10';
     startTime.value = TimeOfDay.now();
     endTime.value = TimeOfDay(
       hour: (TimeOfDay.now().hour + 2) % 24,
       minute: TimeOfDay.now().minute,
     );
-    guestCount.value = 1;
-    guestCountController.text = '1';
     guestNameController.clear();
     guestEmailController.clear();
     guestPhoneController.clear();
@@ -703,6 +717,16 @@ class BookingController extends GetxController {
     bookingStatus.value = 'idle';
     calendarAvailability.clear();
     detailedTimeSlots.clear();
+
+    // Clear error states
+    nameError.value = '';
+    emailError.value = '';
+    phoneError.value = '';
+    dateTimeError.value = '';
+    capacityErrorMessage.value = '';
+    isCapacityValid.value = true;
+    isFormComplete.value = false;
+    formProgress.value = 0.0;
   }
 
   String formatDuration(Duration duration) {
@@ -727,48 +751,37 @@ class BookingController extends GetxController {
     }
   }
 
-  void _focusOnDatePicker() {
-    print('📅 Focus on date picker to choose different date');
-  }
-
   void showError(String message) {
-    _makeErrorUserFriendly(message);
-
     CustomSnackbar.show(
-        context: Get.context!, message: message, type: SnackbarType.error);
+      context: Get.context!,
+      message: message,
+      type: SnackbarType.error,
+    );
   }
 
-  String _makeErrorUserFriendly(String technicalError) {
-    final lowerError = technicalError.toLowerCase();
-
-    if (lowerError.contains('venue not available') ||
-        lowerError.contains('409') ||
-        lowerError.contains('conflict')) {
-      return 'This time slot is already booked. Please choose a different time.';
-    }
-
-    if (lowerError.contains('network') || lowerError.contains('connection')) {
-      return 'Connection problem. Please check your internet and try again.';
-    }
-
-    if (lowerError.contains('timeout')) {
-      return 'Request timed out. Please try again.';
-    }
-
-    if (lowerError.contains('validation') || lowerError.contains('invalid')) {
-      return 'Please check your booking details and try again.';
-    }
-
-    if (lowerError.contains('unauthorized') || lowerError.contains('401')) {
-      return 'Please log in again to continue.';
-    }
-
-    return 'Something went wrong. Please try again or contact support.';
+  void showSuccess(String message) {
+    CustomSnackbar.show(
+      context: Get.context!,
+      message: message,
+      type: SnackbarType.success,
+    );
   }
 
-  void _showSuccess(String message) {
+  void showValidationWarning(String message) {
     CustomSnackbar.show(
-        context: Get.context!, message: message, type: SnackbarType.success);
+      context: Get.context!,
+      message: message,
+      type: SnackbarType.warning,
+    );
+  }
+
+
+  void showInfo(String message) {
+    CustomSnackbar.show(
+      context: Get.context!,
+      message: message,
+      type: SnackbarType.info,
+    );
   }
 
   // NAVIGATION

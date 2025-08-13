@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:function_mobile/core/constants/app_constants.dart';
 import 'package:get/get.dart';
 import 'package:dio/dio.dart' as dio;
@@ -13,9 +14,9 @@ class ApiService extends GetxService {
   ApiService() {
     _dio = dio.Dio(dio.BaseOptions(
       baseUrl: AppConstants.baseUrl,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
-      sendTimeout: const Duration(seconds: 10),
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 60),
+      sendTimeout: const Duration(seconds: 30),
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json",
@@ -283,6 +284,12 @@ class ApiService extends GetxService {
         return response.data;
       } else if (response.statusCode == 401) {
         throw Exception("Authentication required. Please login again.");
+      } else if (response.statusCode == 409) {
+        throw DioException(
+          requestOptions: RequestOptions(path: endpoint),
+          response: response,
+          type: DioExceptionType.badResponse,
+        );
       } else {
         throw Exception("HTTP ${response.statusCode}: ${response.data}");
       }
@@ -290,6 +297,10 @@ class ApiService extends GetxService {
       print("POST Error for $endpoint: ${e.type} - ${e.message}");
       if (e.response?.statusCode == 401) {
         throw Exception("Authentication required. Please login again.");
+      }
+
+      if (e.response?.statusCode == 409) {
+        rethrow;
       }
       _handleDioError(e, endpoint);
       rethrow;
