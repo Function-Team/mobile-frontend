@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 import 'package:get/get.dart';
@@ -203,7 +204,10 @@ class LoginPage extends StatelessWidget {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      authController.clearErrorMessage();
+                      Get.toNamed(MyRoutes.forgotPassword);
+                    },
                     child: Text(
                       'Forgot Password?',
                       style: TextStyle(

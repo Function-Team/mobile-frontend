@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
+import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:function_mobile/modules/venue/data/repositories/venue_repository.dart';
 import 'package:get/get.dart';
@@ -43,13 +44,7 @@ class SearchActivityController extends GetxController {
       print('Error loading data: $e');
       errorMessage.value = 'Failed to load data: $e';
       // Show error message to user
-      Get.snackbar(
-        'Error',
-        'Failed to load data: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      CustomSnackbar.show(context: Get.context!, message: 'Failed to load data', type: SnackbarType.error);
     } finally {
       isLoading.value = false;
     }

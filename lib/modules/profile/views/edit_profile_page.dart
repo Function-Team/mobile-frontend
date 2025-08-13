@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/buttons/secondary_button.dart';
-import 'package:function_mobile/common/widgets/images/network_image.dart';
 import 'package:function_mobile/common/widgets/inputs/primary_text_field.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/generated/locale_keys.g.dart';
-import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
+import 'package:function_mobile/modules/profile/controllers/edit_profile_controller.dart';
 import 'package:get/get.dart';
 
 class EditProfilePage extends StatelessWidget {
@@ -12,140 +11,266 @@ class EditProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final AuthController authController = Get.find<AuthController>();
-
-    // Controllers untuk form
-    final TextEditingController usernameController = TextEditingController();
-    final TextEditingController emailController = TextEditingController();
-    // final TextEditingController phoneController = TextEditingController();
-
-    // Populate controllers dengan data existing
-    if (authController.user.value != null) {
-      usernameController.text = authController.user.value!.username;
-      emailController.text = authController.user.value!.email;
-    }
+    final EditProfileController controller = Get.put(EditProfileController());
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Profile'),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Obx(() => _buildProfilePicture(context,
-            //     profilePicture: authController.user.value
-            //         ?.toString() // TODO: Add profile picture URL
-            //     )),
-            const SizedBox(height: 24),
-            _buildProfileForm(
-              usernameController,
-              emailController,
-            ),
-            const SizedBox(height: 30),
-            SecondaryButton(
-              text: LocalizationHelper.tr(LocaleKeys.common_saveChange),
-              width: double.infinity,
-              onPressed: () {},
-            ),
-          ],
+        appBar: AppBar(
+          title: const Text('Edit Profile'),
+          centerTitle: true,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Get.back(),
+          ),
         ),
-      ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header section
+              _buildHeader(context),
+              const SizedBox(height: 32),
+
+              // Form section
+              _buildProfileForm(context, controller),
+              const SizedBox(height: 24),
+
+              // Password section
+              _buildPasswordSection(context, controller),
+              const SizedBox(height: 32),
+
+              // Messages section
+              _buildMessages(context, controller),
+
+              // Save button
+              _buildSaveButton(context, controller),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ));
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Profile Information',
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Update your account information below. You\'ll need to enter your current password to save changes.',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.grey[600],
+              ),
+        ),
+      ],
     );
   }
 
-  // Widget _buildProfilePicture(BuildContext context, {String? profilePicture}) {
-  //   return Column(
-  //     children: [
-  //       Stack(
-  //         alignment: Alignment.bottomRight,
-  //         children: [
-  //           profilePicture != null && profilePicture.isNotEmpty
-  //               ? ClipOval(
-  //                   child: NetworkImageWithLoader(
-  //                     imageUrl: profilePicture,
-  //                     width: 120,
-  //                     height: 120,
-  //                     fit: BoxFit.cover,
-  //                   ),
-  //                 )
-  //               : Container(
-  //                   height: 120,
-  //                   width: 120,
-  //                   decoration: BoxDecoration(
-  //                     color: Theme.of(context).colorScheme.primary,
-  //                     shape: BoxShape.circle,
-  //                   ),
-  //                   child: const Icon(
-  //                     Icons.person,
-  //                     color: Colors.white,
-  //                     size: 60,
-  //                   ),
-  //                 ),
-  //           Positioned(
-  //             bottom: 5,
-  //             right: 5,
-  //             child: GestureDetector(
-  //               onTap: () {}, // TODO: Implement image upload
-  //               child: Container(
-  //                 padding: const EdgeInsets.all(6),
-  //                 decoration: BoxDecoration(
-  //                   color: Theme.of(context).colorScheme.secondary,
-  //                   shape: BoxShape.circle,
-  //                   boxShadow: [
-  //                     BoxShadow(
-  //                       color: Colors.black.withOpacity(0.2),
-  //                       blurRadius: 4,
-  //                       spreadRadius: 1,
-  //                     ),
-  //                   ],
-  //                 ),
-  //                 child: const Icon(
-  //                   Icons.camera_alt,
-  //                   color: Colors.white,
-  //                   size: 20,
-  //                 ),
-  //               ),
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     ],
-  //   );
-  // }
-
   Widget _buildProfileForm(
-    TextEditingController usernameController,
-    TextEditingController emailController,
-  ) {
+      BuildContext context, EditProfileController controller) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        PrimaryTextField(
-          label: LocalizationHelper.tr(LocaleKeys.auth_username),
-          hintText: LocalizationHelper.tr(LocaleKeys.booking_enterFullName),
-          prefixIcon: Icon(Icons.person),
-          keyboardType: TextInputType.text,
-          controller: usernameController,
+        Text(
+          'Account Details',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
         ),
-        SizedBox(height: 16),
-        PrimaryTextField(
-          label: LocalizationHelper.tr(LocaleKeys.auth_email),
-          hintText: LocalizationHelper.tr(LocaleKeys.booking_enterEmail),
-          prefixIcon: Icon(Icons.email),
-          keyboardType: TextInputType.emailAddress,
-          controller: emailController,
-        ),
-        SizedBox(height: 16),
-        // PrimaryTextField(
-        //   label: LocalizationHelper.tr(LocaleKeys.auth_phoneNumber),
-        //   hintText: LocalizationHelper.tr(LocaleKeys.booking_enterPhoneNumber),
-        //   prefixIcon: Icon(Icons.phone),
-        //   keyboardType: TextInputType.phone,
-        //   controller: phoneController,
-        // ),
+        const SizedBox(height: 16),
+
+        // Username field
+        Obx(() => Column(
+              children: [
+                PrimaryTextField(
+                  label: LocalizationHelper.tr(LocaleKeys.auth_username),
+                  hintText: 'Enter your username',
+                  prefixIcon: const Icon(Icons.person_outline),
+                  keyboardType: TextInputType.text,
+                  controller: controller.usernameController,
+                  onChanged: controller.validateUsernameField,
+                ),
+                if (controller.usernameError.value.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      controller.usernameError.value,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.red,
+                          ),
+                    ),
+                  ),
+                ],
+              ],
+            )),
+        const SizedBox(height: 20),
+
+        // Email field
+        Obx(() => Column(
+              children: [
+                PrimaryTextField(
+                  label: LocalizationHelper.tr(LocaleKeys.auth_email),
+                  hintText: 'Enter your email address',
+                  prefixIcon: const Icon(Icons.email_outlined),
+                  keyboardType: TextInputType.emailAddress,
+                  controller: controller.emailController,
+                  onChanged: controller.validateEmailField,
+                ),
+                if (controller.emailError.value.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      controller.emailError.value,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.red,
+                          ),
+                    ),
+                  ),
+                ],
+              ],
+            )),
       ],
     );
+  }
+
+  Widget _buildPasswordSection(
+      BuildContext context, EditProfileController controller) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Security Verification',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Enter your current password to confirm changes',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Colors.grey[600],
+              ),
+        ),
+        const SizedBox(height: 16),
+
+        // Current password field
+        Obx(() => Column(
+              children: [
+                PrimaryTextField(
+                  label: 'Current Password',
+                  hintText: 'Enter your current password',
+                  prefixIcon: const Icon(Icons.lock_outline),
+                  obscureText: controller.obscurePassword.value,
+                  controller: controller.currentPasswordController,
+                  onChanged: controller.validatePasswordField,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      controller.obscurePassword.value
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                    ),
+                    onPressed: controller.togglePasswordVisibility,
+                  ),
+                ),
+                if (controller.passwordError.value.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      controller.passwordError.value,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.red,
+                          ),
+                    ),
+                  ),
+                ],
+              ],
+            )),
+      ],
+    );
+  }
+
+  Widget _buildMessages(
+      BuildContext context, EditProfileController controller) {
+    return Obx(() {
+      if (controller.errorMessage.value.isNotEmpty) {
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(12),
+          margin: const EdgeInsets.only(bottom: 16),
+          decoration: BoxDecoration(
+            color: Colors.red.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.red.withOpacity(0.3)),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.error_outline, color: Colors.red, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  controller.errorMessage.value,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.red,
+                      ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+
+      if (controller.successMessage.value.isNotEmpty) {
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(12),
+          margin: const EdgeInsets.only(bottom: 16),
+          decoration: BoxDecoration(
+            color: Colors.green.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.green.withOpacity(0.3)),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.check_circle_outline, color: Colors.green, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  controller.successMessage.value,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.green,
+                      ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+
+      return const SizedBox.shrink();
+    });
+  }
+
+  Widget _buildSaveButton(
+      BuildContext context, EditProfileController controller) {
+    return Obx(() => SecondaryButton(
+          text: controller.isLoading.value
+              ? 'Saving...'
+              : LocalizationHelper.tr(LocaleKeys.common_saveChange),
+          width: double.infinity,
+          onPressed: controller.isLoading.value ? null : controller.saveProfile,
+          icon: controller.isLoading.value
+              ? null
+              : (controller.hasChanges ? Icons.save : Icons.check),
+        ));
   }
 }

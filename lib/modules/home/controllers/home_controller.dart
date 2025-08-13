@@ -23,7 +23,7 @@ class HomeController extends GetxController {
   }
 
   void goToProfile() {
-    Get.find<BottomNavController>().changePage(2);
+    Get.find<BottomNavController>().changePage(3);
   }
 
   // Tambahkan property ini di class HomeController
@@ -133,12 +133,23 @@ class HomeController extends GetxController {
     }
   }
 
-  // Add proper error-handled refresh function
+  // Improved refresh function that also refreshes profile data
   Future<void> refreshVenues() async {
-    // Clear existing state
-    recommendedVenues.clear();
-    // Start fresh fetch
-    return fetchRecommendedVenues();
+    try {
+      // Clear existing state
+      recommendedVenues.clear();
+      
+      // Refresh profile data as well
+      final authController = Get.find<AuthController>();
+      await authController.refreshUserData();
+      
+      // Start fresh fetch for venues
+      await fetchRecommendedVenues();
+    } catch (e) {
+      print('Error during refresh: $e');
+      // Still try to fetch venues even if profile refresh fails
+      await fetchRecommendedVenues();
+    }
   }
 
   String get username {

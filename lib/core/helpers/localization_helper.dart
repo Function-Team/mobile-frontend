@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart' as easy;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/bindings/localization_binding.dart';
+import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:get/get.dart';
 
@@ -82,21 +83,10 @@ class LocalizationHelper {
       debugPrint('🌍 Language changed to: $languageCode');
 
       // Show success message using generated keys
-      Get.snackbar(
-        tr(LocaleKeys.settings_languageChanged),
-        tr(LocaleKeys.settings_changeLanguageConfirm),
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 2),
-      );
+      CustomSnackbar.show(context: context, message: tr(LocaleKeys.settings_changeLanguageConfirm), type: SnackbarType.success);
     } catch (e) {
       debugPrint('❌ Error changing language: $e');
-      Get.snackbar(
-        tr(LocaleKeys.common_error),
-        tr(LocaleKeys.errors_unknownError),
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.shade100,
-        colorText: Colors.red.shade800,
-      );
+      CustomSnackbar.show(context: context, message: tr(LocaleKeys.common_error), type: SnackbarType.error);
     }
   }
 

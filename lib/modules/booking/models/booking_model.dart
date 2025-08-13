@@ -472,7 +472,7 @@ class BookingCreateRequest {
     final totalPrice = (venue.price ?? 0) * durationInHours;
 
     return BookingCreateRequest(
-      placeId: venue.id!,
+      placeId: venue.id,
       userId: null,
       venueName: venue.name ?? 'Unknown Venue',
       userName: userName,

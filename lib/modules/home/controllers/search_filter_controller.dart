@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
+import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:function_mobile/modules/venue/data/repositories/venue_repository.dart';
 import 'package:get/get.dart';
@@ -278,15 +279,8 @@ class SearchFilterController extends GetxController {
       capacityText.value = '1000 orang';
 
       // Show feedback
-      Get.snackbar(
-        'Maksimal Kapasitas',
-        'Maksimal 1000 orang',
-        duration: const Duration(seconds: 1),
-        backgroundColor: Colors.orange[100],
-        colorText: Colors.orange[800],
-        snackPosition: SnackPosition.TOP,
-        margin: const EdgeInsets.all(16),
-      );
+      CustomSnackbar.show(context: Get.context!, message: 'Maksimal 1000 orang', type: SnackbarType.warning);
+
     }
   }
 
@@ -364,24 +358,12 @@ class SearchFilterController extends GetxController {
   Future<void> performAdvancedSearch() async {
     // Validasi field wajib
     if (activityText.value.isEmpty) {
-      Get.snackbar(
-        'Perhatian',
-        'Silakan pilih aktivitas atau tempat terlebih dahulu',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      CustomSnackbar.show(context: Get.context!, message: 'Silakan pilih aktivitas atau tempat terlebih dahulu', type: SnackbarType.error);
       return;
     }
 
     if (locationText.value.isEmpty) {
-      Get.snackbar(
-        'Perhatian',
-        'Silakan pilih lokasi terlebih dahulu',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      CustomSnackbar.show(context: Get.context!, message: 'Silakan pilih lokasi terlebih dahulu', type: SnackbarType.error);
       return;
     }
 

@@ -623,10 +623,10 @@ extension AuthControllerLogout on AuthController {
       isLoading.value = false;
 
       // Tampilkan pesan sukses
-      Get.snackbar(
-        'Password Reset Email Sent',
-        'If your email is registered, you will receive a password reset link.',
-        snackPosition: SnackPosition.BOTTOM,
+      CustomSnackbar.show(
+        context: Get.context!,
+        message: 'If your email is registered, you will receive a password reset link.',
+        type: SnackbarType.success,
       );
 
       // Kembali ke halaman login
@@ -634,6 +634,37 @@ extension AuthControllerLogout on AuthController {
     } catch (e) {
       isLoading.value = false;
       errorMessage.value = e.toString();
+    }
+  }
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      // Validasi input
+      if (currentPassword.isEmpty) {
+        throw Exception('Please enter your current password');
+      }
+
+      if (newPassword.isEmpty) {
+        throw Exception('Please enter a new password');
+      }
+
+      if (newPassword.length < 6) {
+        throw Exception('Password must be at least 6 characters');
+      }
+
+      if (currentPassword == newPassword) {
+        throw Exception('New password must be different from current password');
+      }
+
+      await _authService.changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+    } catch (e) {
+      throw Exception(e.toString().replaceAll('Exception: ', ''));
     }
   }
 
@@ -658,11 +689,12 @@ extension AuthControllerLogout on AuthController {
       isLoading.value = false;
 
       // Tampilkan pesan sukses
-      Get.snackbar(
-        'Password Reset Successful',
-        'Your password has been reset successfully. Please login with your new password.',
-        snackPosition: SnackPosition.BOTTOM,
+      CustomSnackbar.show(
+        context: Get.context!,
+        message: 'Password reset successful. You can now login with your new password.',
+        type: SnackbarType.success,
       );
+
 
       // Kembali ke halaman login
       Get.offAllNamed(MyRoutes.login);

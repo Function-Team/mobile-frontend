@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 import 'package:function_mobile/common/widgets/buttons/secondary_button.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
-import 'package:function_mobile/core/helpers/localization_helper.dart';
-import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';

@@ -506,7 +506,6 @@ class BookingController extends GetxController {
     } else {
       maxVenueCapacity.value = 100;
     }
-
     // Trigger validation after setting venue data
     validateField('capacity');
   }
@@ -775,6 +774,7 @@ class BookingController extends GetxController {
       type: SnackbarType.warning,
     );
   }
+
 
   void showInfo(String message) {
     CustomSnackbar.show(

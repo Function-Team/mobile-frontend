@@ -77,12 +77,6 @@ class BookingService extends GetxService {
   Future<BookingModel> _enrichBookingWithPlaceDetails(
       BookingModel booking) async {
     try {
-      if (booking.placeId == null) {
-        print('Cannot enrich booking ${booking.id}: placeId is null');
-        return booking;
-      }
-
-      // Fetch place details
       final placeResponse =
           await _apiService.getRequest('/place/${booking.placeId}');
       print('Fetched place details for booking ${booking.id}: $placeResponse');

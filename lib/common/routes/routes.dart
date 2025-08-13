@@ -1,6 +1,4 @@
 import 'package:function_mobile/modules/auth/views/email_verification_page.dart';
-import 'package:function_mobile/modules/auth/views/forgot_password_page.dart';
-import 'package:function_mobile/modules/auth/views/reset_password_page.dart';
 import 'package:function_mobile/modules/auth/views/signup_page.dart';
 import 'package:function_mobile/modules/booking/bindings/booking_binding.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
@@ -17,6 +15,8 @@ import 'package:function_mobile/modules/legal/privacy_policy_page.dart';
 import 'package:function_mobile/modules/auth/views/login_page.dart';
 import 'package:function_mobile/modules/legal/terms_of_service_page.dart';
 import 'package:function_mobile/common/widgets/views/widgets_view.dart';
+import 'package:function_mobile/modules/notification/views/notification_page.dart';
+import 'package:function_mobile/modules/notification/views/notification_page.dart';
 import 'package:function_mobile/modules/payment/models/payment_model.dart';
 import 'package:function_mobile/modules/payment/views/payment_page.dart';
 import 'package:function_mobile/modules/payment/views/payment_status_page.dart';
@@ -31,6 +31,7 @@ import 'package:function_mobile/modules/navigation/views/bottom_nav_view.dart';
 import 'package:function_mobile/modules/venue/views/venue_list_page.dart';
 import 'package:function_mobile/modules/profile/views/profile_page.dart';
 import 'package:function_mobile/modules/settings/settings_page/views/settings_page.dart';
+import 'package:function_mobile/modules/settings/settings_password/views/settings_password_page.dart';
 import 'package:function_mobile/modules/venue/widgets/venue_detail/fullscreen_image_gallery.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/venue/bindings/venue_detail_binding.dart';
@@ -47,7 +48,6 @@ class MyRoutes {
   static const String login = '/login';
   static const String signup = '/signup';
   static const String emailVerification = '/emailVerification';
-  static const String forgotPassword = '/forgot-password';
   static const String resetPassword = '/reset-password';
 
   // Home
@@ -78,6 +78,10 @@ class MyRoutes {
 
   // Settings
   static const String settings = '/settings';
+  static const String settingsPassword = '/settings/password';
+
+  // Notification
+  static const String notifications = '/notifications';
 
   // SearchFilter
   static const String searchActivity = '/searchActivity';
@@ -114,9 +118,13 @@ class MyRoutes {
     GetPage(name: login, page: () => LoginPage()),
     GetPage(name: signup, page: () => SignupPage()),
     GetPage(name: emailVerification, page: () => EmailVerificationPage()),
+    GetPage(name: forgotPassword, page: () => ForgotPasswordPage()),
 
     // Home (no HomeBinding needed - controllers are in AppBinding)
     GetPage(name: home, page: () => HomePage()),
+
+    // Notification
+    GetPage(name: notifications, page: () => const NotificationPage()),
 
     // Booking
     GetPage(
@@ -184,6 +192,7 @@ class MyRoutes {
 
     // Settings
     GetPage(name: settings, page: () => SettingsPage()),
+    GetPage(name: settingsPassword, page: () => SettingsPasswordPage()),
 
     // Chat
     GetPage(name: chat, page: () => ChatPage(), binding: ChatBinding()),
@@ -223,16 +232,6 @@ class MyRoutes {
       name: reviewForm,
       page: () => const ReviewFormPage(),
       binding: ReviewBinding(),
-    ),
-  ];
-  static List<GetPage> getPages = [
-    GetPage(
-      name: MyRoutes.forgotPassword,
-      page: () => const ForgotPasswordPage(),
-    ),
-    GetPage(
-      name: MyRoutes.resetPassword,
-      page: () => const ResetPasswordPage(),
     ),
   ];
 }

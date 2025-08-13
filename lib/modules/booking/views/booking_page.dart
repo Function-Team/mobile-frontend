@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
+import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_controller.dart';
 import 'package:function_mobile/modules/booking/widgets/booking_form.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
@@ -67,15 +68,7 @@ class BookingPage extends StatelessWidget {
   Future<void> _refreshPageData() async {
     try {
       // Show loading feedback
-      Get.snackbar(
-        'Refreshing...',
-        'Updating booking availability',
-        duration: Duration(seconds: 1),
-        backgroundColor: Colors.blue[100],
-        colorText: Colors.blue[800],
-        snackPosition: SnackPosition.TOP,
-        margin: EdgeInsets.all(16),
-      );
+      CustomSnackbar.show(context: Get.context!, message: 'Refreshing...', type: SnackbarType.info);
 
       final now = DateTime.now();
       final startOfMonth = DateTime(now.year, now.month, 1);
@@ -91,25 +84,11 @@ class BookingPage extends StatelessWidget {
       }
 
       // Success feedback
-      Get.snackbar(
-        'Updated',
-        'Booking availability refreshed',
-        duration: Duration(seconds: 2),
-        backgroundColor: Colors.green[100],
-        colorText: Colors.green[800],
-        snackPosition: SnackPosition.TOP,
-        margin: EdgeInsets.all(16),
-      );
+      CustomSnackbar.show(context: Get.context!, message: 'Updated', type: SnackbarType.success);
+
     } catch (e) {
       // Error feedback
-      Get.snackbar(
-        'Refresh Failed',
-        'Could not update data. Please try again.',
-        backgroundColor: Colors.red[100],
-        colorText: Colors.red[800],
-        snackPosition: SnackPosition.TOP,
-        margin: EdgeInsets.all(16),
-      );
+      CustomSnackbar.show(context: Get.context!, message: 'Refresh Failed', type: SnackbarType.error);
     }
   }
 

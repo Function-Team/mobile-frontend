@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:function_mobile/modules/booking/models/booking_response_models.dart';
 import 'package:get/get.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -690,15 +691,8 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
         // Clicking same slot - deselect
         widget.controller.startTime.value = null;
         widget.controller.endTime.value = null;
-        Get.snackbar(
-          'Time Cleared',
-          'Time selection cleared',
-          duration: Duration(seconds: 1),
-          backgroundColor: Colors.orange[100],
-          colorText: Colors.orange[800],
-          snackPosition: SnackPosition.TOP,
-          margin: EdgeInsets.all(16),
-        );
+        CustomSnackbar.show(
+            context: context, message: 'Time Cleared', type: SnackbarType.info);
         return;
       }
 
@@ -713,16 +707,9 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
     }
 
     // Show feedback
-    final duration = _calculateSelectedDuration();
-    Get.snackbar(
-      'Time Updated',
-      'Selected ${widget.controller.startTime.value!.format(context)} - ${widget.controller.endTime.value!.format(context)} ($duration)',
-      duration: Duration(seconds: 2),
-      backgroundColor: Colors.green[100],
-      colorText: Colors.green[800],
-      snackPosition: SnackPosition.TOP,
-      margin: EdgeInsets.all(16),
-    );
+    _calculateSelectedDuration();
+    CustomSnackbar.show(
+        context: context, message: 'Time Updated', type: SnackbarType.success);
   }
 
   String _calculateSelectedDuration() {
@@ -775,14 +762,8 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
   void _onDaySelected(DateTime selectedDay) {
     // Prevent selecting past dates
     if (selectedDay.isBefore(DateTime.now().subtract(Duration(days: 1)))) {
-      Get.snackbar(
-        'Invalid Date',
-        'Cannot select past dates',
-        backgroundColor: Colors.red[100],
-        colorText: Colors.red[800],
-        snackPosition: SnackPosition.TOP,
-        margin: EdgeInsets.all(16),
-      );
+      CustomSnackbar.show(
+          context: context, message: 'Invalid Date', type: SnackbarType.error);
       return;
     }
 
@@ -830,16 +811,8 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
         // Delay refresh to allow backend to update
         Future.delayed(Duration(milliseconds: 1500), () {
           refreshAvailabilityData();
-
-          Get.snackbar(
-            '🔄 Updated',
-            'Availability refreshed',
-            duration: Duration(seconds: 2),
-            backgroundColor: Colors.blue[100],
-            colorText: Colors.blue[800],
-            snackPosition: SnackPosition.BOTTOM,
-            margin: EdgeInsets.all(16),
-          );
+          CustomSnackbar.show(
+              context: context, message: 'Updated', type: SnackbarType.success);
         });
       }
     });
