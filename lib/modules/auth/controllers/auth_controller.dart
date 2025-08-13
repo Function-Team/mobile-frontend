@@ -637,6 +637,37 @@ extension AuthControllerLogout on AuthController {
     }
   }
 
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      // Validasi input
+      if (currentPassword.isEmpty) {
+        throw Exception('Please enter your current password');
+      }
+
+      if (newPassword.isEmpty) {
+        throw Exception('Please enter a new password');
+      }
+
+      if (newPassword.length < 6) {
+        throw Exception('Password must be at least 6 characters');
+      }
+
+      if (currentPassword == newPassword) {
+        throw Exception('New password must be different from current password');
+      }
+
+      await _authService.changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+    } catch (e) {
+      throw Exception(e.toString().replaceAll('Exception: ', ''));
+    }
+  }
+
   Future<void> resetPassword(String token) async {
     try {
       final newPassword = newPasswordController.text;

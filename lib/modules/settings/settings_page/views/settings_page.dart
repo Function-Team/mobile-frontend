@@ -48,7 +48,7 @@ class SettingsPage extends StatelessWidget {
                 title:
                     LocalizationHelper.tr(LocaleKeys.settings_changePassword),
                 onTap: () {
-                  // Navigate to Change Password Page
+                  Get.toNamed(MyRoutes.settingsPassword);
                 },
                 trailing: const Icon(Icons.keyboard_arrow_right),
                 icon: Icons.lock_outline,

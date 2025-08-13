@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/favorite/controllers/favorites_controller.dart';
@@ -39,6 +40,13 @@ class FavoritesPage extends GetView<FavoritesController> {
                     color: Colors.grey[600],
                   ),
                 ),
+                const SizedBox(height: 16),
+                PrimaryButton(
+                  width: 200,
+                  text: 'Add Favorites',
+                  onPressed: () => controller.goToHome(),
+                  isLoading: false,
+                )
               ],
             ),
           );

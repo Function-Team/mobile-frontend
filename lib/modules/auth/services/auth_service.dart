@@ -587,15 +587,40 @@ class AuthService extends GetxService {
     }
   }
 
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      print('AuthService: Changing password');
+
+      final response = await _apiService.postRequest(
+        '/user/request-password-change',
+        {
+          'current_password': currentPassword,
+          'new_password': newPassword,
+          'confirm_password': newPassword,
+        },
+      );
+
+      print('AuthService: Password change successful');
+      return response;
+    } catch (e) {
+      print('AuthService: Error changing password: $e');
+      throw Exception('Failed to change password. Please check your current password and try again.');
+    }
+  }
+
   Future<void> resetPassword(String token, String newPassword) async {
     try {
       print('AuthService: Resetting password');
 
       final response = await _apiService.postRequest(
-        '/reset-password',
+        '/forgot-reset-password',
         {
           'token': token,
           'new_password': newPassword,
+          'confirm_password': newPassword,
         },
       );
 
