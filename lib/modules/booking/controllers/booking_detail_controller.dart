@@ -91,11 +91,6 @@ class BookingDetailController extends GetxController {
   Future<BookingModel> _enrichBookingWithPlaceDetails(
       BookingModel booking) async {
     try {
-      if (booking.placeId == null) {
-        print('Cannot enrich booking ${booking.id}: placeId is null');
-        return booking;
-      }
-
       final apiService = Get.find<ApiService>();
       final placeResponse =
           await apiService.getRequest('/place/${booking.placeId}');

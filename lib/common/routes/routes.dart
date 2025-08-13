@@ -1,6 +1,5 @@
 import 'package:function_mobile/modules/auth/views/email_verification_page.dart';
 import 'package:function_mobile/modules/auth/views/forgot_password_page.dart';
-import 'package:function_mobile/modules/auth/views/reset_password_page.dart';
 import 'package:function_mobile/modules/auth/views/signup_page.dart';
 import 'package:function_mobile/modules/booking/bindings/booking_binding.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
@@ -31,6 +30,7 @@ import 'package:function_mobile/modules/navigation/views/bottom_nav_view.dart';
 import 'package:function_mobile/modules/venue/views/venue_list_page.dart';
 import 'package:function_mobile/modules/profile/views/profile_page.dart';
 import 'package:function_mobile/modules/settings/settings_page/views/settings_page.dart';
+import 'package:function_mobile/modules/settings/settings_password/views/settings_password_page.dart';
 import 'package:function_mobile/modules/venue/widgets/venue_detail/fullscreen_image_gallery.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/venue/bindings/venue_detail_binding.dart';
@@ -78,6 +78,7 @@ class MyRoutes {
 
   // Settings
   static const String settings = '/settings';
+  static const String settingsPassword = '/settingsPassword';
 
   // SearchFilter
   static const String searchActivity = '/searchActivity';
@@ -184,6 +185,7 @@ class MyRoutes {
 
     // Settings
     GetPage(name: settings, page: () => SettingsPage()),
+    GetPage(name: settingsPassword, page: () => SettingsPasswordPage()),
 
     // Chat
     GetPage(name: chat, page: () => ChatPage(), binding: ChatBinding()),
@@ -224,15 +226,9 @@ class MyRoutes {
       page: () => const ReviewFormPage(),
       binding: ReviewBinding(),
     ),
-  ];
-  static List<GetPage> getPages = [
     GetPage(
       name: MyRoutes.forgotPassword,
       page: () => const ForgotPasswordPage(),
-    ),
-    GetPage(
-      name: MyRoutes.resetPassword,
-      page: () => const ResetPasswordPage(),
     ),
   ];
 }
