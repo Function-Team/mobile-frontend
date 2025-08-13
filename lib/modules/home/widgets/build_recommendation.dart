@@ -45,20 +45,10 @@ Widget buildRecommendation(BuildContext context, HomeController controller) {
 
         if (controller.hasError.value) {
           return Center(
-            child: Column(
-              children: [
-                Text(
-                  controller.errorMessage.value,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 10),
-                TextButton.icon(
-                  onPressed: () => controller.refreshVenues(),
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Retry'),
-                )
-              ],
+            child: Text(
+              controller.errorMessage.value,
+              style: Theme.of(context).textTheme.bodyMedium,
+              textAlign: TextAlign.center,
             ),
           );
         }
@@ -97,7 +87,7 @@ Widget buildRecommendation(BuildContext context, HomeController controller) {
                   rating: controller.ratingStats(venue),
                   onTap: () {
                     controller.goToVenueDetails(venue);
-                                    },
+                  },
                 ),
               );
             },
