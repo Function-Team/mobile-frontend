@@ -55,16 +55,60 @@ class VenueDetailController extends GetxController {
     final venueId = Get.arguments?['venueId'] ?? 1;
     loadVenueDetails(venueId);
     checkFavoriteStatus(venueId);
+    
+    // Listen to changes in favorites list to update UI
+    ever(_favoritesController.favorites, (_) {
+      if (venue.value?.id != null) {
+        checkFavoriteStatus(venue.value!.id);
+      }
+    });
   }
 
   Future<void> checkFavoriteStatus(int venueId) async {
-    isFavorite.value = await _favoritesController.isFavorite(venueId);
+    try {
+      // Selalu periksa dari backend terlebih dahulu
+      bool backendCheck = await _favoritesController.checkFavoriteStatus(venueId.toString());
+      print('VenueDetailController: Backend check result for venue $venueId: $backendCheck');
+      
+      // Jika backend berhasil, gunakan nilai dari backend
+      isFavorite.value = backendCheck;
+      
+      // Jika backend mengembalikan false, periksa juga dari memori lokal
+      // karena mungkin ada masalah koneksi atau server
+      if (!backendCheck) {
+        // Check from memory (faster)
+        bool memoryCheck = _favoritesController.isVenueInFavorites(venueId);
+        
+        // Check from storage
+        bool storageCheck = await _favoritesController.isFavorite(venueId);
+        
+        // Use either result - if it's favorited in either place, consider it favorited
+        isFavorite.value = memoryCheck || storageCheck;
+      }
+      
+      print('VenueDetailController: Favorite status for venue $venueId is ${isFavorite.value}');
+    } catch (e) {
+      print('VenueDetailController: Error checking favorite status: $e');
+      // Fallback to memory check
+      isFavorite.value = _favoritesController.isVenueInFavorites(venueId);
+    }
   }
 
   Future<void> toggleFavorite() async {
     if (venue.value?.id != null) {
-      await _favoritesController.toggleFavorite(venue.value!.id);
-      isFavorite.value = await _favoritesController.isFavorite(venue.value!.id);
+      try {
+        // Toggle favorite melalui controller
+        await _favoritesController.toggleFavorite(venue.value!.id);
+        
+        // Periksa status favorit dari backend untuk memastikan konsistensi
+        await checkFavoriteStatus(venue.value!.id);
+        
+        print('VenueDetailController: Toggled favorite for venue ${venue.value!.id}, new status: ${isFavorite.value}');
+      } catch (e) {
+        print('VenueDetailController: Error toggling favorite: $e');
+        // Jika terjadi error, tetap update UI berdasarkan status di memori
+        isFavorite.value = _favoritesController.isVenueInFavorites(venue.value!.id);
+      }
     }
   }
 
