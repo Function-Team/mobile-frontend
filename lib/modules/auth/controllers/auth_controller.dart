@@ -625,7 +625,8 @@ extension AuthControllerLogout on AuthController {
       // Tampilkan pesan sukses
       CustomSnackbar.show(
         context: Get.context!,
-        message: 'If your email is registered, you will receive a password reset link.',
+        message:
+            'If your email is registered, you will receive a password reset link.',
         type: SnackbarType.success,
       );
 
@@ -668,6 +669,48 @@ extension AuthControllerLogout on AuthController {
     }
   }
 
+  Future<void> requestPasswordChange({
+    required String currentPassword,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    try {
+      // Validate inputs
+      if (currentPassword.isEmpty) {
+        throw Exception('Current password is required');
+      }
+
+      if (newPassword.isEmpty) {
+        throw Exception('New password is required');
+      }
+
+      if (confirmPassword.isEmpty) {
+        throw Exception('Password confirmation is required');
+      }
+
+      if (newPassword.length < 8) {
+        throw Exception('New password must be at least 8 characters long');
+      }
+
+      if (newPassword != confirmPassword) {
+        throw Exception('New password and confirmation do not match');
+      }
+
+      if (currentPassword == newPassword) {
+        throw Exception('New password must be different from current password');
+      }
+
+      // Call the auth service to request password change
+      await _authService.requestPasswordChange(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+        confirmPassword: confirmPassword,
+      );
+    } catch (e) {
+      throw Exception(e.toString().replaceAll('Exception: ', ''));
+    }
+  }
+
   Future<void> resetPassword(String token) async {
     try {
       final newPassword = newPasswordController.text;
@@ -691,7 +734,8 @@ extension AuthControllerLogout on AuthController {
       // Tampilkan pesan sukses
       CustomSnackbar.show(
         context: Get.context!,
-        message: 'Password reset successful. You can now login with your new password.',
+        message:
+            'Password reset successful. You can now login with your new password.',
         type: SnackbarType.success,
       );
 

@@ -7,7 +7,7 @@ class SettingsPasswordController extends GetxController {
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  
+
   final RxBool _isCurrentPasswordVisible = false.obs;
   final RxBool _isNewPasswordVisible = false.obs;
   final RxBool _isConfirmPasswordVisible = false.obs;
@@ -17,10 +17,12 @@ class SettingsPasswordController extends GetxController {
 
   // Getters
   GlobalKey<FormState> get formKey => _formKey;
-  TextEditingController get currentPasswordController => _currentPasswordController;
+  TextEditingController get currentPasswordController =>
+      _currentPasswordController;
   TextEditingController get newPasswordController => _newPasswordController;
-  TextEditingController get confirmPasswordController => _confirmPasswordController;
-  
+  TextEditingController get confirmPasswordController =>
+      _confirmPasswordController;
+
   RxBool get isCurrentPasswordVisible => _isCurrentPasswordVisible;
   RxBool get isNewPasswordVisible => _isNewPasswordVisible;
   RxBool get isConfirmPasswordVisible => _isConfirmPasswordVisible;
@@ -64,8 +66,8 @@ class SettingsPasswordController extends GetxController {
     if (value == null || value.isEmpty) {
       return 'Please enter a new password';
     }
-    if (value.length < 6) {
-      return 'Password must be at least 6 characters';
+    if (value.length < 8) {
+      return 'Password must be at least 8 characters';
     }
     return null;
   }
@@ -90,29 +92,31 @@ class SettingsPasswordController extends GetxController {
 
     try {
       final AuthController authController = Get.find();
-      
-      // Call the change password method from auth controller
-      await authController.changePassword(
+
+      // Call the request password change method from auth controller
+      await authController.requestPasswordChange(
         currentPassword: _currentPasswordController.text,
         newPassword: _newPasswordController.text,
+        confirmPassword: _confirmPasswordController.text,
       );
 
-      _successMessage.value = 'Password changed successfully!';
-      
-      // Clear form after successful change
+      _successMessage.value =
+          'Verification email sent! Please check your email to confirm the password change.';
+
+      // Clear form after successful request
       _currentPasswordController.clear();
       _newPasswordController.clear();
       _confirmPasswordController.clear();
-      
+
       // Show success snackbar
       Get.snackbar(
-        'Success',
-        'Password changed successfully!',
-        backgroundColor: Colors.green.shade100,
-        colorText: Colors.green.shade800,
+        'Email Sent',
+        'Please check your email to verify the password change.',
+        backgroundColor: Colors.blue.shade100,
+        colorText: Colors.blue.shade800,
         snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 5),
       );
-      
     } catch (e) {
       _errorMessage.value = e.toString();
     } finally {

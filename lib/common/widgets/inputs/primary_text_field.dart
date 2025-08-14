@@ -16,6 +16,8 @@ class PrimaryTextField extends StatelessWidget {
   final Color? fillColor;
   final bool filled;
   final EdgeInsetsGeometry? contentPadding;
+  final bool? readOnly;
+  final bool? enabled;
 
   const PrimaryTextField({
     super.key,
@@ -34,6 +36,8 @@ class PrimaryTextField extends StatelessWidget {
     this.fillColor,
     this.filled = true,
     this.contentPadding,
+    this.readOnly,
+    this.enabled,
   });
 
   @override
@@ -56,6 +60,8 @@ class PrimaryTextField extends StatelessWidget {
           maxLines: maxLines,
           validator: validator,
           onChanged: onChanged,
+          readOnly: readOnly ?? false,
+          enabled: enabled ?? true,
           style: textStyle ?? Theme.of(context).textTheme.bodyMedium,
           decoration: InputDecoration(
             hintText: hintText,

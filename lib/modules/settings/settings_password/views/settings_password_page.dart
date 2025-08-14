@@ -32,79 +32,82 @@ class SettingsPasswordPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 20),
-                
+
                 // Header
                 Text(
-                  'Change Password',
+                  LocalizationHelper.tr(LocaleKeys.settings_changePassword),
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Enter your current password and choose a new password.',
+                  'Enter your current password and choose a new password. We will send you an email to verify the change.',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                  ),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.7),
+                      ),
                 ),
                 const SizedBox(height: 40),
 
                 // Current Password Field
                 Obx(() => PrimaryTextField(
-                  controller: controller.currentPasswordController,
-                  label: 'Current Password',
-                  hintText: 'Enter your current password',
-                  prefixIcon: Icon(Icons.lock_outline),
-                  obscureText: !controller.isCurrentPasswordVisible.value,
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      controller.isCurrentPasswordVisible.value
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                    ),
-                    onPressed: controller.toggleCurrentPasswordVisibility,
-                  ),
-                  validator: controller.validateCurrentPassword,
-                )),
+                      controller: controller.currentPasswordController,
+                      label: 'Current Password',
+                      hintText: 'Enter your current password',
+                      prefixIcon: Icon(Icons.lock_outline),
+                      obscureText: !controller.isCurrentPasswordVisible.value,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          controller.isCurrentPasswordVisible.value
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                        ),
+                        onPressed: controller.toggleCurrentPasswordVisibility,
+                      ),
+                      validator: controller.validateCurrentPassword,
+                    )),
                 const SizedBox(height: 20),
 
                 // New Password Field
                 Obx(() => PrimaryTextField(
-                  controller: controller.newPasswordController,
-                  label: 'New Password',
-                  hintText: 'Enter your new password',
-                  prefixIcon: Icon(Icons.lock_outline),
-                  obscureText: !controller.isNewPasswordVisible.value,
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      controller.isNewPasswordVisible.value
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                    ),
-                    onPressed: controller.toggleNewPasswordVisibility,
-                  ),
-                  validator: controller.validateNewPassword,
-                )),
+                      controller: controller.newPasswordController,
+                      label: 'New Password',
+                      hintText: 'Enter your new password',
+                      prefixIcon: Icon(Icons.lock_outline),
+                      obscureText: !controller.isNewPasswordVisible.value,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          controller.isNewPasswordVisible.value
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                        ),
+                        onPressed: controller.toggleNewPasswordVisibility,
+                      ),
+                      validator: controller.validateNewPassword,
+                    )),
                 const SizedBox(height: 20),
 
                 // Confirm Password Field
                 Obx(() => PrimaryTextField(
-                  controller: controller.confirmPasswordController,
-                  label: 'Confirm New Password',
-                  hintText: 'Confirm your new password',
-                  prefixIcon: Icon(Icons.lock_outline),
-                  obscureText: !controller.isConfirmPasswordVisible.value,
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      controller.isConfirmPasswordVisible.value
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                    ),
-                    onPressed: controller.toggleConfirmPasswordVisibility,
-                  ),
-                  validator: controller.validateConfirmPassword,
-                )),
+                      controller: controller.confirmPasswordController,
+                      label: 'Confirm New Password',
+                      hintText: 'Confirm your new password',
+                      prefixIcon: Icon(Icons.lock_outline),
+                      obscureText: !controller.isConfirmPasswordVisible.value,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          controller.isConfirmPasswordVisible.value
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                        ),
+                        onPressed: controller.toggleConfirmPasswordVisibility,
+                      ),
+                      validator: controller.validateConfirmPassword,
+                    )),
                 const SizedBox(height: 16),
 
                 // Error Message
@@ -179,12 +182,15 @@ class SettingsPasswordPage extends StatelessWidget {
                   return const SizedBox.shrink();
                 }),
 
-                // Change Password Button
+                // Send Verification Email Button
                 Obx(() => PrimaryButton(
-                  text: 'Change Password',
-                  onPressed: controller.isLoading.value ? null : controller.changePassword,
-                  isLoading: controller.isLoading.value,
-                )),
+                      width: 200,
+                      text: 'Send Verification Email',
+                      onPressed: controller.isLoading.value
+                          ? null
+                          : controller.changePassword,
+                      isLoading: controller.isLoading.value,
+                    )),
                 const SizedBox(height: 24),
 
                 // Password Requirements
@@ -194,7 +200,10 @@ class SettingsPasswordPage extends StatelessWidget {
                     color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .outline
+                          .withOpacity(0.2),
                     ),
                   ),
                   child: Column(
@@ -203,12 +212,15 @@ class SettingsPasswordPage extends StatelessWidget {
                       Text(
                         'Password Requirements:',
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                              fontWeight: FontWeight.w600,
+                            ),
                       ),
                       const SizedBox(height: 8),
-                      _buildRequirement(context, 'At least 6 characters long'),
-                      _buildRequirement(context, 'Different from current password'),
+                      _buildRequirement(context, 'At least 8 characters long'),
+                      _buildRequirement(
+                          context, 'Different from current password'),
+                      _buildRequirement(
+                          context, 'Must match confirmation password'),
                     ],
                   ),
                 ),
