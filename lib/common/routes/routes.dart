@@ -1,4 +1,5 @@
 import 'package:function_mobile/modules/auth/views/email_verification_page.dart';
+import 'package:function_mobile/modules/auth/views/forgot_password_page.dart';
 import 'package:function_mobile/modules/auth/views/signup_page.dart';
 import 'package:function_mobile/modules/booking/bindings/booking_binding.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
@@ -15,7 +16,6 @@ import 'package:function_mobile/modules/legal/privacy_policy_page.dart';
 import 'package:function_mobile/modules/auth/views/login_page.dart';
 import 'package:function_mobile/modules/legal/terms_of_service_page.dart';
 import 'package:function_mobile/common/widgets/views/widgets_view.dart';
-import 'package:function_mobile/modules/notification/views/notification_page.dart';
 import 'package:function_mobile/modules/notification/views/notification_page.dart';
 import 'package:function_mobile/modules/payment/models/payment_model.dart';
 import 'package:function_mobile/modules/payment/views/payment_page.dart';
@@ -48,7 +48,7 @@ class MyRoutes {
   static const String login = '/login';
   static const String signup = '/signup';
   static const String emailVerification = '/emailVerification';
-  static const String resetPassword = '/reset-password';
+  static const String forgotPassword = '/forgotPassword';
 
   // Home
   static const String home = '/homePage';

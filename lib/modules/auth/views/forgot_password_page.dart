@@ -5,7 +5,7 @@ import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 import 'package:get/get.dart';
 
 class ForgotPasswordPage extends StatelessWidget {
-  const ForgotPasswordPage({Key? key}) : super(key: key);
+  const ForgotPasswordPage({super.key});
 
   @override
   Widget build(BuildContext context) {

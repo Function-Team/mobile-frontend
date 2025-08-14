@@ -12,7 +12,8 @@ class EditProfileController extends GetxController {
   // Form controllers
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
-  final TextEditingController currentPasswordController = TextEditingController();
+  final TextEditingController currentPasswordController =
+      TextEditingController();
 
   // Observable states
   final RxBool isLoading = false.obs;
@@ -89,16 +90,16 @@ class EditProfileController extends GetxController {
 
   bool validateForm() {
     final usernameValidation = validateUsername(usernameController.text.trim());
-    final emailValidation = validateEmail(emailController.text.trim());
-    final passwordValidation = validateCurrentPassword(currentPasswordController.text);
+    // Skip email validation since it's read-only
+    final passwordValidation =
+        validateCurrentPassword(currentPasswordController.text);
 
     usernameError.value = usernameValidation ?? '';
-    emailError.value = emailValidation ?? '';
+    // Clear any email errors since the field is read-only
+    emailError.value = '';
     passwordError.value = passwordValidation ?? '';
 
-    return usernameValidation == null && 
-           emailValidation == null && 
-           passwordValidation == null;
+    return usernameValidation == null && passwordValidation == null;
   }
 
   // ===== FIELD VALIDATION CALLBACKS =====
@@ -107,7 +108,8 @@ class EditProfileController extends GetxController {
   }
 
   void validateEmailField(String value) {
-    emailError.value = validateEmail(value.trim()) ?? '';
+    // Email field is read-only, so no validation needed
+    emailError.value = '';
   }
 
   void validatePasswordField(String value) {
@@ -127,7 +129,8 @@ class EditProfileController extends GetxController {
   // ===== MAIN ACTIONS =====
   Future<void> saveProfile() async {
     if (!validateForm()) {
-      errorMessage.value = 'Please fix the errors above';
+      errorMessage.value = 'Please fill in all required fields';
+
       return;
     }
 
@@ -139,9 +142,9 @@ class EditProfileController extends GetxController {
 
     // Check if any changes were made
     final newUsername = usernameController.text.trim();
-    final newEmail = emailController.text.trim();
-    
-    if (newUsername == currentUser.username && newEmail == currentUser.email) {
+    // Email is now read-only, so we don't need to check for changes
+
+    if (newUsername == currentUser.username) {
       errorMessage.value = 'No changes detected';
       return;
     }
@@ -156,46 +159,51 @@ class EditProfileController extends GetxController {
       final response = await _profileService.editProfile(
         currentPassword: currentPasswordController.text,
         username: newUsername != currentUser.username ? newUsername : null,
-        email: newEmail != currentUser.email ? newEmail : null,
+        email: null,
       );
 
       if (response['success'] == true) {
         // Handle successful update
         final message = response['message'] ?? 'Profile updated successfully';
         final emailChangeRequired = response['email_change_required'] ?? false;
-        
+
         if (emailChangeRequired) {
           // Email change requires confirmation
           emailChangePending.value = true;
-          pendingEmail.value = newEmail;
+          // pendingEmail.value = newEmail;
           successMessage.value = message;
-          
+
           // Show dialog about email confirmation
           _showEmailConfirmationDialog();
         } else {
           // Profile updated successfully without email change
           successMessage.value = message;
-          
+
           // Update local user data if username changed
           if (newUsername != currentUser.username) {
             await _authController.refreshUserData();
           }
-          
+
           // Refresh profile controller if it exists
           try {
-            final ProfileController? profileController = Get.find<ProfileController>();
+            final ProfileController? profileController =
+                Get.find<ProfileController>();
             if (profileController != null) {
               await profileController.refreshProfile();
             }
           } catch (e) {
-            print('EditProfileController: ProfileController not found, skipping refresh');
+            print(
+                'EditProfileController: ProfileController not found, skipping refresh');
           }
-          
+
           // Clear password field for security
           currentPasswordController.clear();
-          
+
           // Show success and go back
-          CustomSnackbar.show(context: Get.context!, message: message, type: SnackbarType.success);
+          CustomSnackbar.show(
+              context: Get.context!,
+              message: message,
+              type: SnackbarType.success);
 
           // Go back after a short delay
           Future.delayed(const Duration(seconds: 1), () {
@@ -251,9 +259,9 @@ class EditProfileController extends GetxController {
   bool get hasChanges {
     final currentUser = _authController.user.value;
     if (currentUser == null) return false;
-    
+
     return usernameController.text.trim() != currentUser.username ||
-           emailController.text.trim() != currentUser.email;
+        emailController.text.trim() != currentUser.email;
   }
 
   void resetForm() {

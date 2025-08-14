@@ -123,6 +123,10 @@ class EditProfilePage extends StatelessWidget {
                   keyboardType: TextInputType.emailAddress,
                   controller: controller.emailController,
                   onChanged: controller.validateEmailField,
+                  readOnly: true,
+                  enabled: false,
+                  fillColor: Colors.grey[
+                      200], // Add light gray background to indicate read-only
                 ),
                 if (controller.emailError.value.isNotEmpty) ...[
                   const SizedBox(height: 4),
@@ -132,6 +136,18 @@ class EditProfilePage extends StatelessWidget {
                       controller.emailError.value,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Colors.red,
+                          ),
+                    ),
+                  ),
+                ] else ...[
+                  const SizedBox(height: 4),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Email cannot be changed. Please contact support if you need to update your email.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.grey[600],
+                            fontStyle: FontStyle.italic,
                           ),
                     ),
                   ),
@@ -268,9 +284,6 @@ class EditProfilePage extends StatelessWidget {
               : LocalizationHelper.tr(LocaleKeys.common_saveChange),
           width: double.infinity,
           onPressed: controller.isLoading.value ? null : controller.saveProfile,
-          icon: controller.isLoading.value
-              ? null
-              : (controller.hasChanges ? Icons.save : Icons.check),
         ));
   }
 }
