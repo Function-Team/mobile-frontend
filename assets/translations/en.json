@@ -413,8 +413,8 @@
     "filterByCategory": "Filter by Category"
   },
   "favorites": {
-    "noFavorites": "No favorites yet, search some venues to add to your favorites",
-
+    "noFavorites": "No favorites yet,\nsearch some venues to add to your favorites",
+    "favorites": "Favorites",
     "startExploring": "Start exploring and save venues you love",
     "exploreVenues": "Explore Venues"
   },

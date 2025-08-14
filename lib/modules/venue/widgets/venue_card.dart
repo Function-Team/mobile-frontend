@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/buttons/favorite_button.dart';
-import 'package:function_mobile/modules/venue/controllers/venue_list_controller.dart';
 import 'package:function_mobile/modules/venue/widgets/category_chip.dart';
+import 'package:function_mobile/modules/favorite/controllers/favorites_controller.dart';
 import 'package:intl/intl.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
+import 'package:get/get.dart';
 
 class VenueCard extends StatelessWidget {
   final VenueModel venue;
@@ -17,6 +18,15 @@ class VenueCard extends StatelessWidget {
     required this.onTap,
     this.showFavoriteButton = true,
   });
+
+  FavoritesController get _favoritesController {
+    try {
+      return Get.find<FavoritesController>();
+    } catch (e) {
+      // If controller not found, put it in GetX
+      return Get.put(FavoritesController());
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,10 +55,15 @@ class VenueCard extends StatelessWidget {
                     borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
                   ),
                 ),
-                Positioned(
+                if (showFavoriteButton)
+                  Positioned(
                     top: 8,
                     right: 8,
-                    child: FavoriteButton(isFavorite: false, onTap: onTap)),
+                    child: Obx(() => FavoriteButton(
+                      isFavorite: _favoritesController.isVenueInFavorites(venue.id),
+                      onTap: () => _favoritesController.toggleFavorite(venue.id),
+                    )),
+                  ),
               ],
             ),
             Container(

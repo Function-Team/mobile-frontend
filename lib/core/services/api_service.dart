@@ -121,13 +121,21 @@ class ApiService extends GetxService {
       if (token != null && token.isNotEmpty && token != 'null') {
         options.headers['Authorization'] = 'Bearer $token';
 
+        // Log for favorite-related endpoints to debug
+        if (options.path.contains('/favorites')) {
+          print("🔐 Auth for Favorites: ${options.method} ${options.path} with token: ${token.substring(0, 10)}...");
+        }
         // Only log for non-GET requests to reduce noise
-        if (options.method != 'GET') {
+        else if (options.method != 'GET') {
           print("🔐 Auth: ${options.method} ${options.path}");
         }
       } else {
+        // Always log missing token for favorite-related endpoints
+        if (options.path.contains('/favorites')) {
+          print("⚠️ No auth token found for FAVORITES endpoint: ${options.method} ${options.path}");
+        }
         // Only log missing token for protected endpoints
-        if (!_isPublicEndpoint(options.path)) {
+        else if (!_isPublicEndpoint(options.path)) {
           print("⚠️ No auth token found for ${options.method} ${options.path}");
         }
       }
