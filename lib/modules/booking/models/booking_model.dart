@@ -183,7 +183,7 @@ class BookingModel {
     if (createdAt == null) return '';
     final now = DateTime.now();
     final difference = now.difference(createdAt!);
-    
+
     if (difference.inDays > 0) {
       return 'Dibuat ${difference.inDays} hari lalu';
     } else if (difference.inHours > 0) {
@@ -245,16 +245,28 @@ class BookingModel {
         DateTime parsedDateTime;
 
         if (value.contains('T')) {
-          final cleanValue = value
-              .replaceAll('Z', '')
-              .replaceAll(RegExp(r'[+-]\d{2}:\d{2}$'), '');
-          parsedDateTime = DateTime.parse(cleanValue);
+          // Handle ISO 8601 format from API
+          if (value.contains('Z') ||
+              value.contains('+') ||
+              value.contains('-')) {
+            // This is already in UTC or has timezone info
+            parsedDateTime = DateTime.parse(value);
+
+            // Convert UTC to local time (Indonesia is UTC+7)
+            if (value.contains('Z')) {
+              // UTC time, convert to local
+              parsedDateTime = parsedDateTime.add(Duration(hours: 7));
+            }
+          } else {
+            // ISO format without timezone, treat as local
+            parsedDateTime = DateTime.parse(value);
+          }
         } else {
-          // Format lain
+          // Other formats, parse as is
           parsedDateTime = DateTime.parse(value);
         }
 
-        return parsedDateTime.add(Duration(hours: 7));
+        return parsedDateTime;
       } catch (e) {
         print('Error parsing datetime: $value, error: $e');
         return DateTime.now();
@@ -262,7 +274,7 @@ class BookingModel {
     }
 
     if (value is DateTime) {
-      // Return as-is, NO timezone conversion
+      // Return as-is if already DateTime object
       return value;
     }
 

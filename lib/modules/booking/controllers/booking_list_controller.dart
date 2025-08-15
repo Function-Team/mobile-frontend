@@ -18,7 +18,13 @@ class BookingListController extends GetxController {
   final errorMessage = ''.obs;
 
   final currentTabIndex = 0.obs;
-  final tabTitles = ['All', 'Pending', 'Confirmed', 'Completed', 'Cancelled'];
+  List<String> get tabTitles => [
+    LocalizationHelper.tr(LocaleKeys.bookingList_tabs_all),
+    LocalizationHelper.tr(LocaleKeys.bookingList_tabs_pending),
+    LocalizationHelper.tr(LocaleKeys.bookingList_tabs_confirmed),
+    LocalizationHelper.tr(LocaleKeys.bookingList_tabs_completed),
+    LocalizationHelper.tr(LocaleKeys.bookingList_tabs_cancelled)
+  ];
 
   final allCount = 0.obs;
   final pendingCount = 0.obs;
@@ -29,6 +35,35 @@ class BookingListController extends GetxController {
   // Sorting and filtering
   final selectedSort = 'booking_id_desc'.obs;
   final searchQuery = ''.obs;
+
+  // Sort options for dropdown
+  List<Map<String, dynamic>> get sortOptions => [
+    {
+      'value': 'booking_id_desc',
+      'label': LocalizationHelper.tr(LocaleKeys.bookingList_sortOptions_newestIdFirst),
+      'icon': Icons.arrow_downward
+    },
+    {
+      'value': 'booking_id_asc',
+      'label': LocalizationHelper.tr(LocaleKeys.bookingList_sortOptions_oldestIdFirst),
+      'icon': Icons.arrow_upward
+    },
+    {
+      'value': 'date_desc',
+      'label': LocalizationHelper.tr(LocaleKeys.bookingList_sortOptions_latestDate),
+      'icon': Icons.schedule
+    },
+    {
+      'value': 'date_asc',
+      'label': LocalizationHelper.tr(LocaleKeys.bookingList_sortOptions_earliestDate),
+      'icon': Icons.history
+    },
+    {
+      'value': 'venue_name',
+      'label': LocalizationHelper.tr(LocaleKeys.bookingList_sortOptions_venueNameAZ),
+      'icon': Icons.sort_by_alpha
+    },
+  ];
 
   @override
   void onInit() {
@@ -61,8 +96,9 @@ class BookingListController extends GetxController {
       print('Loaded ${bookings.length} bookings successfully');
     } catch (e) {
       hasError.value = true;
-      errorMessage.value = 'Failed to load bookings: ${e.toString()}';
-      showError('Failed to load bookings');
+      errorMessage.value = LocalizationHelper.trArgs(
+          'errors.failedToLoadBookings', {'error': e.toString()});
+      showError(LocalizationHelper.tr(LocaleKeys.bookingList_failedToLoad));
       print('Error fetching bookings: $e');
     } finally {
       isLoading.value = false;
@@ -71,10 +107,7 @@ class BookingListController extends GetxController {
 
   Future<void> refreshBookings() async {
     print('BookingListController: Refreshing bookings...');
-
-    // Clear notifications saat refresh
     await _clearBookingNotifications();
-
     await fetchBookings();
   }
 
@@ -103,7 +136,6 @@ class BookingListController extends GetxController {
 
     completedCount.value = bookings.where((b) => isBookingCompleted(b)).length;
 
-    // Count untuk cancelled section
     cancelledCount.value = bookings.where((b) => b.isInCancelledSection).length;
   }
 
@@ -141,7 +173,6 @@ class BookingListController extends GetxController {
       case 0:
         filtered = List.from(bookings);
         break;
-
       case 1:
         filtered = bookings
             .where((b) =>
@@ -150,7 +181,6 @@ class BookingListController extends GetxController {
                 !b.isInCancelledSection)
             .toList();
         break;
-
       case 2:
         filtered = bookings
             .where((b) =>
@@ -159,11 +189,9 @@ class BookingListController extends GetxController {
                 !b.isInCancelledSection)
             .toList();
         break;
-
       case 3:
         filtered = bookings.where((b) => isBookingCompleted(b)).toList();
         break;
-
       case 4:
         filtered = bookings.where((b) => b.isInCancelledSection).toList();
         break;
@@ -204,6 +232,9 @@ class BookingListController extends GetxController {
       case 'booking_id_desc':
         filteredBookings.sort((a, b) => b.id.compareTo(a.id));
         break;
+      case 'booking_id_asc':
+        filteredBookings.sort((a, b) => a.id.compareTo(b.id));
+        break;
     }
   }
 
@@ -215,6 +246,32 @@ class BookingListController extends GetxController {
   void setSearchQuery(String query) {
     searchQuery.value = query;
     filterBookingsByTab();
+  }
+
+  // Helper methods for UI
+  String getCurrentSortLabel() {
+    final option = sortOptions.firstWhere(
+      (option) => option['value'] == selectedSort.value,
+      orElse: () => sortOptions.first,
+    );
+    return option['label'] as String;
+  }
+
+  IconData getCurrentSortIcon() {
+    final option = sortOptions.firstWhere(
+      (option) => option['value'] == selectedSort.value,
+      orElse: () => sortOptions.first,
+    );
+    return option['icon'] as IconData;
+  }
+
+  // Check if using non-default sort
+  bool get isSortActive => selectedSort.value != 'booking_id_desc';
+
+  // Reset to default sort
+  void clearSort() {
+    selectedSort.value = 'booking_id_desc';
+    sortBookings();
   }
 
   Future<void> cancelBooking(BookingModel booking) async {
@@ -263,11 +320,11 @@ class BookingListController extends GetxController {
                 LocaleKeys.booking_cancelConfirmationMessage)),
             const SizedBox(height: 8),
             Text(
-              'Venue: ${booking.place?.name ?? booking.placeName ?? 'Unknown'}',
+              LocalizationHelper.trArgs('booking.venueInfo', {'venueName': booking.place?.name ?? booking.placeName ?? LocalizationHelper.tr(LocaleKeys.common_unknown)}),
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             Text(
-              'Date: ${booking.formattedDate}',
+              LocalizationHelper.trArgs('booking.dateInfo', {'date': booking.formattedDate}),
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ],

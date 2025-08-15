@@ -26,8 +26,8 @@ class PaymentPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text(
-          'Payment',
+        title: Text(
+          LocalizationHelper.tr(LocaleKeys.payment_payment),
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: Colors.black87,
@@ -55,14 +55,14 @@ class PaymentPage extends StatelessWidget {
   }
 
   Widget _buildLoadingState() {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CircularProgressIndicator(),
           SizedBox(height: 24),
           Text(
-            'Preparing your payment...',
+            LocalizationHelper.tr(LocaleKeys.payment_preparingPayment),
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -87,8 +87,8 @@ class PaymentPage extends StatelessWidget {
               color: Colors.red,
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Payment Initialization Failed',
+            Text(
+              LocalizationHelper.tr(LocaleKeys.payment_paymentInitializationFailed),
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -108,13 +108,13 @@ class PaymentPage extends StatelessWidget {
             const SizedBox(height: 32),
             PrimaryButton(
               isLoading: false,
-              text: 'Try Again',
+              text: LocalizationHelper.tr(LocaleKeys.payment_tryAgain),
               onPressed: () => controller.initializePayment(booking),
               width: double.infinity,
             ),
             const SizedBox(height: 12),
             OutlineButton(
-              text: 'Go Back',
+              text: LocalizationHelper.tr(LocaleKeys.payment_goBack),
               onPressed: () => Get.back(),
             ),
           ],
@@ -163,7 +163,7 @@ class PaymentPage extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           _buildInfoRow(Icons.location_on, 'Venue',
-              booking.place?.name ?? 'Unknown Venue'),
+              booking.place?.name ?? LocalizationHelper.tr(LocaleKeys.location_unknownVenue)),
           const SizedBox(height: 12),
           _buildInfoRow(
               Icons.calendar_today, 'Date', _formatDate(booking.startDateTime)),
@@ -171,7 +171,7 @@ class PaymentPage extends StatelessWidget {
           _buildInfoRow(Icons.access_time, 'Time', _formatTimeRange()),
           const SizedBox(height: 12),
           _buildInfoRow(Icons.people, 'Capacity',
-              'Booking confirmed'), // Remove capacity display since it's not in model
+              LocalizationHelper.tr(LocaleKeys.booking_status_confirmed)), // Remove capacity display since it's not in model
         ],
       ),
     );
@@ -225,8 +225,8 @@ class PaymentPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Payment Summary',
+          Text(
+            LocalizationHelper.tr(LocaleKeys.booking_paymentSummary),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -234,14 +234,14 @@ class PaymentPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _buildPriceRow('Venue Price', 'Rp ${_formatCurrency(amount)}'),
+          _buildPriceRow(LocalizationHelper.tr(LocaleKeys.booking_venuePrice), 'Rp ${_formatCurrency(amount)}'),
           const SizedBox(height: 8),
-          _buildPriceRow('Service Fee', 'Rp ${_formatCurrency(0)}'),
+          _buildPriceRow(LocalizationHelper.tr(LocaleKeys.common_serviceFee), 'Rp ${_formatCurrency(0)}'),
           const SizedBox(height: 8),
-          _buildPriceRow('Tax', 'Rp ${_formatCurrency(0)}'),
+          _buildPriceRow(LocalizationHelper.tr(LocaleKeys.common_tax), 'Rp ${_formatCurrency(0)}'),
           const Divider(height: 24),
           _buildPriceRow(
-            'Total',
+            LocalizationHelper.tr(LocaleKeys.common_total),
             'Rp ${_formatCurrency(amount)}',
             isTotal: true,
           ),
@@ -285,8 +285,8 @@ class PaymentPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Payment Methods',
+          Text(
+            LocalizationHelper.tr(LocaleKeys.payment_paymentMethods),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -295,26 +295,26 @@ class PaymentPage extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           _buildPaymentMethodItem(
-            'Credit/Debit Card',
-            'Visa, Mastercard, JCB',
+            LocalizationHelper.tr(LocaleKeys.payment_creditDebitCard),
+            LocalizationHelper.tr(LocaleKeys.payment_creditCardSubtitle),
             Icons.credit_card,
           ),
           const SizedBox(height: 12),
           _buildPaymentMethodItem(
-            'Bank Transfer',
-            'All major banks supported',
+            LocalizationHelper.tr(LocaleKeys.payment_bankTransfer),
+            LocalizationHelper.tr(LocaleKeys.payment_bankTransferSubtitle),
             Icons.account_balance,
           ),
           const SizedBox(height: 12),
           _buildPaymentMethodItem(
-            'E-Wallet',
-            'GoPay, OVO, DANA, ShopeePay',
+            LocalizationHelper.tr(LocaleKeys.payment_eWallet),
+            LocalizationHelper.tr(LocaleKeys.payment_eWalletSubtitle),
             Icons.wallet,
           ),
           const SizedBox(height: 12),
           _buildPaymentMethodItem(
-            'Convenience Store',
-            'Alfamart, Indomaret',
+            LocalizationHelper.tr(LocaleKeys.payment_convenienceStore),
+            LocalizationHelper.tr(LocaleKeys.payment_convenienceStoreSubtitle),
             Icons.store,
           ),
         ],
@@ -377,8 +377,8 @@ class PaymentPage extends StatelessWidget {
           PrimaryButton(
             isLoading: controller.isPaymentProcessing.value,
             text: controller.isPaymentProcessing.value
-                ? 'Processing Payment...'
-                : 'Pay Now',
+                ? LocalizationHelper.tr(LocaleKeys.booking_processingPayment)
+                : LocalizationHelper.tr(LocaleKeys.booking_payNow),
             onPressed: controller.isPaymentProcessing.value
                 ? null
                 : () => controller.startPaymentProcess(),
@@ -389,7 +389,7 @@ class PaymentPage extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           OutlineButton(
-            text: 'Cancel Payment',
+            text: LocalizationHelper.tr(LocaleKeys.booking_cancelPayment),
             onPressed: () => _showExitConfirmation(context, controller),
             textColor: Colors.red,
             outlineColor: Colors.red,
@@ -405,22 +405,22 @@ class PaymentPage extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Cancel Payment?'),
-          content: const Text(
-            'Are you sure you want to cancel this payment? Your booking will not be confirmed.',
+          title: Text(LocalizationHelper.tr(LocaleKeys.payment_cancelPaymentTitle)),
+          content: Text(
+            LocalizationHelper.tr(LocaleKeys.payment_cancelPaymentConfirm),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Continue Payment'),
+              child: Text(LocalizationHelper.tr(LocaleKeys.buttons_continuePayment)),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
                 controller.cancelPayment();
               },
-              child: const Text(
-                'Cancel',
+              child: Text(
+                LocalizationHelper.tr(LocaleKeys.common_cancel),
                 style: TextStyle(color: Colors.red),
               ),
             ),
@@ -431,7 +431,7 @@ class PaymentPage extends StatelessWidget {
   }
 
   String _formatDate(DateTime? date) {
-    if (date == null) return 'Unknown Date';
+    if (date == null) return LocalizationHelper.tr(LocaleKeys.common_unknown);
     return '${date.day}/${date.month}/${date.year}';
   }
 

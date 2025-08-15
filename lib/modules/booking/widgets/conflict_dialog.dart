@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/booking/models/booking_response_models.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:get/get.dart';
@@ -40,14 +42,14 @@ class ConflictDialog extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Waktu Tidak Tersedia',
+                  LocalizationHelper.tr(LocaleKeys.conflictDialog_timeNotAvailable),
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
-                  'Pilih waktu alternatif',
+                  LocalizationHelper.tr(LocaleKeys.conflictDialog_chooseAlternativeTime),
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey[600],
@@ -79,7 +81,7 @@ class ConflictDialog extends StatelessWidget {
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Waktu yang dipilih sudah dibooking oleh orang lain.',
+                      LocalizationHelper.tr(LocaleKeys.conflictDialog_timeAlreadyBooked),
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.red[700],
@@ -96,7 +98,7 @@ class ConflictDialog extends StatelessWidget {
                   Icon(Icons.access_time, color: Colors.green[600], size: 20),
                   SizedBox(width: 8),
                   Text(
-                    'Waktu tersedia hari ini:',
+                    LocalizationHelper.tr(LocaleKeys.conflictDialog_availableTimesToday),
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -139,7 +141,7 @@ class ConflictDialog extends StatelessWidget {
                     Icon(Icons.event_busy, color: Colors.red[600], size: 32),
                     SizedBox(height: 8),
                     Text(
-                      'Tidak Ada Slot Tersedia',
+                      LocalizationHelper.tr(LocaleKeys.conflictDialog_noSlotsAvailable),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -148,7 +150,7 @@ class ConflictDialog extends StatelessWidget {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      'Semua waktu hari ini sudah dibooking. Silakan pilih tanggal lain.',
+                      LocalizationHelper.tr(LocaleKeys.conflictDialog_allTimesBooked),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.red[600],
@@ -168,7 +170,7 @@ class ConflictDialog extends StatelessWidget {
           style: TextButton.styleFrom(
             foregroundColor: Colors.grey[700],
           ),
-          child: Text('Tutup'),
+          child: Text(LocalizationHelper.tr(LocaleKeys.buttons_close)),
         ),
         if (filteredSlots.isEmpty)
           ElevatedButton.icon(
@@ -184,7 +186,7 @@ class ConflictDialog extends StatelessWidget {
               ),
             ),
             icon: Icon(Icons.calendar_today, size: 18),
-            label: Text('Pilih Tanggal Lain'),
+            label: Text(LocalizationHelper.tr(LocaleKeys.conflictDialog_chooseOtherDate)),
           ),
       ],
       actionsPadding: EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -245,7 +247,7 @@ class ConflictDialog extends StatelessWidget {
                 ),
                 SizedBox(height: 2),
                 Text(
-                  'Durasi: 1 jam',
+                  LocalizationHelper.tr(LocaleKeys.conflictDialog_duration1Hour),
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.green[600],
@@ -271,7 +273,7 @@ class ConflictDialog extends StatelessWidget {
               elevation: 1,
             ),
             child: Text(
-              'Pilih',
+              LocalizationHelper.tr(LocaleKeys.buttons_choose),
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,

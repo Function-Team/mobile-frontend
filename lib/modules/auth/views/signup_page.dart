@@ -1,6 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 import 'package:get/get.dart';
 
@@ -37,7 +39,7 @@ class SignupPage extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Username",
+                    Text(LocalizationHelper.tr(LocaleKeys.auth_username),
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                               fontWeight: FontWeight.w500,
                             )),
@@ -57,7 +59,7 @@ class SignupPage extends StatelessWidget {
                             onChanged:
                                 authController.validateUsernameSignUpField,
                             decoration: InputDecoration(
-                              hintText: 'Enter your username',
+                              hintText: LocalizationHelper.tr(LocaleKeys.forms_enterUsername),
                               hintStyle: TextStyle(
                                 color: Colors.grey[500],
                                 fontSize: 16,
@@ -99,7 +101,7 @@ class SignupPage extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Email (Optional)",
+                    Text(LocalizationHelper.tr(LocaleKeys.forms_emailOptional),
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                               fontWeight: FontWeight.w500,
                             )),
@@ -118,7 +120,7 @@ class SignupPage extends StatelessWidget {
                             controller: authController.emailSignUpController,
                             onChanged: authController.validateEmailSignUpField,
                             decoration: InputDecoration(
-                              hintText: 'Enter your email',
+                              hintText: LocalizationHelper.tr(LocaleKeys.forms_enterEmail),
                               hintStyle: TextStyle(
                                 color: Colors.grey[500],
                                 fontSize: 16,
@@ -160,7 +162,7 @@ class SignupPage extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Password",
+                    Text(LocalizationHelper.tr(LocaleKeys.auth_password),
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                               fontWeight: FontWeight.w500,
                             )),
@@ -182,7 +184,7 @@ class SignupPage extends StatelessWidget {
                             onChanged:
                                 authController.validatePasswordSignUpField,
                             decoration: InputDecoration(
-                              hintText: 'Enter your password',
+                              hintText: LocalizationHelper.tr(LocaleKeys.forms_enterPassword),
                               hintStyle: TextStyle(
                                 color: Colors.grey[500],
                                 fontSize: 16,
@@ -238,7 +240,7 @@ class SignupPage extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Confirm Password",
+                    Text(LocalizationHelper.tr(LocaleKeys.auth_confirmPassword),
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                               fontWeight: FontWeight.w500,
                             )),
@@ -261,7 +263,7 @@ class SignupPage extends StatelessWidget {
                             onChanged: authController
                                 .validateConfirmPasswordSignUpField,
                             decoration: InputDecoration(
-                              hintText: 'Confirm your password',
+                              hintText: LocalizationHelper.tr(LocaleKeys.forms_confirmYourPassword),
                               hintStyle: TextStyle(
                                 color: Colors.grey[500],
                                 fontSize: 16,
@@ -321,8 +323,8 @@ class SignupPage extends StatelessWidget {
                       // Set the width to double.infinity to fill the parent widget,
                       width: double.infinity,
                       text: authController.isLoading.value
-                          ? 'Creating Account...'
-                          : 'Sign Up',
+                          ? LocalizationHelper.tr(LocaleKeys.buttons_creatingAccount)
+                          : LocalizationHelper.tr(LocaleKeys.buttons_signUp),
                       onPressed: authController.isLoading.value
                           ? null
                           : () {
@@ -338,14 +340,14 @@ class SignupPage extends StatelessWidget {
                   padding: EdgeInsets.symmetric(horizontal: 16),
                   child: Text.rich(
                     TextSpan(
-                      text: 'By signing up, you agree to our ',
+                      text: LocalizationHelper.tr(LocaleKeys.messages_bySigningUp),
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.grey[600],
                       ),
                       children: [
                         TextSpan(
-                          text: 'Terms of Service',
+                          text: LocalizationHelper.tr(LocaleKeys.messages_termsAndConditions),
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.primary,
                             decoration: TextDecoration.underline,
@@ -355,9 +357,9 @@ class SignupPage extends StatelessWidget {
                               authController.goToTermsOfService();
                             },
                         ),
-                        TextSpan(text: ' and '),
+                        TextSpan(text: LocalizationHelper.tr(LocaleKeys.messages_andPrivacyPolicy)),
                         TextSpan(
-                          text: 'Privacy Policy',
+                          text: LocalizationHelper.tr(LocaleKeys.messages_privacyPolicyLink),
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.primary,
                             decoration: TextDecoration.underline,
@@ -380,7 +382,7 @@ class SignupPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "Already have an account? ",
+                      LocalizationHelper.tr(LocaleKeys.auth_alreadyHaveAccount),
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.grey[600],
@@ -392,7 +394,7 @@ class SignupPage extends StatelessWidget {
                         authController.goToLogin();
                       },
                       child: Text(
-                        'Login',
+                        LocalizationHelper.tr(LocaleKeys.auth_login),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.primary,

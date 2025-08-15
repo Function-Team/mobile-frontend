@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/chat/widgets/message_card.dart';
 
 class ChattingPage extends StatelessWidget {
@@ -8,7 +10,7 @@ class ChattingPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Chatting Page',
+        title: Text(LocalizationHelper.tr(LocaleKeys.navigation_chat),
             style: Theme.of(context).textTheme.displaySmall),
       ),
       body: SafeArea(
@@ -34,7 +36,7 @@ class ChattingPage extends StatelessWidget {
                   Expanded(
                     child: TextField(
                       decoration: InputDecoration(
-                        hintText: 'Type a message',
+                        hintText: LocalizationHelper.tr('forms.typeMessage'),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(50),
                         ),

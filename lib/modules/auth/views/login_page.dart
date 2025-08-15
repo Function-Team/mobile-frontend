@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 import 'package:get/get.dart';
 
@@ -66,7 +68,7 @@ class LoginPage extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Email",
+                    Text(LocalizationHelper.tr(LocaleKeys.auth_email),
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                               fontWeight: FontWeight.w500,
                             )),
@@ -84,7 +86,7 @@ class LoginPage extends StatelessWidget {
                             controller: authController.emailLoginController,
                             onChanged: authController.validateEmailLoginField,
                             decoration: InputDecoration(
-                              hintText: 'Enter your email',
+                              hintText: LocalizationHelper.tr(LocaleKeys.forms_enterEmail),
                               hintStyle: TextStyle(
                                 color: Colors.grey[500],
                                 fontSize: 16,
@@ -126,7 +128,7 @@ class LoginPage extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Password",
+                    Text(LocalizationHelper.tr(LocaleKeys.auth_password),
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                               fontWeight: FontWeight.w500,
                             )),
@@ -148,7 +150,7 @@ class LoginPage extends StatelessWidget {
                             onChanged:
                                 authController.validatePasswordLoginField,
                             decoration: InputDecoration(
-                              hintText: 'Enter your password',
+                              hintText: LocalizationHelper.tr(LocaleKeys.forms_enterPassword),
                               hintStyle: TextStyle(
                                 color: Colors.grey[500],
                                 fontSize: 16,
@@ -209,7 +211,7 @@ class LoginPage extends StatelessWidget {
                       Get.toNamed(MyRoutes.forgotPassword);
                     },
                     child: Text(
-                      'Forgot Password?',
+                      LocalizationHelper.tr(LocaleKeys.auth_forgotPassword),
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.w500,
@@ -227,8 +229,8 @@ class LoginPage extends StatelessWidget {
                     isLoading: authController.isLoading.value,
                     width: double.infinity,
                     text: authController.isLoading.value
-                        ? 'Logging in...'
-                        : 'Login',
+                        ? LocalizationHelper.tr(LocaleKeys.buttons_loggingIn)
+                        : LocalizationHelper.tr(LocaleKeys.auth_login),
                     onPressed: authController.isLoading.value
                         ? null
                         : () {
@@ -238,7 +240,7 @@ class LoginPage extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 10),
-                Text("or",
+                Text(LocalizationHelper.tr(LocaleKeys.labels_or),
                     style: TextStyle(
                         color: Colors.grey[600],
                         fontSize: 16,
@@ -248,7 +250,7 @@ class LoginPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "Don't have an account? ",
+                      LocalizationHelper.tr(LocaleKeys.auth_dontHaveAccount),
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.grey[600],
@@ -260,7 +262,7 @@ class LoginPage extends StatelessWidget {
                         authController.goToSignup();
                       },
                       child: Text(
-                        'Sign Up',
+                        LocalizationHelper.tr(LocaleKeys.buttons_signUp),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.primary,
@@ -279,7 +281,7 @@ class LoginPage extends StatelessWidget {
                     TextButton(
                       onPressed: authController.goToTermsOfService,
                       child: Text(
-                        'Terms and Conditions',
+                        LocalizationHelper.tr(LocaleKeys.messages_termsAndConditions),
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.primary,
                           fontSize: 14,
@@ -293,7 +295,7 @@ class LoginPage extends StatelessWidget {
                     TextButton(
                       onPressed: authController.goToPrivacyPolicy,
                       child: Text(
-                        'Privacy Policy',
+                        LocalizationHelper.tr(LocaleKeys.messages_privacyPolicyLink),
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.primary,
                           fontSize: 14,

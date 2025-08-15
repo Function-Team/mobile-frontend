@@ -198,30 +198,30 @@ class VenueDetailPage extends StatelessWidget {
                       // Rating section with new API data
                       Obx(() {
                         if (controller.isLoadingRatingStats.value) {
-                          return const Row(
+                          return Row(
                             children: [
-                              SizedBox(
+                              const SizedBox(
                                 width: 16,
                                 height: 16,
                                 child:
                                     CircularProgressIndicator(strokeWidth: 2),
                               ),
-                              SizedBox(width: 8),
-                              Text('Loading rating...'),
+                              const SizedBox(width: 8),
+                              Text(LocalizationHelper.tr(LocaleKeys.labels_loadingRating)),
                             ],
                           );
                         }
 
                         final stats = controller.ratingStats.value;
                         if (stats == null || stats.totalReviews == 0) {
-                          return const Row(
+                          return Row(
                             children: [
-                              Icon(Icons.star_border,
+                              const Icon(Icons.star_border,
                                   color: Colors.grey, size: 20),
-                              SizedBox(width: 4),
+                              const SizedBox(width: 4),
                               Text(
-                                'No reviews yet',
-                                style: TextStyle(color: Colors.grey),
+                                LocalizationHelper.tr(LocaleKeys.labels_noReviewsYet),
+                                style: const TextStyle(color: Colors.grey),
                               ),
                             ],
                           );
@@ -298,7 +298,7 @@ class VenueDetailPage extends StatelessWidget {
                 // Area chip
                 CategoryChip(
                   label:
-                      controller.venue.value?.size ?? 'Ukuran tidak tersedia',
+                      controller.venue.value?.size ?? LocalizationHelper.tr(LocaleKeys.labels_sizeNotAvailable),
                   color: Colors.blue,
                   icon: Icons.straighten,
                 ),
@@ -315,7 +315,7 @@ class VenueDetailPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Aktivitas',
+                    LocalizationHelper.tr(LocaleKeys.labels_activities),
                     style: const TextStyle(
                       color: Colors.black,
                       fontSize: 16,
@@ -328,7 +328,7 @@ class VenueDetailPage extends StatelessWidget {
                     runSpacing: 8,
                     children: controller.activities
                         .map((activity) => CategoryChip(
-                              label: activity.name ?? 'Unknown Activity',
+                              label: activity.name ?? LocalizationHelper.tr(LocaleKeys.labels_unknownActivity),
                               color: Colors.green,
                               icon: Icons.local_activity,
                             ))
@@ -409,7 +409,7 @@ class VenueDetailPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Host',
+                          LocalizationHelper.tr(LocaleKeys.labels_host),
                           style: TextStyle(
                             color: Colors.grey[600],
                             fontSize: 12,
@@ -436,7 +436,7 @@ class VenueDetailPage extends StatelessWidget {
                       ? ContactHostWidget(
                           venue: venue,
                           style: ContactHostStyle.button,
-                          customText: 'Contact',
+                          customText: LocalizationHelper.tr(LocaleKeys.buttons_contact),
                         )
                       : const SizedBox(
                           width: 80,
@@ -479,7 +479,7 @@ class VenueDetailPage extends StatelessWidget {
                 // Show error jika gagal
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Could not open Google Maps')),
+                    SnackBar(content: Text(LocalizationHelper.tr(LocaleKeys.messages_couldNotOpenMaps))),
                   );
                 }
               }
@@ -487,7 +487,7 @@ class VenueDetailPage extends StatelessWidget {
               // Handle error
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error: ${e.toString()}')),
+                  SnackBar(content: Text(LocalizationHelper.trArgs(LocaleKeys.messages_errorOccurred, {'error': e.toString()}))),
                 );
               }
             }
@@ -772,7 +772,7 @@ class VenueDetailPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Reviews',
+                LocalizationHelper.tr(LocaleKeys.pages_reviewsPage),
                 style: const TextStyle(
                   color: Colors.black,
                   fontSize: 16,
@@ -780,7 +780,7 @@ class VenueDetailPage extends StatelessWidget {
                 ),
               ),
               CustomTextButton(
-                text: 'Show All',
+                text: LocalizationHelper.tr(LocaleKeys.buttons_showAll),
                 onTap: () {
                   Get.toNamed(
                     MyRoutes.reviewPage,
@@ -806,7 +806,7 @@ class VenueDetailPage extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 alignment: Alignment.center,
                 child: Text(
-                  'No reviews yet',
+                  LocalizationHelper.tr('labels.noReviewsYet'),
                   style: TextStyle(color: Colors.grey[600]),
                 ),
               );
@@ -856,7 +856,7 @@ class VenueDetailPage extends StatelessWidget {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          review.user?.username ?? 'Anonymous',
+                                          review.user?.username ?? LocalizationHelper.tr(LocaleKeys.labels_anonymous),
                                           style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -910,7 +910,7 @@ class VenueDetailPage extends StatelessWidget {
                           );
                         },
                         child: Text(
-                          'View all ${controller.reviews.length} reviews',
+                          LocalizationHelper.trArgs(LocaleKeys.labels_viewAllReviews, {'count': controller.reviews.length.toString()}),
                           style:
                               TextStyle(color: Theme.of(context).primaryColor),
                         ),

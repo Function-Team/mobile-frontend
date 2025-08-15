@@ -124,17 +124,17 @@ class LanguageSettingsPage extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(LocalizationHelper.tr('settings.change_language')),
+          title: Text(LocalizationHelper.tr(LocaleKeys.settings_changeLanguage)),
           content: Text(
             LocalizationHelper.trArgs(
-              'settings.change_language_confirm',
+              LocaleKeys.settings_changeLanguageConfirm,
               {'language': languageName},
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text(LocalizationHelper.tr('common.cancel')),
+              child: Text(LocalizationHelper.tr(LocaleKeys.common_cancel)),
             ),
             ElevatedButton(
               onPressed: () {
@@ -142,7 +142,7 @@ class LanguageSettingsPage extends StatelessWidget {
                 // Call the language change
                 LocalizationHelper.changeLanguage(context, languageCode);
               },
-              child: Text(LocalizationHelper.tr('common.change')), 
+              child: Text(LocalizationHelper.tr(LocaleKeys.common_change)), 
             ),
           ],
         );

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_list_controller.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:function_mobile/modules/booking/widgets/booking_card.dart';
@@ -12,20 +14,10 @@ class BookingListPage extends GetView<BookingListController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).primaryColor,
-        title: Text(
-          'Booking List',
-          style: Theme.of(context)
-              .textTheme
-              .displaySmall!
-              .copyWith(color: Colors.white),
-        ),
-        actions: [Icon(Icons.refresh)],
-      ),
+      appBar: _buildAppBar(context),
       body: Column(
         children: [
-          _buildSortIndicator(),
+          _buildSortIndicator(context),
           _buildTabBar(),
           Expanded(
             child: _buildBookingList(),
@@ -35,217 +27,170 @@ class BookingListPage extends GetView<BookingListController> {
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  // Extract AppBar to separate method
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
-      backgroundColor: Colors.white,
-      foregroundColor: Colors.black,
-      elevation: 0,
-      title: const Text(
-        'My Bookings',
-        style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
+      backgroundColor: Theme.of(context).primaryColor,
+      title: Text(
+        LocalizationHelper.tr(LocaleKeys.bookingList_title),
+        style: Theme.of(context)
+            .textTheme
+            .displaySmall!
+            .copyWith(color: Colors.white),
       ),
       actions: [
-        Obx(() => PopupMenuButton<String>(
-              icon: Stack(
-                children: [
-                  const Icon(Icons.sort),
-                  // Active indicator dot
-                  if (controller.selectedSort.value != 'booking_id_desc')
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      child: Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: Colors.blue,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              onSelected: (String value) {
-                controller.setSortOption(value);
-              },
-              itemBuilder: (BuildContext context) => [
-                PopupMenuItem<String>(
-                  value: 'booking_id_desc',
-                  child: Row(
-                    children: [
-                      Icon(Icons.tag,
-                          size: 16,
-                          color:
-                              controller.selectedSort.value == 'booking_id_desc'
-                                  ? Colors.blue
-                                  : Colors.grey[600]),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Newest ID First',
-                        style: TextStyle(
-                          color:
-                              controller.selectedSort.value == 'booking_id_desc'
-                                  ? Colors.blue
-                                  : null,
-                          fontWeight:
-                              controller.selectedSort.value == 'booking_id_desc'
-                                  ? FontWeight.w600
-                                  : null,
-                        ),
-                      ),
-                      const Spacer(),
-                      if (controller.selectedSort.value == 'booking_id_desc')
-                        const Icon(Icons.check, size: 16, color: Colors.blue),
-                    ],
-                  ),
-                ),
-                PopupMenuItem<String>(
-                  value: 'date_desc',
-                  child: Row(
-                    children: [
-                      Icon(Icons.schedule,
-                          size: 16,
-                          color: controller.selectedSort.value == 'date_desc'
-                              ? Colors.blue
-                              : Colors.grey[600]),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Latest Date',
-                        style: TextStyle(
-                          color: controller.selectedSort.value == 'date_desc'
-                              ? Colors.blue
-                              : null,
-                          fontWeight:
-                              controller.selectedSort.value == 'date_desc'
-                                  ? FontWeight.w600
-                                  : null,
-                        ),
-                      ),
-                      const Spacer(),
-                      if (controller.selectedSort.value == 'date_desc')
-                        const Icon(Icons.check, size: 16, color: Colors.blue),
-                    ],
-                  ),
-                ),
-                PopupMenuItem<String>(
-                  value: 'date_asc',
-                  child: Row(
-                    children: [
-                      Icon(Icons.schedule,
-                          size: 16,
-                          color: controller.selectedSort.value == 'date_asc'
-                              ? Colors.blue
-                              : Colors.grey[600]),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Earliest Date',
-                        style: TextStyle(
-                          color: controller.selectedSort.value == 'date_asc'
-                              ? Colors.blue
-                              : null,
-                          fontWeight:
-                              controller.selectedSort.value == 'date_asc'
-                                  ? FontWeight.w600
-                                  : null,
-                        ),
-                      ),
-                      const Spacer(),
-                      if (controller.selectedSort.value == 'date_asc')
-                        const Icon(Icons.check, size: 16, color: Colors.blue),
-                    ],
-                  ),
-                ),
-                PopupMenuItem<String>(
-                  value: 'venue_name',
-                  child: Row(
-                    children: [
-                      Icon(Icons.location_on,
-                          size: 16,
-                          color: controller.selectedSort.value == 'venue_name'
-                              ? Colors.blue
-                              : Colors.grey[600]),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Venue Name',
-                        style: TextStyle(
-                          color: controller.selectedSort.value == 'venue_name'
-                              ? Colors.blue
-                              : null,
-                          fontWeight:
-                              controller.selectedSort.value == 'venue_name'
-                                  ? FontWeight.w600
-                                  : null,
-                        ),
-                      ),
-                      const Spacer(),
-                      if (controller.selectedSort.value == 'venue_name')
-                        const Icon(Icons.check, size: 16, color: Colors.blue),
-                    ],
-                  ),
-                ),
-              ],
-            )),
-        // Refresh button
-        IconButton(
-          onPressed: controller.refreshBookings,
-          icon: const Icon(Icons.refresh),
-        ),
+        _buildSortButton(context),
+        _buildRefreshButton(),
         const SizedBox(width: 8),
       ],
     );
   }
 
-  Widget _buildSortIndicator() {
-    return Obx(() {
-      String sortText;
-      IconData sortIcon;
+  // Extract sort button to separate method
+  Widget _buildSortButton(BuildContext context) {
+    return Obx(() => PopupMenuButton<String>(
+          icon: Stack(
+            children: [
+              Icon(
+                controller.getCurrentSortIcon(),
+                color: Colors.white,
+              ),
+              if (controller.isSortActive) _buildActiveIndicator(),
+            ],
+          ),
+          tooltip: LocalizationHelper.tr(LocaleKeys.bookingList_sortBookings),
+          onSelected: controller.setSortOption,
+          itemBuilder: (context) => _buildSortMenuItems(context),
+        ));
+  }
 
-      switch (controller.selectedSort.value) {
-        case 'booking_id_desc':
-          sortText = 'Sorted by: Newest ID First';
-          sortIcon = Icons.tag;
-          break;
-        case 'date_desc':
-          sortText = 'Sorted by: Latest Date';
-          sortIcon = Icons.schedule;
-          break;
-        case 'date_asc':
-          sortText = 'Sorted by: Earliest Date';
-          sortIcon = Icons.schedule;
-          break;
-        case 'venue_name':
-          sortText = 'Sorted by: Venue Name';
-          sortIcon = Icons.location_on;
-          break;
-        default:
-          sortText = 'Sorted by: Default';
-          sortIcon = Icons.sort;
+  // Extract refresh button to separate method
+  Widget _buildRefreshButton() {
+    return IconButton(
+      onPressed: controller.refreshBookings,
+      icon: const Icon(Icons.refresh, color: Colors.white),
+      tooltip: LocalizationHelper.tr(LocaleKeys.bookingList_refreshBookings),
+    );
+  }
+
+  // Extract active indicator to separate method
+  Widget _buildActiveIndicator() {
+    return Positioned(
+      right: 0,
+      top: 0,
+      child: Container(
+        width: 8,
+        height: 8,
+        decoration: const BoxDecoration(
+          color: Colors.orange,
+          shape: BoxShape.circle,
+        ),
+      ),
+    );
+  }
+
+  // Extract menu items to separate method
+  List<PopupMenuEntry<String>> _buildSortMenuItems(BuildContext context) {
+    return controller.sortOptions
+        .map((option) => PopupMenuItem<String>(
+              value: option['value'] as String,
+              child: _buildSortMenuItem(context, option),
+            ))
+        .toList();
+  }
+
+  // Extract individual menu item to separate method
+  Widget _buildSortMenuItem(BuildContext context, Map<String, dynamic> option) {
+    final isSelected = controller.selectedSort.value == option['value'];
+
+    return Row(
+      children: [
+        Icon(
+          option['icon'] as IconData,
+          size: 18,
+          color: isSelected ? Theme.of(context).primaryColor : Colors.grey[600],
+        ),
+        const SizedBox(width: 12),
+        Text(
+          option['label'] as String,
+          style: TextStyle(
+            color: isSelected ? Theme.of(context).primaryColor : Colors.black87,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
+        const Spacer(),
+        if (isSelected)
+          Icon(
+            Icons.check,
+            size: 18,
+            color: Theme.of(context).primaryColor,
+          ),
+      ],
+    );
+  }
+
+  // Extract sort indicator to separate method
+  Widget _buildSortIndicator(BuildContext context) {
+    return Obx(() {
+      if (!controller.isSortActive) {
+        return const SizedBox.shrink();
       }
 
       return Container(
-        color: Colors.grey[50],
+        width: double.infinity,
+        color: Theme.of(context).primaryColor.withOpacity(0.1),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Row(
           children: [
-            Icon(sortIcon, size: 14, color: Colors.grey[600]),
-            const SizedBox(width: 6),
+            Icon(
+              controller.getCurrentSortIcon(),
+              size: 16,
+              color: Theme.of(context).primaryColor,
+            ),
+            const SizedBox(width: 8),
             Text(
-              sortText,
+              LocalizationHelper.trArgs(LocaleKeys.bookingList_sortedBy, {'sortLabel': controller.getCurrentSortLabel()}),
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: Theme.of(context).primaryColor,
                 fontWeight: FontWeight.w500,
               ),
             ),
+            const Spacer(),
+            _buildResetButton(context),
           ],
         ),
       );
     });
   }
 
+  // Extract reset button to separate method
+  Widget _buildResetButton(BuildContext context) {
+    return GestureDetector(
+      onTap: controller.clearSort,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            LocalizationHelper.tr(LocaleKeys.bookingList_reset),
+            style: TextStyle(
+              fontSize: 12,
+              color: Theme.of(context).primaryColor,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Icon(
+            Icons.refresh,
+            size: 14,
+            color: Theme.of(context).primaryColor,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Extract tab bar to separate method
   Widget _buildTabBar() {
     return Container(
       color: Colors.white,
@@ -262,6 +207,7 @@ class BookingListPage extends GetView<BookingListController> {
     );
   }
 
+  // Extract individual tab button to separate method
   Widget _buildTabButton(int index) {
     final isSelected = controller.currentTabIndex.value == index;
     final count = controller.getTabCount(index);
@@ -316,6 +262,7 @@ class BookingListPage extends GetView<BookingListController> {
     );
   }
 
+  // Extract booking list to separate method
   Widget _buildBookingList() {
     return Obx(() {
       if (controller.isLoading.value) {
@@ -354,6 +301,7 @@ class BookingListPage extends GetView<BookingListController> {
     });
   }
 
+  // Extract error state to separate method
   Widget _buildErrorState() {
     return Center(
       child: Column(
@@ -362,7 +310,7 @@ class BookingListPage extends GetView<BookingListController> {
           Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
-            'Failed to load bookings',
+            LocalizationHelper.tr(LocaleKeys.bookingList_failedToLoad),
             style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -377,13 +325,14 @@ class BookingListPage extends GetView<BookingListController> {
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: controller.refreshBookings,
-            child: const Text('Retry'),
+            child: Text(LocalizationHelper.tr(LocaleKeys.bookingList_retry)),
           ),
         ],
       ),
     );
   }
 
+  // Extract empty state to separate method
   Widget _buildEmptyState() {
     String title;
     String message;
@@ -391,33 +340,33 @@ class BookingListPage extends GetView<BookingListController> {
 
     switch (controller.currentTabIndex.value) {
       case 0:
-        title = 'No Bookings Yet';
-        message = 'Start exploring venues and make your first booking!';
+        title = LocalizationHelper.tr(LocaleKeys.bookingList_emptyStates_noBookings_title);
+        message = LocalizationHelper.tr(LocaleKeys.bookingList_emptyStates_noBookings_message);
         icon = Icons.calendar_today;
         break;
       case 1:
-        title = 'No Pending Bookings';
-        message = 'All your bookings have been processed.';
+        title = LocalizationHelper.tr(LocaleKeys.bookingList_emptyStates_noPending_title);
+        message = LocalizationHelper.tr(LocaleKeys.bookingList_emptyStates_noPending_message);
         icon = Icons.pending;
         break;
       case 2:
-        title = 'No Confirmed Bookings';
-        message = 'No bookings are waiting for payment.';
+        title = LocalizationHelper.tr(LocaleKeys.bookingList_emptyStates_noConfirmed_title);
+        message = LocalizationHelper.tr(LocaleKeys.bookingList_emptyStates_noConfirmed_message);
         icon = Icons.check_circle;
         break;
       case 3:
-        title = 'No Completed Bookings';
-        message = 'Complete a booking to see it here.';
+        title = LocalizationHelper.tr(LocaleKeys.bookingList_emptyStates_noCompleted_title);
+        message = LocalizationHelper.tr(LocaleKeys.bookingList_emptyStates_noCompleted_message);
         icon = Icons.done_all;
         break;
       case 4:
-        title = 'No Cancelled Bookings';
-        message = 'You haven\'t cancelled any bookings yet.';
+        title = LocalizationHelper.tr(LocaleKeys.bookingList_emptyStates_noCancelled_title);
+        message = LocalizationHelper.tr(LocaleKeys.bookingList_emptyStates_noCancelled_message);
         icon = Icons.cancel;
         break;
       default:
-        title = 'No Bookings';
-        message = 'No bookings found.';
+        title = LocalizationHelper.tr(LocaleKeys.bookingList_emptyStates_noResults_title);
+        message = LocalizationHelper.tr(LocaleKeys.bookingList_emptyStates_noResults_message);
         icon = Icons.search_off;
     }
 
@@ -444,7 +393,7 @@ class BookingListPage extends GetView<BookingListController> {
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () => Get.offAllNamed('/home'),
-              child: const Text('Explore Venues'),
+              child: Text(LocalizationHelper.tr(LocaleKeys.bookingList_exploreVenues)),
             ),
           ],
         ],
@@ -452,6 +401,7 @@ class BookingListPage extends GetView<BookingListController> {
     );
   }
 
+  // Extract navigation methods
   void _navigateToBookingDetail(BookingModel booking) {
     Get.toNamed(MyRoutes.bookingDetail, arguments: booking.id);
   }
