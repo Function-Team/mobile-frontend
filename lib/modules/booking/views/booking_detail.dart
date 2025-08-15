@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/generated/locale_keys.g.dart';
@@ -7,9 +8,6 @@ import 'package:function_mobile/modules/booking/controllers/booking_detail_contr
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:function_mobile/modules/venue/widgets/venue_detail/contact_host_widget.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
-import 'package:get/get_state_manager/src/simple/get_view.dart';
 
 class BookingDetailPage extends GetView<BookingDetailController> {
   const BookingDetailPage({super.key});
@@ -509,38 +507,36 @@ class BookingDetailPage extends GetView<BookingDetailController> {
           children: [
             if (canCancel) ...[
               Expanded(
-                child: OutlinedButton(
+                child: PrimaryButton(
+                  text: 'Cancel Booking',
                   onPressed: () => _showCancelDialog(context),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    side: const BorderSide(color: Colors.red),
-                  ),
-                  child: const Text(
-                    'Cancel Booking',
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  backgroundColor: Colors.white,
+                  isLoading: false,
+                  height: 50,
                 ),
               ),
               if (needsPayment) const SizedBox(width: 12),
             ],
             if (needsPayment) ...[
               Expanded(
-                child: ElevatedButton(
-                  onPressed: () => _proceedToPayment(booking),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: const Text(
-                    'Pay Now',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                child: PrimaryButton(
+                  text: 'Pay Now',
+                  onPressed: () => controller.proceedToPayment(booking),
+                  backgroundColor: Colors.green,
+                  isLoading: false,
+                  height: 50,
+                ),
+              ),
+            ],
+            if (booking.isCompleted &&
+                booking.endDateTime.isBefore(DateTime.now())) ...[
+              Expanded(
+                child: PrimaryButton(
+                  text: controller.hasBeenReviewed ? 'Edit Review' : 'Write a Review',
+                  onPressed: () => controller.navigateToReviewForm(booking),
+                  backgroundColor: Colors.blue,
+                  isLoading: false,
+                  height: 50,
                 ),
               ),
             ],
@@ -575,34 +571,6 @@ class BookingDetailPage extends GetView<BookingDetailController> {
     }
   }
 
-  Color _getPaymentStatusColor(String? status) {
-    switch (status?.toLowerCase()) {
-      case 'success':
-        return Colors.green;
-      case 'pending':
-        return Colors.orange;
-      case 'cancelled':
-      case 'failed':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  IconData _getPaymentStatusIcon(String? status) {
-    switch (status?.toLowerCase()) {
-      case 'success':
-        return Icons.check_circle;
-      case 'pending':
-        return Icons.access_time;
-      case 'cancelled':
-      case 'failed':
-        return Icons.cancel;
-      default:
-        return Icons.help_outline;
-    }
-  }
-
   void _showCancelDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -626,10 +594,5 @@ class BookingDetailPage extends GetView<BookingDetailController> {
         ],
       ),
     );
-  }
-
-  void _proceedToPayment(BookingModel booking) {
-    // Navigate to payment page
-    Get.toNamed('/payment', arguments: booking);
   }
 }

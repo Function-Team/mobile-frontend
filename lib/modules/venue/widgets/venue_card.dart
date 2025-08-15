@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/buttons/favorite_button.dart';
-import 'package:function_mobile/modules/venue/controllers/venue_list_controller.dart';
 import 'package:function_mobile/modules/venue/widgets/category_chip.dart';
 import 'package:intl/intl.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
@@ -37,12 +36,13 @@ class VenueCard extends StatelessWidget {
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(12)),
                   child: // Di dalam widget VenueCard
-                  NetworkImageWithLoader(
+                      NetworkImageWithLoader(
                     imageUrl: venue.firstPictureUrl ?? "",
                     fit: BoxFit.cover,
                     height: 120,
                     width: double.infinity,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(12)),
                   ),
                 ),
                 Positioned(

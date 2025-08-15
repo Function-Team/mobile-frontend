@@ -45,6 +45,12 @@ class BookingDetailController extends GetxController {
     return booking.value!.isConfirmed && booking.value!.isPaid;
   }
 
+  // Check if booking has been reviewed
+  bool get hasBeenReviewed {
+    if (booking.value == null) return false;
+    return booking.value!.reviews != null && booking.value!.reviews!.isNotEmpty;
+  }
+
   Future<void> loadBookingDetails() async {
     try {
       isLoading.value = true;
@@ -410,5 +416,30 @@ class BookingDetailController extends GetxController {
   //whatsapp
   Future<void> contactHost() async {
     WhatsAppContactService.contactHostFromBooking(booking: booking.value!);
+  }
+
+  void proceedToPayment(BookingModel booking) {
+    // Navigate to payment page
+    Get.toNamed('/payment', arguments: booking);
+  }
+
+  void navigateToReviewForm(BookingModel booking) {
+    // Check if booking has a review
+    if (hasBeenReviewed && booking.reviews != null && booking.reviews!.isNotEmpty) {
+      // Navigate to edit review form with review ID
+      Get.toNamed(
+        MyRoutes.reviewForm,
+        arguments: {
+          'bookingId': booking.id,
+          'reviewId': booking.reviews!.first.id,
+        },
+      );
+    } else {
+      // Navigate to create review form with booking ID
+      Get.toNamed(
+        MyRoutes.reviewForm,
+        arguments: {'bookingId': booking.id},
+      );
+    }
   }
 }

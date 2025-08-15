@@ -13,7 +13,7 @@ class ReviewFormPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Write a Review'),
+        title: Obx(() => Text(Get.find<ReviewController>().isEditMode.value ? 'Edit Review' : 'Write a Review')),
         centerTitle: true,
       ),
       body: SafeArea(

@@ -36,6 +36,17 @@ class ReviewService extends GetxService {
       return [];
     }
   }
+  
+  // Get a single review by ID
+  Future<ReviewModel?> getReviewById(int reviewId) async {
+    try {
+      final response = await _apiService.getRequest('/review/$reviewId');
+      return ReviewModel.fromJson(response);
+    } catch (e) {
+      print('Error fetching review: $e');
+      return null;
+    }
+  }
 
   // Create a new review
   Future<ReviewModel?> createReview(int bookingId, int rating, String comment) async {

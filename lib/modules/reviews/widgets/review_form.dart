@@ -29,14 +29,14 @@ class ReviewForm extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Write a Review',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).primaryColor,
-            ),
-          ),
+          Obx(() => Text(
+                controller.isEditMode.value ? 'Edit Review' : 'Write a Review',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).primaryColor,
+                ),
+              )),
           const SizedBox(height: 16),
           Text(
             'Rating',
@@ -87,7 +87,10 @@ class ReviewForm extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Obx(() => PrimaryButton(
-                text: 'Submit Review',
+                width: double.infinity,
+                text: controller.isEditMode.value
+                    ? 'Update Review'
+                    : 'Submit Review',
                 isLoading: controller.isSubmitting.value,
                 onPressed: controller.submitReview,
               )),

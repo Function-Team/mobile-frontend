@@ -47,10 +47,11 @@ class ReviewPage extends StatelessWidget {
                   Text(controller.errorMessage.value),
                   const SizedBox(height: 16),
                   PrimaryButton(
+                    width: 120,
                     isLoading: false,
                     text: 'Retry',
-                    onPressed: () => controller.loadReviewsByVenueId(
-                        controller.venueId.value),
+                    onPressed: () => controller
+                        .loadReviewsByVenueId(controller.venueId.value),
                   ),
                 ],
               ),
@@ -78,6 +79,7 @@ class ReviewPage extends StatelessWidget {
                   const SizedBox(height: 16),
                   if (controller.bookingId.value > 0)
                     PrimaryButton(
+                      width: 200,
                       isLoading: false,
                       text: 'Add Review',
                       onPressed: () {

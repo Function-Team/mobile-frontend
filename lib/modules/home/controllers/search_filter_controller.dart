@@ -279,8 +279,10 @@ class SearchFilterController extends GetxController {
       capacityText.value = '1000 orang';
 
       // Show feedback
-      CustomSnackbar.show(context: Get.context!, message: 'Maksimal 1000 orang', type: SnackbarType.warning);
-
+      CustomSnackbar.show(
+          context: Get.context!,
+          message: 'Maksimal 1000 orang',
+          type: SnackbarType.warning);
     }
   }
 
@@ -358,12 +360,18 @@ class SearchFilterController extends GetxController {
   Future<void> performAdvancedSearch() async {
     // Validasi field wajib
     if (activityText.value.isEmpty) {
-      CustomSnackbar.show(context: Get.context!, message: 'Silakan pilih aktivitas atau tempat terlebih dahulu', type: SnackbarType.error);
+      CustomSnackbar.show(
+          context: Get.context!,
+          message: 'Silakan pilih aktivitas atau tempat terlebih dahulu',
+          type: SnackbarType.error);
       return;
     }
 
     if (locationText.value.isEmpty) {
-      CustomSnackbar.show(context: Get.context!, message: 'Silakan pilih lokasi terlebih dahulu', type: SnackbarType.error);
+      CustomSnackbar.show(
+          context: Get.context!,
+          message: 'Silakan pilih lokasi terlebih dahulu',
+          type: SnackbarType.error);
       return;
     }
 
