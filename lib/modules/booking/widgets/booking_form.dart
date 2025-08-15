@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_controller.dart';
 import 'package:function_mobile/modules/booking/widgets/time_slot_picker.dart';
 import 'package:function_mobile/modules/booking/widgets/calendar_booking_widget.dart';
@@ -294,7 +296,7 @@ class BookingForm extends StatelessWidget {
                           fontSize: 16,
                         ),
                         decoration: InputDecoration(
-                          hintText: 'Enter number of guests',
+                          hintText: LocalizationHelper.tr(LocaleKeys.forms_enterNumberOfGuests),
                           hintStyle: TextStyle(
                             color: Colors.grey[600],
                           ),
@@ -393,7 +395,7 @@ class BookingForm extends StatelessWidget {
             Obx(() => TextField(
                   controller: controller.guestNameController,
                   decoration: InputDecoration(
-                    labelText: 'Guest Name',
+                    labelText: LocalizationHelper.tr(LocaleKeys.labels_guestNameLabel),
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.person),
                     errorText: controller.nameError.isEmpty
@@ -412,7 +414,7 @@ class BookingForm extends StatelessWidget {
                   controller: controller.guestEmailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
-                    labelText: 'Email',
+                    labelText: LocalizationHelper.tr(LocaleKeys.labels_emailLabel),
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.email),
                     errorText: controller.emailError.isEmpty
@@ -431,7 +433,7 @@ class BookingForm extends StatelessWidget {
                   controller: controller.guestPhoneController,
                   keyboardType: TextInputType.phone,
                   decoration: InputDecoration(
-                    labelText: 'Phone Number',
+                    labelText: LocalizationHelper.tr(LocaleKeys.labels_phoneLabel),
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.phone),
                     errorText: controller.phoneError.isEmpty
@@ -450,7 +452,7 @@ class BookingForm extends StatelessWidget {
               controller: controller.specialRequestsController,
               maxLines: 3,
               decoration: InputDecoration(
-                labelText: 'Special Requests (Optional)',
+                labelText: LocalizationHelper.tr(LocaleKeys.labels_specialRequestsLabel),
                 border: OutlineInputBorder(),
                 alignLabelWithHint: true,
               ),
@@ -518,7 +520,7 @@ class BookingForm extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Base Price/hour'),
+                Text(LocalizationHelper.tr(LocaleKeys.labels_basePricePerHourLabel)),
                 Text('Rp ${NumberFormat('#,###').format(venue.price ?? 0)}'),
               ],
             ),
@@ -526,8 +528,8 @@ class BookingForm extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Duration'),
-                Text('${totalHours.toStringAsFixed(1)} hours'),
+                Text(LocalizationHelper.tr(LocaleKeys.labels_durationLabel)),
+                Text('${totalHours.toStringAsFixed(1)} ${LocalizationHelper.tr(LocaleKeys.labels_hoursText)}'),
               ],
             ),
             Divider(height: 24),

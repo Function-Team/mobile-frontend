@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/home/controllers/search_filter_controller.dart';
 import 'package:get/get.dart';
 
@@ -103,7 +105,7 @@ class SearchContainer extends StatelessWidget {
               color: Colors.black87,
             ),
             decoration: InputDecoration(
-              hintText: 'Jumlah tamu',
+              hintText: LocalizationHelper.tr(LocaleKeys.placeholders_selectGuests),
               hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Colors.grey[600],
               ),
@@ -166,7 +168,7 @@ class SearchContainer extends StatelessWidget {
             context: context,
             controller: searchController.activityController,
             icon: Icons.search,
-            hintText: 'Cari tempat atau aktivitas',
+            hintText: LocalizationHelper.tr(LocaleKeys.placeholders_searchPlaceActivity),
             onTap: () => searchController.goToSearchActivity(),
             textValue: searchController.activityText, // Tambahkan variabel Rx
           ),
@@ -178,7 +180,7 @@ class SearchContainer extends StatelessWidget {
             context: context,
             controller: searchController.locationController,
             icon: Icons.location_on_outlined,
-            hintText: 'Pilih kota',
+            hintText: LocalizationHelper.tr(LocaleKeys.placeholders_selectCity),
             onTap: () => searchController.showCityPicker(),
             textValue: searchController.locationText, // Tambahkan variabel Rx
           ),
@@ -190,7 +192,7 @@ class SearchContainer extends StatelessWidget {
             context: context,
             controller: searchController.dateController,
             icon: Icons.date_range_outlined,
-            hintText: 'Pilih tanggal',
+            hintText: LocalizationHelper.tr(LocaleKeys.placeholders_selectDate),
             onTap: () => searchController.selectDateRange(),
             textValue: searchController.dateText, // Tambahkan variabel Rx
           ),
@@ -204,7 +206,7 @@ class SearchContainer extends StatelessWidget {
                 child: Obx(() => _buildTimeField(
                       context: context,
                       time: searchController.startTime.value,
-                      hintText: 'Jam mulai',
+                      hintText: LocalizationHelper.tr(LocaleKeys.placeholders_startTime),
                       onTap: () => searchController.selectStartTime(),
                     )),
               ),
@@ -213,7 +215,7 @@ class SearchContainer extends StatelessWidget {
                 child: Obx(() => _buildTimeField(
                       context: context,
                       time: searchController.endTime.value,
-                      hintText: 'Jam selesai',
+                      hintText: LocalizationHelper.tr(LocaleKeys.placeholders_endTime),
                       onTap: () => searchController.selectEndTime(),
                     )),
               ),
@@ -238,7 +240,7 @@ class SearchContainer extends StatelessWidget {
                 flex: 1,
                 child: OutlinedButton.icon(
                   icon: const Icon(Icons.refresh),
-                  label: const Text('Reset'),
+                  label: Text(LocalizationHelper.tr(LocaleKeys.buttons_reset)),
                   onPressed: () {
                     searchController.clearAllFilters();
                   },
@@ -255,7 +257,7 @@ class SearchContainer extends StatelessWidget {
               Expanded(
                 flex: 2,
                 child: Obx(() => PrimaryButton(
-                      text: 'Cari Tempat',
+                      text: LocalizationHelper.tr(LocaleKeys.buttons_searchPlace),
                       isLoading: searchController.isLoading.value,
                       onPressed: () async {
                         await searchController.performAdvancedSearch();

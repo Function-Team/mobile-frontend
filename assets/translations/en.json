@@ -153,6 +153,57 @@
     "totalPrice": "Total Price",
     "people": "People"
   },
+  "bookingList": {
+    "title": "Booking List",
+    "sortBookings": "Sort Bookings",
+    "refreshBookings": "Refresh Bookings",
+    "sortedBy": "Sorted by: {sortLabel}",
+    "reset": "Reset",
+    "failedToLoad": "Failed to load bookings",
+    "retry": "Retry",
+    "tabs": {
+      "all": "All",
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "sortOptions": {
+      "newestIdFirst": "Newest ID First",
+      "oldestIdFirst": "Oldest ID First",
+      "latestDate": "Latest Date",
+      "earliestDate": "Earliest Date",
+      "venueNameAZ": "Venue Name A-Z",
+      "byStatus": "By Status"
+    },
+    "emptyStates": {
+      "noBookings": {
+        "title": "No Bookings Yet",
+        "message": "Start exploring venues and make your first booking!"
+      },
+      "noPending": {
+        "title": "No Pending Bookings",
+        "message": "All your bookings have been processed."
+      },
+      "noConfirmed": {
+        "title": "No Confirmed Bookings",
+        "message": "No bookings are waiting for payment."
+      },
+      "noCompleted": {
+        "title": "No Completed Bookings",
+        "message": "Complete a booking to see it here."
+      },
+      "noCancelled": {
+        "title": "No Cancelled Bookings",
+        "message": "You haven't cancelled any bookings yet."
+      },
+      "noResults": {
+        "title": "No Bookings",
+        "message": "No bookings found."
+      }
+    },
+    "exploreVenues": "Explore Venues"
+  },
   "booking": {
     "details": "Details",
     "bookingDetails": "Booking Details",
@@ -534,7 +585,7 @@
     "bookingMustBeConfirmed": "Booking must be confirmed by admin before payment",
     "bookingAlreadyPaid": "This booking is already paid",
     "cannotPayCancelledBooking": "Cannot make payment for cancelled booking",
-    "failedToLoadBookings": "Failed to load bookings",
+    "failedToLoadBookings": "Failed to load bookings: {error}",
     "failedToCancelBooking": "Failed to cancel booking",
     "failedToCreatePayment": "Failed to create payment"
   },
@@ -565,11 +616,141 @@
     "eWalletSubtitle": "GoPay, OVO, DANA, ShopeePay",
     "convenienceStoreSubtitle": "Alfamart, Indomaret",
     "cancelPaymentConfirm": "Are you sure you want to cancel this payment? Your booking will not be confirmed.",
+    "cancelPaymentTitle": "Cancel Payment?",
     "continuePayment": "Continue Payment",
     "checkStatus": "Check Status",
     "useDifferentMethod": "Use Different Method",
     "backToHome": "Back to Home",
     "startNewBooking": "Start New Booking"
+  },
+  "forms": {
+    "email": "Email",
+    "password": "Password",
+    "username": "Username",
+    "confirmPassword": "Confirm Password",
+    "emailOptional": "Email (Optional)",
+    "enterEmail": "Enter your email",
+    "enterPassword": "Enter your password",
+    "enterUsername": "Enter your username",
+    "confirmYourPassword": "Confirm your password",
+    "guestName": "Guest Name",
+    "phoneNumber": "Phone Number",
+    "specialRequests": "Special Requests (Optional)",
+    "enterNumberOfGuests": "Enter number of guests",
+    "shareYourExperience": "Share your experience...",
+    "typeMessage": "Type a message",
+    "enterGuestName": "Enter guest name",
+    "enterEmail": "Enter email",
+    "enterPhoneNumber": "Enter phone number",
+    "specialRequestsHint": "Any special requirements or requests",
+    "reviewPlaceholder": "Share your experience...",
+    "confirmNewPassword": "Confirm New Password"
+  },
+  "buttons": {
+    "login": "Login",
+    "signUp": "Sign Up",
+    "loggingIn": "Logging in...",
+    "creatingAccount": "Creating Account...",
+    "backToLogin": "Back to Login",
+    "forgotPassword": "Forgot Password?",
+    "contact": "Contact",
+    "filter": "Filter",
+    "sort": "Sort",
+    "retry": "Retry",
+    "reset": "Reset",
+    "view": "View",
+    "continuePayment": "Continue Payment",
+    "close": "Close",
+    "choose": "Choose",
+    "searchPlace": "Search Place",
+    "forgotPassword": "Forgot Password?",
+    "alreadyHaveAccount": "Already have an account?",
+    "dontHaveAccount": "Don't have an account?",
+    "backToLogin": "Back to Login",
+    "writeReview": "Write a Review",
+    "sendMessage": "Send Message",
+    "selectTime": "Select Time",
+    "confirmBooking": "Confirm Booking",
+    "bookNow": "Book Now",
+    "showAll": "Show All"
+  },
+  "labels": {
+    "or": "or",
+    "startFrom": "Start from",
+    "basePricePerHour": "Base Price/hour",
+    "duration": "Duration",
+    "basePrice": "Base Price",
+    "hours": "hours",
+    "people": "people",
+    "loadingRating": "Loading rating...",
+    "noReviewsYet": "No reviews yet",
+    "tapToContactWhatsApp": "Tap to contact via WhatsApp",
+    "version": "Version",
+    "hoursText": "hours",
+    "guestNameLabel": "Guest Name",
+    "emailLabel": "Email",
+    "phoneLabel": "Phone Number",
+    "specialRequestsLabel": "Special Requests (Optional)",
+    "basePricePerHourLabel": "Base Price/hour",
+    "durationLabel": "Duration",
+    "openingHours": "Opening Hours",
+    "contactHost": "Contact Host",
+    "sizeNotAvailable": "Size not available",
+    "activities": "Activities",
+    "unknownActivity": "Unknown Activity",
+    "host": "Host",
+    "anonymous": "Anonymous",
+    "viewAllReviews": "View all {count} reviews",
+    "needHelpContactHost": "Need help? Contact Host"
+  },
+  "pages": {
+    "termsOfService": "Terms of Service",
+    "privacyPolicy": "Privacy Policy",
+    "chats": "Chats",
+    "chattingPage": "Chatting Page",
+    "reviews": "Reviews",
+    "writeReview": "Write a Review",
+    "editProfile": "Edit Profile",
+    "reviewsPage": "Reviews",
+    "editProfilePage": "Edit Profile",
+    "chattingPage": "Chatting Page"
+  },
+  "placeholders": {
+    "selectGuests": "Number of guests",
+    "searchPlaceActivity": "Search place or activity",
+    "selectCity": "Select city",
+    "selectDate": "Select date",
+    "startTime": "Start time",
+    "endTime": "End time"
+  },
+  "messages": {
+    "agreeToTerms": "By signing up, you agree to our",
+    "andPrivacyPolicy": "and",
+    "alreadyHaveAccount": "Already have an account?",
+    "dontHaveAccount": "Don't have an account?",
+    "couldNotOpenMaps": "Could not open Google Maps",
+    "noVenuesAvailable": "No venues available at the moment",
+    "bySigningUp": "By signing up, you agree to our",
+    "termsAndConditions": "Terms and Conditions",
+    "privacyPolicyLink": "Privacy Policy",
+    "errorOccurred": "Error: {error}"
+  },
+  "conflictDialog": {
+    "timeNotAvailable": "Time Not Available",
+    "chooseAlternativeTime": "Choose alternative time",
+    "timeAlreadyBooked": "The selected time has already been booked by someone else.",
+    "availableTimesToday": "Available times today:",
+    "noSlotsAvailable": "No Slots Available",
+    "allTimesBooked": "All times today are already booked. Please choose another date.",
+    "close": "Close",
+    "chooseOtherDate": "Choose Other Date",
+    "duration1Hour": "Duration: 1 hour"
+  },
+  "priceDetails": {
+    "basePrice": "Base Price",
+    "discount": "Discount",
+    "taxes": "Taxes",
+    "totalPrice": "Total Price"
   },
   "auth": {
     "login": "Login",

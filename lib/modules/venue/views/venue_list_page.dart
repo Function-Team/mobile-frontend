@@ -125,7 +125,7 @@ class VenueListPage extends GetView<VenueListController> {
                   // Tombol Filter
                   ElevatedButton.icon(
                     icon: const Icon(Icons.filter_list, size: 18),
-                    label: const Text('Filter'),
+                    label: Text(LocalizationHelper.tr('buttons.filter')),
                     onPressed: () => _showFilterBottomSheet(context),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
@@ -140,7 +140,7 @@ class VenueListPage extends GetView<VenueListController> {
                   // Tombol Sort
                   ElevatedButton.icon(
                     icon: const Icon(Icons.sort, size: 18),
-                    label: const Text('Sort'),
+                    label: Text(LocalizationHelper.tr('buttons.sort')),
                     onPressed: () {}, // Tambahkan fungsi sort di controller
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,

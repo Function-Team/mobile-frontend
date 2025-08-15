@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
 
 class TermsOfServicePage extends StatelessWidget {
   const TermsOfServicePage({super.key});
@@ -7,7 +8,7 @@ class TermsOfServicePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Terms of Service'),
+        title: Text(LocalizationHelper.tr('pages.termsOfService')),
       ),
       body: SingleChildScrollView(
         child: Padding(
