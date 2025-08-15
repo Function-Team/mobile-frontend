@@ -307,16 +307,6 @@ class SearchFilterController extends GetxController {
     }
   }
 
-  void _updateCapacityText() {
-    if (maxCapacity.value == 0) {
-      capacityInputController.text = '';
-      capacityText.value = '';
-    } else {
-      capacityInputController.text = maxCapacity.value.toString();
-      capacityText.value = '${maxCapacity.value} orang';
-    }
-  }
-
   // Navigation methods
   void goToSearchActivity() async {
     final result = await Get.toNamed(MyRoutes.searchActivity);

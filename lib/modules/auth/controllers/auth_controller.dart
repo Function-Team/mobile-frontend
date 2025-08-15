@@ -739,7 +739,6 @@ extension AuthControllerLogout on AuthController {
         type: SnackbarType.success,
       );
 
-
       // Kembali ke halaman login
       Get.offAllNamed(MyRoutes.login);
     } catch (e) {

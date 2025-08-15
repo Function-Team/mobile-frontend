@@ -33,16 +33,12 @@ class PaymentController extends GetxController {
       isLoading.value = true;
       errorMessage.value = '';
 
-      if (booking.id == null) {
-        throw Exception('Invalid booking ID');
-      }
-
       // Get amount from booking or calculate it
       final amount = booking.place?.price?.toDouble() ?? 0.0;
 
       // Create payment with amount
       final response = await _paymentService.createPayment(
-        booking.id!,
+        booking.id,
         amount: amount,
       );
 
@@ -50,13 +46,18 @@ class PaymentController extends GetxController {
       paymentStatus.value = payment.PaymentStatus.pending;
       currentPayment.value = response.paymentModel;
 
-      CustomSnackbar.show(context: Get.context!, message: 'Payment Initialized, Amount: Rp ${_formatCurrency(amount)}', type: SnackbarType.success);
-
+      CustomSnackbar.show(
+          context: Get.context!,
+          message: 'Payment Initialized, Amount: Rp ${_formatCurrency(amount)}',
+          type: SnackbarType.success);
 
       return true;
     } catch (e) {
       errorMessage.value = e.toString();
-      CustomSnackbar.show(context: Get.context!, message: 'Failed to initialize payment: ${e.toString()}', type: SnackbarType.error);
+      CustomSnackbar.show(
+          context: Get.context!,
+          message: 'Failed to initialize payment: ${e.toString()}',
+          type: SnackbarType.error);
       return false;
     } finally {
       isLoading.value = false;
@@ -65,43 +66,46 @@ class PaymentController extends GetxController {
 
   // Start Midtrans payment process
   Future<bool> startPaymentProcess() async {
-  try {
-    isPaymentProcessing.value = true;
+    try {
+      isPaymentProcessing.value = true;
 
-    print('[PaymentController] Starting payment with snapToken: ${snapToken.value}');
+      print(
+          '[PaymentController] Starting payment with snapToken: ${snapToken.value}');
 
-    if (snapToken.value.isEmpty) {
-      throw Exception('No payment session available');
-    }
+      if (snapToken.value.isEmpty) {
+        throw Exception('No payment session available');
+      }
 
-    final result = await _paymentService.startPayment(snapToken: snapToken.value);
-    print('[PaymentController] Midtrans result: $result');
+      final result =
+          await _paymentService.startPayment(snapToken: snapToken.value);
+      print('[PaymentController] Midtrans result: $result');
 
-    final status = _paymentService.handlePaymentResult(result);
-    paymentStatus.value = status;
+      final status = _paymentService.handlePaymentResult(result);
+      paymentStatus.value = status;
 
-    print('[PaymentController] Parsed payment status: $status');
+      print('[PaymentController] Parsed payment status: $status');
 
-    if (status == payment.PaymentStatus.success) {
-      print('[PaymentController] Payment success detected. Triggering success handler.');
-      _handlePaymentSuccess();
-      return true;
-    } else {
-      print('[PaymentController] Payment failed or cancelled. Status: $status');
-      _handlePaymentFailure(status);
+      if (status == payment.PaymentStatus.success) {
+        print(
+            '[PaymentController] Payment success detected. Triggering success handler.');
+        _handlePaymentSuccess();
+        return true;
+      } else {
+        print(
+            '[PaymentController] Payment failed or cancelled. Status: $status');
+        _handlePaymentFailure(status);
+        return false;
+      }
+    } catch (e, stackTrace) {
+      print('[PaymentController] Exception during startPaymentProcess: $e');
+      print('[PaymentController] StackTrace: $stackTrace');
+      paymentStatus.value = payment.PaymentStatus.failed;
+      _showErrorSnackbar('Payment Failed', e.toString());
       return false;
+    } finally {
+      isPaymentProcessing.value = false;
     }
-  } catch (e, stackTrace) {
-    print('[PaymentController] Exception during startPaymentProcess: $e');
-    print('[PaymentController] StackTrace: $stackTrace');
-    paymentStatus.value = payment.PaymentStatus.failed;
-    _showErrorSnackbar('Payment Failed', e.toString());
-    return false;
-  } finally {
-    isPaymentProcessing.value = false;
   }
-}
-
 
   // Retry payment
   Future<bool> retryPayment() async {
@@ -143,17 +147,18 @@ class PaymentController extends GetxController {
 
   // Refresh payment status
   Future<void> refreshPaymentStatus(int paymentId) async {
-  try {
-    final status = await _paymentService.checkPaymentStatus(paymentId);
-    paymentStatus.value = status;
-    final paymentModel = await _paymentService.getPayment(paymentId);
-    currentPayment.value = paymentModel;
+    try {
+      final status = await _paymentService.checkPaymentStatus(paymentId);
+      paymentStatus.value = status;
+      final paymentModel = await _paymentService.getPayment(paymentId);
+      currentPayment.value = paymentModel;
 
-    print('[PaymentController] Updated payment status: $status');
-  } catch (e) {
-    print('[PaymentController] Error refreshing payment status: $e');
+      print('[PaymentController] Updated payment status: $status');
+    } catch (e) {
+      print('[PaymentController] Error refreshing payment status: $e');
+    }
   }
-}
+
   // Get payment by ID
   Future<payment.PaymentModel?> getPaymentById(int paymentId) async {
     try {
@@ -187,14 +192,14 @@ class PaymentController extends GetxController {
 
   // Private helper methods
   void _handlePaymentSuccess() {
-  print('[PaymentController] Handling payment success...');
+    print('[PaymentController] Handling payment success...');
 
-  paymentStatus.value = payment.PaymentStatus.success;
-  _showSuccessSnackbar('Payment Successful!', 'Your booking has been confirmed.');
-  print('[PaymentController] Redirecting to /booking-success');
-  Get.offAllNamed('/booking-success');
-}
-
+    paymentStatus.value = payment.PaymentStatus.success;
+    _showSuccessSnackbar(
+        'Payment Successful!', 'Your booking has been confirmed.');
+    print('[PaymentController] Redirecting to /booking-success');
+    Get.offAllNamed('/booking-success');
+  }
 
   void _handlePaymentFailure(payment.PaymentStatus status) {
     String message = 'Payment failed. Please try again.';
@@ -234,15 +239,18 @@ class PaymentController extends GetxController {
   }
 
   void _showSuccessSnackbar(String title, String message) {
-    CustomSnackbar.show(context: Get.context!, message: message, type: SnackbarType.success);
+    CustomSnackbar.show(
+        context: Get.context!, message: message, type: SnackbarType.success);
   }
 
   void _showErrorSnackbar(String title, String message) {
-    CustomSnackbar.show(context: Get.context!, message: message, type: SnackbarType.error);
+    CustomSnackbar.show(
+        context: Get.context!, message: message, type: SnackbarType.error);
   }
 
   void _showInfoSnackbar(String title, String message) {
-    CustomSnackbar.show(context: Get.context!, message: message, type: SnackbarType.info);
+    CustomSnackbar.show(
+        context: Get.context!, message: message, type: SnackbarType.info);
   }
 
   @override

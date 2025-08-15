@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
+import 'package:function_mobile/modules/reviews/models/review_model.dart';
 import 'package:intl/intl.dart';
 
 class ReviewCard extends StatelessWidget {
@@ -32,8 +32,8 @@ class ReviewCard extends StatelessWidget {
                 backgroundColor: Colors.blue[100],
                 radius: 20,
                 child: Text(
-                  (review.user?.username?.isNotEmpty ?? false)
-                      ? review.user!.username![0].toUpperCase()
+                  review.username.isNotEmpty
+                      ? review.username[0].toUpperCase()
                       : 'U',
                   style: const TextStyle(color: Colors.white),
                 ),
@@ -44,24 +44,23 @@ class ReviewCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      review.user?.username ?? 'Anonymous',
+                      review.username,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
                     ),
-                    if (review.createdAt != null)
-                      Text(
-                        DateFormat('dd MMM yyyy').format(review.createdAt!),
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 12,
-                        ),
+                    Text(
+                      DateFormat('dd MMM yyyy').format(review.createdAt),
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 12,
                       ),
+                    ),
                   ],
                 ),
               ),
-              _buildRatingStars(review.rating ?? 0),
+              _buildRatingStars(review.rating),
             ],
           ),
           const SizedBox(height: 12),

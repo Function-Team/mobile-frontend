@@ -8,7 +8,10 @@ import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_list_controller.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:function_mobile/modules/booking/services/booking_service.dart';
-import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
+import 'package:function_mobile/modules/reviews/models/review_model.dart';
+import 'package:function_mobile/modules/reviews/services/review_service.dart';
+import 'package:function_mobile/modules/venue/data/models/venue_model.dart'
+    as venue_models;
 import 'package:function_mobile/modules/venue/services/whatsapp_contact_service.dart';
 import 'package:get/get.dart';
 
@@ -51,6 +54,76 @@ class BookingDetailController extends GetxController {
     return booking.value!.reviews != null && booking.value!.reviews!.isNotEmpty;
   }
 
+  // Check if booking is eligible for review based on backend validation rules
+  final RxBool isEligibleForReview = false.obs;
+  final RxString eligibilityMessage = ''.obs;
+
+  // Periksa eligibilitas review dari backend
+  Future<void> checkReviewEligibility() async {
+    if (booking.value == null || bookingId == null) return;
+
+    try {
+      // Import service
+      final reviewService = Get.find<ReviewService>();
+
+      // Panggil endpoint eligibilitas
+      final response = await reviewService.checkReviewEligibility(bookingId!);
+
+      // Update state berdasarkan response
+      isEligibleForReview.value = response['eligible'] ?? false;
+      eligibilityMessage.value = response['message'] ?? '';
+
+      // Jika ada review_id, berarti sudah ada review
+      if (response.containsKey('review_id')) {
+        // Jangan reload booking details karena akan menyebabkan infinite loop
+        // Cukup update status hasBeenReviewed secara manual
+        if (booking.value != null &&
+            (booking.value!.reviews == null ||
+                booking.value!.reviews!.isEmpty)) {
+          // Tambahkan review kosong ke booking untuk menandai bahwa sudah ada review
+          final reviewId = response['review_id'];
+          if (reviewId != null) {
+            print('Review found with ID: $reviewId, updating booking model');
+
+            // Coba ambil review lengkap dari API
+            try {
+              final reviewData = await reviewService.getReviewById(reviewId);
+              if (reviewData != null) {
+                // Update booking model dengan review lengkap
+                booking.value = booking.value!.copyWith(
+                  reviews: [reviewData],
+                );
+                return;
+              }
+            } catch (e) {
+              print('Error fetching review: $e');
+            }
+
+            // Fallback ke dummy review jika gagal mengambil review lengkap
+            final dummyReview = ReviewModel(
+              id: reviewId,
+              bookingId: bookingId!,
+              userId: booking.value!.userId,
+              rating: 0, // Nilai ini akan diupdate saat review diambil
+              comment: '', // Nilai ini akan diupdate saat review diambil
+              createdAt: DateTime.now(),
+            );
+
+            // Update booking model dengan review
+            booking.value = booking.value!.copyWith(
+              reviews: [dummyReview],
+            );
+          }
+        }
+      }
+    } catch (e) {
+      print('Error checking review eligibility: $e');
+      isEligibleForReview.value = false;
+      eligibilityMessage.value =
+          'Terjadi kesalahan saat memeriksa eligibilitas review';
+    }
+  }
+
   Future<void> loadBookingDetails() async {
     try {
       isLoading.value = true;
@@ -74,6 +147,9 @@ class BookingDetailController extends GetxController {
         print(
             "Booking loaded: ${enrichedBooking.place?.name ?? enrichedBooking.placeName}");
         print("📍 Address: ${enrichedBooking.place?.address ?? 'No address'}");
+
+        // Check review eligibility after loading booking details
+        await checkReviewEligibility();
       } else {
         hasError.value = true;
         errorMessage.value = 'Booking not found';
@@ -103,7 +179,7 @@ class BookingDetailController extends GetxController {
       print(
           'Fetched place details for booking ${booking.id}: ${placeResponse['name']}');
 
-      final venueModel = VenueModel.fromJson(placeResponse);
+      final venueModel = venue_models.VenueModel.fromJson(placeResponse);
       return booking.copyWith(place: venueModel);
     } catch (e) {
       print('Error enriching booking ${booking.id} with place details: $e');
@@ -238,10 +314,8 @@ class BookingDetailController extends GetxController {
         final fetchedBooking = await _bookingService.getBookingById(bookingId!);
 
         if (fetchedBooking != null) {
-          // Update with new status
           booking.value = fetchedBooking;
-
-          // Show a notification if status has changed since last check
+          await checkReviewEligibility();
           if (booking.value?.isConfirmed == true &&
               booking.value?.status == BookingStatus.confirmed) {
             _showSuccess('Your booking has been confirmed by the venue!');
@@ -423,23 +497,35 @@ class BookingDetailController extends GetxController {
     Get.toNamed('/payment', arguments: booking);
   }
 
-  void navigateToReviewForm(BookingModel booking) {
-    // Check if booking has a review
-    if (hasBeenReviewed && booking.reviews != null && booking.reviews!.isNotEmpty) {
-      // Navigate to edit review form with review ID
-      Get.toNamed(
-        MyRoutes.reviewForm,
-        arguments: {
-          'bookingId': booking.id,
-          'reviewId': booking.reviews!.first.id,
-        },
-      );
-    } else {
-      // Navigate to create review form with booking ID
-      Get.toNamed(
-        MyRoutes.reviewForm,
-        arguments: {'bookingId': booking.id},
-      );
+  Future<void> navigateToReviewForm(BookingModel booking) async {
+    // Jika sudah ada review, langsung navigasi ke form edit
+    if (booking.reviews != null && booking.reviews!.isNotEmpty) {
+      final Map<String, dynamic> arguments = {
+        'bookingId': booking.id,
+        'venueId': booking.placeId,
+        'reviewId': booking.reviews!.first.id
+      };
+
+      Get.toNamed(MyRoutes.reviewForm, arguments: arguments);
+      return;
     }
+
+    // Jika belum ada review, periksa eligibilitas review terlebih dahulu
+    await checkReviewEligibility();
+
+    // Gunakan hasil dari endpoint eligibilitas
+    if (!isEligibleForReview.value) {
+      // Tampilkan pesan error dari backend
+      _showError(eligibilityMessage.value);
+      return;
+    }
+
+    // Jika eligible untuk review baru
+    final Map<String, dynamic> arguments = {
+      'bookingId': booking.id,
+      'venueId': booking.placeId,
+    };
+
+    Get.toNamed(MyRoutes.reviewForm, arguments: arguments);
   }
 }

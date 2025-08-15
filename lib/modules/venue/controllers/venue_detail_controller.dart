@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
+import 'package:function_mobile/modules/reviews/models/review_model.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:function_mobile/modules/venue/data/repositories/venue_repository.dart';

@@ -1,5 +1,3 @@
-import 'dart:convert' show json;
-
 import 'package:dio/dio.dart';
 import 'package:function_mobile/core/services/api_service.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';

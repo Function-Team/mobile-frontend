@@ -12,7 +12,7 @@ class FaqPage extends StatefulWidget {
 
 class _FaqPageState extends State<FaqPage> {
   final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
+  final String _searchQuery = '';
   final Set<String> _expandedQuestions = <String>{};
 
   // FAQ Categories Data

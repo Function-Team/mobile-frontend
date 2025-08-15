@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/modules/reviews/models/review_model.dart';
+import 'package:function_mobile/common/models/user_model.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:intl/intl.dart';
 
@@ -183,7 +185,7 @@ class BookingModel {
     if (createdAt == null) return '';
     final now = DateTime.now();
     final difference = now.difference(createdAt!);
-    
+
     if (difference.inDays > 0) {
       return 'Dibuat ${difference.inDays} hari lalu';
     } else if (difference.inHours > 0) {
@@ -488,37 +490,7 @@ class BookingCreateRequest {
   }
 }
 
-class UserModel {
-  final int id;
-  final String username;
-  final String? profilePictureUrl;
-  final String? email;
 
-  UserModel({
-    required this.id,
-    required this.username,
-    this.profilePictureUrl,
-    this.email,
-  });
-
-  factory UserModel.fromJson(Map<String, dynamic> json) {
-    return UserModel(
-      id: json['id'],
-      username: json['username'],
-      profilePictureUrl: json['profile_picture_url'],
-      email: json['email'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'username': username,
-      'profile_picture_url': profilePictureUrl,
-      'email': email,
-    };
-  }
-}
 
 class PaymentModel {
   final int id;
@@ -555,46 +527,6 @@ class PaymentModel {
       'amount': amount,
       'created_at': createdAt.toIso8601String(),
       'status': status,
-    };
-  }
-}
-
-class ReviewModel {
-  final int id;
-  final int bookingId;
-  final int userId;
-  final int rating;
-  final String? comment;
-  final DateTime createdAt;
-
-  ReviewModel({
-    required this.id,
-    required this.bookingId,
-    required this.userId,
-    required this.rating,
-    this.comment,
-    required this.createdAt,
-  });
-
-  factory ReviewModel.fromJson(Map<String, dynamic> json) {
-    return ReviewModel(
-      id: json['id'],
-      bookingId: json['booking_id'],
-      userId: json['user_id'],
-      rating: json['rating'],
-      comment: json['comment'],
-      createdAt: DateTime.parse(json['created_at']),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'booking_id': bookingId,
-      'user_id': userId,
-      'rating': rating,
-      'comment': comment,
-      'created_at': createdAt.toIso8601String(),
     };
   }
 }

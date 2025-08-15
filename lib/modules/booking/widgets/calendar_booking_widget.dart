@@ -650,21 +650,20 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
     if (startTime == null || endTime == null) return false;
 
     final slotStart = _parseTimeOfDay(slot.start);
-    final slotEnd = _parseTimeOfDay(slot.end);
+    _parseTimeOfDay(slot.end);
 
     // Check if this slot is within selected time range (inclusive)
     final startMinutes = startTime.hour * 60 + startTime.minute;
     final endMinutes = endTime.hour * 60 + endTime.minute;
     final slotStartMinutes = slotStart.hour * 60 + slotStart.minute;
-    final slotEndMinutes = slotEnd.hour * 60 + slotEnd.minute;
 
     // Slot is selected if it overlaps with selected time range
     return slotStartMinutes >= startMinutes && slotStartMinutes < endMinutes;
   }
 
   void _onSlotTap(DetailedTimeSlot slot) {
-    final startTime = _parseTimeOfDay(slot.start);
-    final endTime = _parseTimeOfDay(slot.end);
+    _parseTimeOfDay(slot.start);
+    _parseTimeOfDay(slot.end);
 
     // Handle multi-slot selection for longer duration
     _handleMultiSlotSelection(slot);

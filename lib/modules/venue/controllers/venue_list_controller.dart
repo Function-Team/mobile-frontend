@@ -1,10 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:function_mobile/common/routes/routes.dart';
-import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:function_mobile/modules/venue/data/repositories/venue_repository.dart';
 import 'package:get/get.dart';
-import 'package:get/get_rx/src/rx_workers/utils/debouncer.dart';
 
 class VenueListController extends GetxController {
   final VenueRepository _venueRepository = VenueRepository();
@@ -21,9 +19,6 @@ class VenueListController extends GetxController {
   final RxList<String> categories = <String>[].obs;
   final RxMap<String, int> categoryMap = <String, int>{}.obs;
   
-
-  // Debouncer untuk menghindari terlalu banyak API calls
-  final _debouncer = Debouncer(delay: Duration(milliseconds: 300));
 
   // Tambahkan variabel untuk menyimpan parameter pencarian
   final Rx<Map<String, dynamic>> searchSummary = Rx<Map<String, dynamic>>({});
@@ -94,13 +89,6 @@ class VenueListController extends GetxController {
     super.onClose();
   }
 
-  void _onSearchChanged() {
-    final query = searchController.text;
-    searchQuery.value = query;
-    _debouncer(() {
-      _performSearch();
-    });
-  }
 
   Future<void> _performSearch() async {
     try {
@@ -144,7 +132,7 @@ class VenueListController extends GetxController {
       // Filter venue yang valid seperti di HomeController
       final filteredVenues = loadedVenues
           .where((venue) =>
-              venue.id != null && venue.name != null && venue.price != null)
+              venue.name != null && venue.price != null)
           .toList();
 
       if (filteredVenues.isEmpty) {
@@ -246,15 +234,8 @@ class VenueListController extends GetxController {
   }
 
   void goToVenueDetails(VenueModel venue) {
-    if (venue.id != null) {
-      Get.toNamed(MyRoutes.venueDetail, arguments: {'venueId': venue.id});
-    } else {
-      CustomSnackbar.show(
-          context: Get.context!,
-          message: 'Cannot open venue details',
-          type: SnackbarType.error);
+    Get.toNamed(MyRoutes.venueDetail, arguments: {'venueId': venue.id});
     }
-  }
 
   static String getCategoryName(VenueModel venue) {
     // Priority 1: Use category object from backend

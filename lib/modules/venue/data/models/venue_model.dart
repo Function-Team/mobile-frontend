@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/core/constants/app_constants.dart';
+import 'package:function_mobile/modules/reviews/models/review_model.dart';
+import 'package:function_mobile/common/models/user_model.dart';
 
 class VenueModel {
   final int id;
@@ -351,33 +353,7 @@ class HostModel {
   }
 }
 
-class UserModel {
-  final int? id;
-  final String? username;
-  final String? profilePictureUrl;
 
-  UserModel({
-    this.id,
-    this.username,
-    this.profilePictureUrl,
-  });
-
-  factory UserModel.fromJson(Map<String, dynamic> json) {
-    return UserModel(
-      id: json['id'],
-      username: json['username'],
-      profilePictureUrl: json['profile_picture_url'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'username': username,
-      'profile_picture_url': profilePictureUrl,
-    };
-  }
-}
 
 class CategoryModel {
   final int? id;
@@ -478,51 +454,6 @@ class ActivityModel {
     return {
       'id': id,
       'name': name,
-    };
-  }
-}
-
-class ReviewModel {
-  final int? id;
-  final int? bookingId;
-  final int? userId;
-  final int? rating;
-  final String? comment;
-  final DateTime? createdAt;
-  final UserModel? user;
-
-  ReviewModel({
-    this.id,
-    this.bookingId,
-    this.userId,
-    this.rating,
-    this.comment,
-    this.createdAt,
-    this.user,
-  });
-
-  factory ReviewModel.fromJson(Map<String, dynamic> json) {
-    return ReviewModel(
-      id: json['id'],
-      bookingId: json['booking_id'],
-      userId: json['user_id'],
-      rating: json['rating'],
-      comment: json['comment'],
-      createdAt: json['created_at'] != null
-          ? DateTime.parse(json['created_at'])
-          : null,
-      user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'booking_id': bookingId,
-      'user_id': userId,
-      'rating': rating,
-      'comment': comment,
-      'created_at': createdAt?.toIso8601String(),
     };
   }
 }

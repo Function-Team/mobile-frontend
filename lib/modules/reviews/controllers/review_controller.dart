@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
+import 'package:function_mobile/modules/reviews/models/review_model.dart';
 import 'package:function_mobile/modules/reviews/services/review_service.dart';
-import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:get/get.dart';
 
 class ReviewController extends GetxController {
@@ -12,7 +12,7 @@ class ReviewController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxBool hasError = false.obs;
   final RxString errorMessage = ''.obs;
-  
+
   // Form variables
   final RxInt rating = 0.obs;
   final TextEditingController commentController = TextEditingController();
@@ -73,15 +73,15 @@ class ReviewController extends GetxController {
       hasError.value = false;
       errorMessage.value = '';
       isEditMode.value = true;
-      
+
       // Assuming we can get a single review by ID
       // If not available, you might need to add this method to your service
       final reviewData = await _reviewService.getReviewById(reviewId);
-      
+
       if (reviewData != null) {
         currentReview.value = reviewData;
         // Pre-fill form with existing data
-        rating.value = reviewData.rating ?? 0;
+        rating.value = reviewData.rating;
         commentController.text = reviewData.comment ?? '';
       } else {
         hasError.value = true;
@@ -114,13 +114,14 @@ class ReviewController extends GetxController {
 
     try {
       isSubmitting.value = true;
-      
+
       ReviewModel? review;
-      
+
       if (isEditMode.value && currentReview.value != null) {
         // Update existing review
         review = await _reviewService.updateReview(
-          currentReview.value!.id!,
+          currentReview.value!.id,
+          currentReview.value!.bookingId,
           rating.value,
           commentController.text.trim(),
         );
@@ -145,31 +146,39 @@ class ReviewController extends GetxController {
         commentController.clear();
         isEditMode.value = false;
         currentReview.value = null;
-        
+
         // Reload reviews if we're on a venue page
         if (venueId.value > 0) {
           await loadReviewsByVenueId(venueId.value);
         }
         Get.back();
       } else {
-        _showError(isEditMode.value ? 'Failed to update review' : 'Failed to submit review');
+        _showError(isEditMode.value
+            ? 'Failed to update review'
+            : 'Failed to submit review');
       }
     } catch (e) {
       // Tampilkan pesan error yang lebih detail
       String errorMessage = e.toString();
       if (errorMessage.contains('Booking tidak ditemukan')) {
         _showError('Booking tidak ditemukan');
-      } else if (errorMessage.contains('Anda hanya dapat mereview booking milik Anda sendiri')) {
+      } else if (errorMessage
+          .contains('Anda hanya dapat mereview booking milik Anda sendiri')) {
         _showError('Anda hanya dapat mereview booking milik Anda sendiri');
-      } else if (errorMessage.contains('Anda hanya dapat mereview booking yang sudah selesai')) {
+      } else if (errorMessage
+          .contains('Anda hanya dapat mereview booking yang sudah selesai')) {
         _showError('Anda hanya dapat mereview booking yang sudah selesai');
-      } else if (errorMessage.contains('Anda tidak dapat mereview booking yang dibatalkan')) {
+      } else if (errorMessage
+          .contains('Anda tidak dapat mereview booking yang dibatalkan')) {
         _showError('Anda tidak dapat mereview booking yang dibatalkan');
-      } else if (errorMessage.contains('Anda hanya dapat mereview booking yang sudah dikonfirmasi')) {
+      } else if (errorMessage.contains(
+          'Anda hanya dapat mereview booking yang sudah dikonfirmasi')) {
         _showError('Anda hanya dapat mereview booking yang sudah dikonfirmasi');
-      } else if (errorMessage.contains('Anda hanya dapat mereview booking yang sudah dibayar')) {
+      } else if (errorMessage
+          .contains('Anda hanya dapat mereview booking yang sudah dibayar')) {
         _showError('Anda hanya dapat mereview booking yang sudah dibayar');
-      } else if (errorMessage.contains('Anda sudah memberikan review untuk booking ini')) {
+      } else if (errorMessage
+          .contains('Anda sudah memberikan review untuk booking ini')) {
         _showError('Anda sudah memberikan review untuk booking ini');
       } else {
         _showError('Error: $errorMessage');

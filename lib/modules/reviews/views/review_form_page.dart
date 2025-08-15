@@ -4,7 +4,7 @@ import 'package:function_mobile/modules/reviews/widgets/review_form.dart';
 import 'package:get/get.dart';
 
 class ReviewFormPage extends StatelessWidget {
-  const ReviewFormPage({Key? key}) : super(key: key);
+  const ReviewFormPage({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/generated/locale_keys.g.dart';
@@ -343,6 +344,17 @@ class BookingListController extends GetxController {
         message: message,
         type: SnackbarType.error,
       );
+    }
+  }
+    void navigateToBookingDetail(BookingModel booking) {
+    Get.toNamed(MyRoutes.bookingDetail, arguments: booking.id);
+  }
+
+  void navigateToVenueDetail(BookingModel booking) {
+    if (booking.place?.id != null) {
+      Get.toNamed(MyRoutes.venueDetail, arguments: {
+        'venueId': booking.place!.id,
+      });
     }
   }
 }

@@ -1,4 +1,5 @@
 import 'package:function_mobile/core/services/api_service.dart';
+import 'package:function_mobile/modules/reviews/models/review_model.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 
 class VenueRepository {
@@ -164,7 +165,7 @@ class VenueRepository {
   }
 
   // Add these methods to the VenueRepository class
-  
+
   // Get all activities
   Future<List<ActivityModel>> getActivities() async {
     try {
@@ -241,12 +242,14 @@ class VenueRepository {
   // Get venue rating stats
   Future<RatingStatsModel?> getVenueRatingStats(int venueId) async {
     try {
-      final response = await _apiService.getRequest('/place/$venueId/rating-stats');
-      
+      final response =
+          await _apiService.getRequest('/place/$venueId/rating-stats');
+
       if (response is Map<String, dynamic>) {
         return RatingStatsModel.fromJson(response);
       } else {
-        throw Exception('Failed to load rating stats. Status: ${response.statusCode}');
+        throw Exception(
+            'Failed to load rating stats. Status: ${response.statusCode}');
       }
     } catch (e) {
       print('Error fetching rating stats for venue $venueId: $e');
@@ -258,11 +261,12 @@ class VenueRepository {
   Future<double> getVenueAverageRating(int venueId) async {
     try {
       final response = await _apiService.getRequest('/place/$venueId/rating');
-      
+
       if (response is Map<String, dynamic>) {
         return (response['average_rating'] ?? 0.0).toDouble();
       } else {
-        throw Exception('Failed to load average rating. Status: ${response.statusCode}');
+        throw Exception(
+            'Failed to load average rating. Status: ${response.statusCode}');
       }
     } catch (e) {
       print('Error fetching average rating for venue $venueId: $e');

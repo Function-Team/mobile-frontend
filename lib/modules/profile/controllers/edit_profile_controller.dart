@@ -186,11 +186,9 @@ class EditProfileController extends GetxController {
 
           // Refresh profile controller if it exists
           try {
-            final ProfileController? profileController =
+            final ProfileController profileController =
                 Get.find<ProfileController>();
-            if (profileController != null) {
-              await profileController.refreshProfile();
-            }
+            await profileController.refreshProfile();
           } catch (e) {
             print(
                 'EditProfileController: ProfileController not found, skipping refresh');

@@ -7,7 +7,7 @@ import 'package:function_mobile/common/routes/routes.dart';
 class ProfileController extends GetxController {
   // Get auth controller untuk akses user data
   final AuthController _authController = Get.find<AuthController>();
-  
+
   // Loading state
   final RxBool isLoading = false.obs;
   final RxBool isRefreshing = false.obs;
@@ -36,10 +36,9 @@ class ProfileController extends GetxController {
   Future<void> loadUserProfile() async {
     try {
       isLoading.value = true;
-      
+
       // Refresh user data from API to get latest information
       await _authController.refreshUserData();
-      
     } catch (e) {
       CustomSnackbar.show(
           context: Get.context!,
@@ -53,14 +52,14 @@ class ProfileController extends GetxController {
   // Method untuk refresh data profile
   Future<void> refreshProfile() async {
     if (isRefreshing.value) return; // Prevent multiple simultaneous refreshes
-    
+
     isRefreshing.value = true;
     try {
       print('ProfileController: Refreshing profile data...');
-      
+
       // Refresh user data from API
       await _authController.refreshUserData();
-      
+
       print('ProfileController: Profile data refreshed successfully');
     } catch (e) {
       print('ProfileController: Error refreshing profile: $e');

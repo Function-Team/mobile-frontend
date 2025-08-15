@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
-import 'package:function_mobile/core/services/api_service.dart';
 import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 import 'package:function_mobile/modules/auth/services/auth_service.dart';
 import 'package:get/get.dart';
@@ -14,7 +13,6 @@ class SplashController extends GetxController {
   final _isUserLoggedIn = false.obs;
 
   late final AuthService _authService;
-  late final ApiService _apiService;
   late final AuthController _authController;
 
   bool get isLoading => _isLoading.value;
@@ -43,9 +41,7 @@ class SplashController extends GetxController {
     }
 
     try {
-      _apiService = Get.find<ApiService>();
     } catch (e) {
-      _apiService = Get.put(ApiService());
     }
 
     try {
