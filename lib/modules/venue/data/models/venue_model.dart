@@ -29,6 +29,7 @@ class VenueModel {
   final int? price;
   final int? maxCapacity;
   final String? size; // Tambahkan field ini
+  final bool? isAvailable; // Menambahkan field untuk ketersediaan venue
 
   String? _cachedFirstPictureUrl; // Tambahkan property cache
 
@@ -92,6 +93,7 @@ class VenueModel {
     this.price,
     this.maxCapacity,
     this.size, // Tambahkan parameter ini
+    this.isAvailable, // Tambahkan parameter ketersediaan
   });
 
   factory VenueModel.fromJson(Map<String, dynamic> json) {
@@ -149,6 +151,7 @@ class VenueModel {
       price: json['price'],
       maxCapacity: json['max_capacity'],
       size: json['size'], // Tambahkan parsing ini
+      isAvailable: json['is_available'] ?? true, // Parsing ketersediaan dengan default true
     );
   }
 
@@ -202,6 +205,7 @@ class VenueModel {
       'city_id': cityId,
       'host_id': hostId,
       'rules': rules,
+      'is_available': isAvailable,
     };
   }
 }

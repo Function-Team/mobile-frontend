@@ -42,7 +42,7 @@ class VenueListPage extends GetView<VenueListController> {
       final summary = controller.searchSummary.value;
       final String locationText = summary['location'] ?? 'Semua Lokasi';
       final String venueCount = '${controller.venues.length} Properties';
-      final String dateText = summary['date'] ?? '';
+      final String timeInfo = summary['timeInfo'] ?? '';
       final String capacityText = summary['capacity'] ?? '';
 
       return GestureDetector(
@@ -63,11 +63,35 @@ class VenueListPage extends GetView<VenueListController> {
                 ),
               ],
             ),
-            if (dateText.isNotEmpty || capacityText.isNotEmpty)
-              Text(
-                [dateText, capacityText].where((e) => e.isNotEmpty).join(', '),
-                style: Theme.of(context).textTheme.bodySmall,
-                overflow: TextOverflow.ellipsis,
+            if (timeInfo.isNotEmpty)
+              Row(
+                children: [
+                  Icon(Icons.access_time, size: 14, color: Colors.grey[600]),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      timeInfo,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.grey[700],
+                          ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            if (capacityText.isNotEmpty)
+              Row(
+                children: [
+                  Icon(Icons.people, size: 14, color: Colors.grey[600]),
+                  const SizedBox(width: 4),
+                  Text(
+                    capacityText,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.grey[700],
+                        ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
           ],
         ),

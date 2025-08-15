@@ -91,13 +91,31 @@ class VenueCard extends StatelessWidget {
                       const SizedBox(width: 8),
 
                       // Rating row
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.star,
-                            color: Colors.amber,
-                            size: 16,
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Availability indicator
+                      if (venue.isAvailable != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: venue.isAvailable! ? Colors.green.shade100 : Colors.red.shade100,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            venue.isAvailable! ? 'Tersedia' : 'Tidak Tersedia',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: venue.isAvailable! ? Colors.green.shade800 : Colors.red.shade800,
+                            ),
+                          ),
+                        ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.star,
+                        color: Colors.amber,
+                        size: 16,
                           ),
                           const SizedBox(width: 4),
                           Text(
