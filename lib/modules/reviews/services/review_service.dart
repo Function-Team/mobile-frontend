@@ -1,5 +1,5 @@
 import 'package:function_mobile/core/services/api_service.dart';
-import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
+import 'package:function_mobile/modules/reviews/models/review_model.dart';
 import 'package:get/get.dart';
 
 class ReviewService extends GetxService {
@@ -11,7 +11,7 @@ class ReviewService extends GetxService {
     try {
       // Ubah endpoint ke endpoint yang benar
       final response = await _apiService.getRequest('/place/$venueId/reviews');
-      
+
       if (response is List) {
         return response.map((json) => ReviewModel.fromJson(json)).toList();
       }
@@ -26,7 +26,7 @@ class ReviewService extends GetxService {
   Future<List<ReviewModel>> getReviewsByUserId(int userId) async {
     try {
       final response = await _apiService.getRequest('/review?user_id=$userId');
-      
+
       if (response is List) {
         return response.map((json) => ReviewModel.fromJson(json)).toList();
       }
@@ -37,8 +37,20 @@ class ReviewService extends GetxService {
     }
   }
 
+  // Get a single review by ID
+  Future<ReviewModel?> getReviewById(int reviewId) async {
+    try {
+      final response = await _apiService.getRequest('/review/$reviewId');
+      return ReviewModel.fromJson(response);
+    } catch (e) {
+      print('Error fetching review: $e');
+      return null;
+    }
+  }
+
   // Create a new review
-  Future<ReviewModel?> createReview(int bookingId, int rating, String comment) async {
+  Future<ReviewModel?> createReview(
+      int bookingId, int rating, String comment) async {
     try {
       final data = {
         'booking_id': bookingId,
@@ -55,10 +67,12 @@ class ReviewService extends GetxService {
   }
 
   // Update an existing review
-  Future<ReviewModel?> updateReview(int reviewId, int rating, String comment) async {
+  Future<ReviewModel?> updateReview(
+      int reviewId, int bookingId, int rating, String comment) async {
     try {
       final data = {
-        'rating': rating,
+        'booking_id': bookingId,
+        'rating': rating, 
         'comment': comment
       };
 
@@ -78,6 +92,21 @@ class ReviewService extends GetxService {
     } catch (e) {
       print('Error deleting review: $e');
       return false;
+    }
+  }
+
+  // Check review eligibility for a booking
+  Future<Map<String, dynamic>> checkReviewEligibility(int bookingId) async {
+    try {
+      final response = await _apiService
+          .getRequest('/booking/$bookingId/review-eligibility');
+      return response;
+    } catch (e) {
+      print('Error checking review eligibility: $e');
+      return {
+        'eligible': false,
+        'message': 'Terjadi kesalahan saat memeriksa eligibilitas review'
+      };
     }
   }
 }

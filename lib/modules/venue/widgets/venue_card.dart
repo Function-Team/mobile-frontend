@@ -47,12 +47,13 @@ class VenueCard extends StatelessWidget {
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(12)),
                   child: // Di dalam widget VenueCard
-                  NetworkImageWithLoader(
+                      NetworkImageWithLoader(
                     imageUrl: venue.firstPictureUrl ?? "",
                     fit: BoxFit.cover,
                     height: 120,
                     width: double.infinity,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(12)),
                   ),
                 ),
                 if (showFavoriteButton)

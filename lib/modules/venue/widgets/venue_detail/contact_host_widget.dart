@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/modules/venue/services/whatsapp_contact_service.dart';
-import 'package:get/get.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
@@ -239,15 +238,6 @@ class ContactHostWidget extends StatelessWidget {
     return 'Host';
   }
 
-  /// Get venue name from venue or booking
-  String _getVenueName() {
-    if (venue?.name != null) {
-      return venue!.name!;
-    } else if (booking?.place?.name != null) {
-      return booking!.place!.name!;
-    }
-    return 'Venue';
-  }
 }
 
 /// Contact host widget styles

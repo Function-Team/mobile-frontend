@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:function_mobile/modules/payment/models/payment_model.dart'
-    as payment;
 
 class PaymentModel {
   final int? id;
@@ -38,6 +36,22 @@ class PaymentModel {
       'created_at': createdAt?.toIso8601String(),
     };
   }
+
+  PaymentModel copyWith({
+    int? id,
+    int? bookingId,
+    double? amount,
+    String? status,
+    DateTime? createdAt,
+  }) {
+    return PaymentModel(
+      id: id ?? this.id,
+      bookingId: bookingId ?? this.bookingId,
+      amount: amount ?? this.amount,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 }
 
 class PaymentCreateRequest {
@@ -50,12 +64,27 @@ class PaymentCreateRequest {
   });
 
   Map<String, dynamic> toJson() {
-    final json = {'booking_id': bookingId};
-    final amt = amount;
-    if (amt != null) {
-      json['amount'] = amt.toInt();
-    }
-    return json;
+    return {
+      'booking_id': bookingId,
+      'amount': amount,
+    };
+  }
+}
+
+class PaymentUpdateRequest {
+  final String? status;
+  final double? amount;
+
+  PaymentUpdateRequest({
+    this.status,
+    this.amount,
+  });
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = {};
+    if (status != null) data['status'] = status;
+    if (amount != null) data['amount'] = amount;
+    return data;
   }
 }
 
@@ -93,7 +122,7 @@ class PaymentResponse {
     );
   }
 
-  payment.PaymentModel get paymentModel => payment.PaymentModel(
+  PaymentModel get paymentModel => PaymentModel(
         id: null,
         bookingId: bookingId ?? 0,
         amount: amount,
@@ -165,7 +194,6 @@ extension PaymentStatusExtension on PaymentStatus {
       case PaymentStatus.cancelled:
         return Icons.cancel;
       case PaymentStatus.pending:
-      default:
         return Icons.pending;
     }
   }

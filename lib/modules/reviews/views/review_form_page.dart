@@ -6,7 +6,7 @@ import 'package:function_mobile/modules/reviews/widgets/review_form.dart';
 import 'package:get/get.dart';
 
 class ReviewFormPage extends StatelessWidget {
-  const ReviewFormPage({Key? key}) : super(key: key);
+  const ReviewFormPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +15,7 @@ class ReviewFormPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(LocalizationHelper.tr(LocaleKeys.buttons_writeReview)),
+        title: Obx(() => Text(Get.find<ReviewController>().isEditMode.value ? 'Edit Review' : 'Write a Review')),
         centerTitle: true,
       ),
       body: SafeArea(

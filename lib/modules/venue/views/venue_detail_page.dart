@@ -554,26 +554,6 @@ class VenueDetailPage extends StatelessWidget {
     );
   }
 
-  //Section 3
-  Widget _buildFacilitiesSection(
-      BuildContext context, VenueDetailController controller) {
-    return Container(
-      child: CustomTextButton(
-        text: LocalizationHelper.tr(LocaleKeys.common_seeMore),
-        onTap: () {
-          Get.to(() => AboutDetail(
-                venueName: controller.venue.value?.name ??
-                    LocalizationHelper.tr(LocaleKeys.venue_facilities),
-                venueDescription: controller.venue.value?.description ?? '',
-                initialTabIndex: 1,
-              ));
-        },
-        icon: Icons.arrow_forward,
-        isrightIcon: true,
-      ),
-    );
-  }
-
   //Section 4
   // // Widget _buildScheduleSection(
   // //     BuildContext context, VenueDetailController controller) {
@@ -840,10 +820,8 @@ class VenueDetailPage extends StatelessWidget {
                                     backgroundColor: Colors.blue[100],
                                     radius: 16,
                                     child: Text(
-                                      (review.user?.username?.isNotEmpty ??
-                                              false)
-                                          ? review.user!.username![0]
-                                              .toUpperCase()
+                                      review.username.isNotEmpty
+                                          ? review.username[0].toUpperCase()
                                           : 'U',
                                       style:
                                           const TextStyle(color: Colors.white),
@@ -856,30 +834,29 @@ class VenueDetailPage extends StatelessWidget {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          review.user?.username ?? LocalizationHelper.tr(LocaleKeys.labels_anonymous),
+                                          review.username,
                                           style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                        if (review.createdAt != null)
-                                          Text(
-                                            DateFormat('dd MMM yyyy')
-                                                .format(review.createdAt!),
-                                            style: TextStyle(
-                                              color: Colors.grey[600],
-                                              fontSize: 12,
-                                            ),
+                                        Text(
+                                          DateFormat('dd MMM yyyy')
+                                              .format(review.createdAt),
+                                          style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 12,
                                           ),
+                                        ),
                                       ],
                                     ),
                                   ),
                                   Row(
                                     children: List.generate(5, (index) {
                                       return Icon(
-                                        index < (review.rating ?? 0)
+                                        index < (review.rating)
                                             ? Icons.star
                                             : Icons.star_border,
-                                        color: index < (review.rating ?? 0)
+                                        color: index < (review.rating)
                                             ? Colors.amber
                                             : Colors.grey,
                                         size: 14,

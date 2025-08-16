@@ -6,7 +6,7 @@ import 'package:get/get.dart';
 
 class FavoriteCard extends StatelessWidget {
   final FavoriteModel favorite;
-  
+
   const FavoriteCard({
     super.key,
     required this.favorite,
@@ -28,10 +28,11 @@ class FavoriteCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(10)),
               child: NetworkImageWithLoader(
                 imageUrl: favorite.venue.firstPictureUrl ?? '',
-                height: 120,
+                height: 100,
                 width: double.infinity,
                 fit: BoxFit.cover,
               ),

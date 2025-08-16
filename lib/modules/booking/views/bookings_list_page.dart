@@ -3,7 +3,6 @@ import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_list_controller.dart';
-import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:function_mobile/modules/booking/widgets/booking_card.dart';
 import 'package:get/get.dart';
 
@@ -286,11 +285,11 @@ class BookingListPage extends GetView<BookingListController> {
             final booking = controller.filteredBookings[index];
             return BookingCard(
               bookingModel: booking,
-              onTap: () => _navigateToBookingDetail(booking),
+              onTap: () => controller.navigateToBookingDetail(booking),
               onCancel: booking.isInCancelledSection
                   ? null
                   : () => controller.showCancelConfirmationDialog(booking),
-              onViewVenue: () => _navigateToVenueDetail(booking),
+              onViewVenue: () => controller.navigateToVenueDetail(booking),
               onPayNow: (booking.needsPayment && !booking.isInCancelledSection)
                   ? () => controller.createPaymentForBooking(booking)
                   : null,
@@ -399,18 +398,5 @@ class BookingListPage extends GetView<BookingListController> {
         ],
       ),
     );
-  }
-
-  // Extract navigation methods
-  void _navigateToBookingDetail(BookingModel booking) {
-    Get.toNamed(MyRoutes.bookingDetail, arguments: booking.id);
-  }
-
-  void _navigateToVenueDetail(BookingModel booking) {
-    if (booking.place?.id != null) {
-      Get.toNamed(MyRoutes.venueDetail, arguments: {
-        'venueId': booking.place!.id,
-      });
-    }
   }
 }

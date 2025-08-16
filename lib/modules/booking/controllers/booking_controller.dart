@@ -775,7 +775,6 @@ class BookingController extends GetxController {
     );
   }
 
-
   void showInfo(String message) {
     CustomSnackbar.show(
       context: Get.context!,
@@ -785,7 +784,7 @@ class BookingController extends GetxController {
   }
 
   // NAVIGATION
-  void goToBookingListPage() {
+  Future<void> goToBookingListPage() async {
     Get.offAllNamed(MyRoutes.bottomNav);
     Get.find<BottomNavController>().changePage(1);
     Get.find<BookingListController>().refreshBookings();

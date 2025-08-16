@@ -30,7 +30,7 @@ class BookingForm extends StatelessWidget {
           // Calendar widget
           CalendarBookingWidget(
             controller: controller,
-            venueId: venue.id!,
+            venueId: venue.id,
           ),
           const SizedBox(height: 16),
           _timeRangePicker(controller),
@@ -59,12 +59,12 @@ class BookingForm extends StatelessWidget {
       final endOfMonth = DateTime(now.year, now.month + 1, 0);
 
       await controller.loadCalendarAvailability(
-          venue.id!, startOfMonth, endOfMonth);
+          venue.id, startOfMonth, endOfMonth);
 
       // Refresh time slots if date is selected
       if (controller.selectedDate.value != null) {
         await controller.loadDetailedTimeSlots(
-            venue.id!, controller.selectedDate.value!);
+            venue.id, controller.selectedDate.value!);
       }
 
       print('BookingForm: Successfully refreshed availability data');

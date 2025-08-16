@@ -3,6 +3,7 @@ import 'package:function_mobile/modules/auth/services/auth_service.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_list_controller.dart';
 import 'package:function_mobile/modules/favorite/controllers/favorites_controller.dart';
 import 'package:function_mobile/modules/notification/controllers/notification_controllers.dart';
+import 'package:function_mobile/modules/reviews/services/review_service.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 import 'package:function_mobile/modules/home/controllers/search_filter_controller.dart';
@@ -20,13 +21,13 @@ class AppBinding extends Bindings {
     Get.put(SearchFilterController(), permanent: true);
     Get.put(BottomNavController(), permanent: true);
     Get.put(FavoritesController(), permanent: true);
-    Get.put(BookingListController(), permanent: true);
     Get.put(AuthService(), permanent: true);
     Get.put(NotificationController(), permanent: true);
     Get.put(HomeController(), permanent: true);
-
+    Get.put(ReviewService(), permanent: true);
     // Non-permanent controllers that can be lazy-loaded
-
-    // Add other app-wide dependencies here
+    Get.lazyPut(
+      () => BookingListController(),
+    );
   }
 }

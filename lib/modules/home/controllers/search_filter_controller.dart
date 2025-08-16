@@ -393,8 +393,10 @@ class SearchFilterController extends GetxController {
       capacityText.value = '1000 orang';
 
       // Show feedback
-      CustomSnackbar.show(context: Get.context!, message: 'Maksimal 1000 orang', type: SnackbarType.warning);
-
+      CustomSnackbar.show(
+          context: Get.context!,
+          message: 'Maksimal 1000 orang',
+          type: SnackbarType.warning);
     }
   }
 
@@ -416,16 +418,6 @@ class SearchFilterController extends GetxController {
       capacityInputController.text =
           currentValue == 0 ? '' : currentValue.toString();
       capacityText.value = currentValue == 0 ? '' : '$currentValue orang';
-    }
-  }
-
-  void _updateCapacityText() {
-    if (maxCapacity.value == 0) {
-      capacityInputController.text = '';
-      capacityText.value = '';
-    } else {
-      capacityInputController.text = maxCapacity.value.toString();
-      capacityText.value = '${maxCapacity.value} orang';
     }
   }
 
@@ -472,12 +464,18 @@ class SearchFilterController extends GetxController {
   Future<void> performAdvancedSearch() async {
     // Validasi field wajib
     if (activityText.value.isEmpty) {
-      CustomSnackbar.show(context: Get.context!, message: 'Silakan pilih aktivitas atau tempat terlebih dahulu', type: SnackbarType.error);
+      CustomSnackbar.show(
+          context: Get.context!,
+          message: 'Silakan pilih aktivitas atau tempat terlebih dahulu',
+          type: SnackbarType.error);
       return;
     }
 
     if (locationText.value.isEmpty) {
-      CustomSnackbar.show(context: Get.context!, message: 'Silakan pilih lokasi terlebih dahulu', type: SnackbarType.error);
+      CustomSnackbar.show(
+          context: Get.context!,
+          message: 'Silakan pilih lokasi terlebih dahulu',
+          type: SnackbarType.error);
       return;
     }
 

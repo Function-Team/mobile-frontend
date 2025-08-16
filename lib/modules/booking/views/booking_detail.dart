@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/generated/locale_keys.g.dart';
@@ -7,9 +8,7 @@ import 'package:function_mobile/modules/booking/controllers/booking_detail_contr
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:function_mobile/modules/venue/widgets/venue_detail/contact_host_widget.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
-import 'package:get/get_state_manager/src/simple/get_view.dart';
+import 'package:intl/intl.dart';
 
 class BookingDetailPage extends GetView<BookingDetailController> {
   const BookingDetailPage({super.key});
@@ -54,19 +53,30 @@ class BookingDetailPage extends GetView<BookingDetailController> {
   Widget _buildBookingDetail(BuildContext context, BookingModel booking) {
     return Scaffold(
       appBar: _buildAppBar(context, booking),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildHeaderSection(context, booking),
-            const SizedBox(height: 16),
-            _buildBookingInfoSection(context, booking),
-            const SizedBox(height: 16),
-            _buildContactSection(context, booking),
-            const SizedBox(height: 16),
-            _buildPricingSection(context, booking),
-            const SizedBox(height: 100),
-            const SizedBox(height: 100),
-          ],
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await controller.refreshBookingDetail();
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
+              _buildHeaderSection(context, booking),
+              const SizedBox(height: 16),
+              _buildStatusSection(context, booking),
+              const SizedBox(height: 16),
+              _buildBookingInfoSection(context, booking),
+              const SizedBox(height: 16),
+              _buildContactSection(context, booking),
+              const SizedBox(height: 16),
+              _buildPricingSection(context, booking),
+              const SizedBox(height: 16),
+              // Tampilkan bagian review jika sudah ada review
+              if (booking.reviews != null && booking.reviews!.isNotEmpty)
+                _buildReviewSection(context, booking),
+              const SizedBox(height: 100),
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: _buildBottomActions(context, booking),
@@ -190,7 +200,6 @@ class BookingDetailPage extends GetView<BookingDetailController> {
                     ),
             ),
           ),
-
           // Venue Info
           Padding(
             padding: const EdgeInsets.all(20),
@@ -326,6 +335,142 @@ class BookingDetailPage extends GetView<BookingDetailController> {
         booking: booking,
         style: ContactHostStyle.button,
         customText: LocalizationHelper.tr('labels.needHelpContactHost'),
+      ),
+    );
+  }
+
+  Widget _buildStatusSection(BuildContext context, BookingModel booking) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Booking Status',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: booking.statusColor,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Text(
+                  booking
+                      .statusDisplayName, // Menggunakan statusDisplayName untuk konsistensi dengan app bar dan booking list
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  controller.timeUntilBooking,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[700],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (booking.isPaid) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.green.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.green[700]),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Payment Completed',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                          ),
+                        ),
+                        if (booking.payment?.createdAt != null)
+                          Text(
+                            'Paid on ${DateFormat('dd MMM yyyy, HH:mm').format(booking.payment!.createdAt)}',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else if (booking.isConfirmed && !booking.isPaid) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded, color: Colors.orange[700]),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Payment Required',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orange,
+                          ),
+                        ),
+                        Text(
+                          'Your booking is confirmed but payment is still pending',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -486,10 +631,10 @@ class BookingDetailPage extends GetView<BookingDetailController> {
   }
 
   Widget _buildBottomActions(BuildContext context, BookingModel booking) {
-    final canCancel = !booking.isConfirmed &&
-        booking.paymentStatus != 'cancelled' &&
-        booking.paymentStatus != 'success';
+    // Gunakan controller.canCancel untuk konsistensi dengan logika di controller
+    final canCancel = controller.canCancel;
 
+    // Gunakan logika yang lebih jelas untuk menentukan apakah perlu pembayaran
     final needsPayment = booking.isConfirmed &&
         !booking.isPaid &&
         booking.paymentStatus == 'pending' &&
@@ -513,38 +658,37 @@ class BookingDetailPage extends GetView<BookingDetailController> {
           children: [
             if (canCancel) ...[
               Expanded(
-                child: OutlinedButton(
+                child: PrimaryButton(
+                  text: 'Cancel Booking',
                   onPressed: () => _showCancelDialog(context),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    side: const BorderSide(color: Colors.red),
-                  ),
-                  child: Text(
-                    LocalizationHelper.tr(LocaleKeys.booking_cancelBooking),
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  backgroundColor: Colors.white,
+                  isLoading: false,
+                  height: 50,
                 ),
               ),
               if (needsPayment) const SizedBox(width: 12),
             ],
             if (needsPayment) ...[
               Expanded(
-                child: ElevatedButton(
-                  onPressed: () => _proceedToPayment(booking),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: Text(
-                    LocalizationHelper.tr(LocaleKeys.booking_payNow),
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                child: PrimaryButton(
+                  text: 'Pay Now',
+                  onPressed: () => controller.proceedToPayment(booking),
+                  backgroundColor: Colors.green,
+                  isLoading: false,
+                  height: 50,
+                ),
+              ),
+            ],
+            if (controller.isEligibleForReview.value) ...[
+              Expanded(
+                child: PrimaryButton(
+                  text: controller.hasBeenReviewed
+                      ? 'Edit Review'
+                      : 'Write a Review',
+                  onPressed: () => controller.navigateToReviewForm(booking),
+                  backgroundColor: Colors.blue,
+                  isLoading: false,
+                  height: 50,
                 ),
               ),
             ],
@@ -579,34 +723,6 @@ class BookingDetailPage extends GetView<BookingDetailController> {
     }
   }
 
-  Color _getPaymentStatusColor(String? status) {
-    switch (status?.toLowerCase()) {
-      case 'success':
-        return Colors.green;
-      case 'pending':
-        return Colors.orange;
-      case 'cancelled':
-      case 'failed':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  IconData _getPaymentStatusIcon(String? status) {
-    switch (status?.toLowerCase()) {
-      case 'success':
-        return Icons.check_circle;
-      case 'pending':
-        return Icons.access_time;
-      case 'cancelled':
-      case 'failed':
-        return Icons.cancel;
-      default:
-        return Icons.help_outline;
-    }
-  }
-
   void _showCancelDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -632,8 +748,92 @@ class BookingDetailPage extends GetView<BookingDetailController> {
     );
   }
 
-  void _proceedToPayment(BookingModel booking) {
-    // Navigate to payment page
-    Get.toNamed('/payment', arguments: booking);
+  Widget _buildReviewSection(BuildContext context, BookingModel booking) {
+    // Pastikan booking memiliki review sebelum mengakses
+    if (booking.reviews == null || booking.reviews!.isEmpty) {
+      return const SizedBox
+          .shrink(); // Jangan tampilkan apa-apa jika tidak ada review
+    }
+
+    // Ambil review pertama dari booking
+    final review = booking.reviews!.first;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Your Review',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              TextButton.icon(
+                onPressed: () => controller.navigateToReviewForm(booking),
+                icon: const Icon(Icons.edit, size: 16),
+                label: const Text('Edit'),
+                style: TextButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  foregroundColor: Colors.blue,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              _buildRatingStars(review.rating),
+              const SizedBox(width: 8),
+              Text(
+                DateFormat('dd MMM yyyy').format(review.createdAt),
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            review.comment ?? '',
+            style: const TextStyle(fontSize: 14),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRatingStars(int? rating) {
+    // Pastikan rating valid (1-5) atau default ke 0 jika null/invalid
+    final validRating =
+        (rating != null && rating >= 1 && rating <= 5) ? rating : 0;
+
+    return Row(
+      children: List.generate(5, (index) {
+        return Icon(
+          index < validRating ? Icons.star : Icons.star_border,
+          color: index < validRating ? Colors.amber : Colors.grey,
+          size: 18,
+        );
+      }),
+    );
   }
 }
