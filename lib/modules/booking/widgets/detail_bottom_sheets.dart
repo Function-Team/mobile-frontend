@@ -33,21 +33,21 @@ class DetailBottomSheets extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Base Price', style: Theme.of(context).textTheme.bodyMedium),
+              Text(LocalizationHelper.tr(LocaleKeys.common_basePrice), style: Theme.of(context).textTheme.bodyMedium),
               Text('\$100.00', style: Theme.of(context).textTheme.bodyMedium),
             ],
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Discount', style: Theme.of(context).textTheme.bodyMedium),
+              Text(LocalizationHelper.tr(LocaleKeys.common_discount), style: Theme.of(context).textTheme.bodyMedium),
               Text('-\$10.00', style: Theme.of(context).textTheme.bodyMedium),
             ],
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Taxes', style: Theme.of(context).textTheme.bodyMedium),
+              Text(LocalizationHelper.tr(LocaleKeys.common_taxes), style: Theme.of(context).textTheme.bodyMedium),
               Text('\$5.00', style: Theme.of(context).textTheme.bodyMedium),
             ],
           ),
@@ -55,7 +55,7 @@ class DetailBottomSheets extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Total Price',
+              Text(LocalizationHelper.tr(LocaleKeys.common_totalPrice),
                   style: Theme.of(context).textTheme.headlineSmall),
               Text('\$95.00',
                   style: Theme.of(context).textTheme.headlineMedium),

@@ -154,6 +154,57 @@
     "totalPrice": "Total Harga",
     "people": "Orang"
   },
+  "bookingList": {
+    "title": "Daftar Pemesanan",
+    "sortBookings": "Urutkan Pemesanan",
+    "refreshBookings": "Perbarui Pemesanan",
+    "sortedBy": "Diurutkan berdasarkan: {sortLabel}",
+    "reset": "Reset",
+    "failedToLoad": "Gagal memuat pemesanan",
+    "retry": "Coba Lagi",
+    "tabs": {
+      "all": "Semua",
+      "pending": "Menunggu",
+      "confirmed": "Dikonfirmasi",
+      "completed": "Selesai",
+      "cancelled": "Dibatalkan"
+    },
+    "sortOptions": {
+      "newestIdFirst": "ID Terbaru Lebih Dulu",
+      "oldestIdFirst": "ID Terlama Lebih Dulu",
+      "latestDate": "Tanggal Terbaru",
+      "earliestDate": "Tanggal Terlama",
+      "venueNameAZ": "Nama Venue A-Z",
+      "byStatus": "Berdasarkan Status"
+    },
+    "emptyStates": {
+      "noBookings": {
+        "title": "Belum Ada Pemesanan",
+        "message": "Mulai jelajahi venue dan buat pemesanan pertama Anda!"
+      },
+      "noPending": {
+        "title": "Tidak Ada Pemesanan Menunggu",
+        "message": "Semua pemesanan Anda telah diproses."
+      },
+      "noConfirmed": {
+        "title": "Tidak Ada Pemesanan Dikonfirmasi",
+        "message": "Tidak ada pemesanan yang menunggu pembayaran."
+      },
+      "noCompleted": {
+        "title": "Tidak Ada Pemesanan Selesai",
+        "message": "Selesaikan pemesanan untuk melihatnya di sini."
+      },
+      "noCancelled": {
+        "title": "Tidak Ada Pemesanan Dibatalkan",
+        "message": "Anda belum membatalkan pemesanan apapun."
+      },
+      "noResults": {
+        "title": "Tidak Ada Pemesanan",
+        "message": "Tidak ada pemesanan ditemukan."
+      }
+    },
+    "exploreVenues": "Jelajahi Venue"
+  },
   "booking": {
     "details": "Detail",
     "bookingDetails": "Detail Pemesanan",
@@ -414,7 +465,7 @@
     "filterByCategory": "Saring berdasarkan Kategori"
   },
   "favorites": {
-    "noFavorites": "Belum ada favorit, tambahkan venue favoritmu!",
+    "noFavorites": "Belum ada venue favorit,\ntambahkan venue favoritmu!",
     "startExploring": "Mulai jelajahi dan simpan venue yang Anda suka",
     "exploreVenues": "Jelajahi Venue"
   },
@@ -422,6 +473,7 @@
     "settings": "Pengaturan",
     "profile": "Profil",
     "account": "Akun",
+    "favorites": "Favorit",
     "preferences": "Preferensi",
     "language": "Bahasa",
     "description": "Kelola preferensi aplikasi Anda",
@@ -534,7 +586,7 @@
     "bookingMustBeConfirmed": "Booking harus dikonfirmasi admin sebelum pembayaran",
     "bookingAlreadyPaid": "Booking ini sudah dibayar",
     "cannotPayCancelledBooking": "Tidak dapat melakukan pembayaran untuk booking yang dibatalkan",
-    "failedToLoadBookings": "Gagal memuat booking",
+    "failedToLoadBookings": "Gagal memuat booking: {error}",
     "failedToCancelBooking": "Gagal membatalkan booking",
     "failedToCreatePayment": "Gagal membuat pembayaran"
   },
@@ -565,11 +617,141 @@
     "eWalletSubtitle": "GoPay, OVO, DANA, ShopeePay",
     "convenienceStoreSubtitle": "Alfamart, Indomaret",
     "cancelPaymentConfirm": "Apakah Anda yakin ingin membatalkan pembayaran ini? Booking Anda tidak akan dikonfirmasi.",
+    "cancelPaymentTitle": "Batalkan Pembayaran?",
     "continuePayment": "Lanjutkan Pembayaran",
     "checkStatus": "Cek Status",
     "useDifferentMethod": "Gunakan Metode Lain",
     "backToHome": "Kembali ke Beranda",
     "startNewBooking": "Mulai Booking Baru"
+  },
+  "forms": {
+    "email": "Email",
+    "password": "Kata Sandi",
+    "username": "Nama Pengguna",
+    "confirmPassword": "Konfirmasi Kata Sandi",
+    "emailOptional": "Email (Opsional)",
+    "enterEmail": "Masukkan email Anda",
+    "enterPassword": "Masukkan kata sandi Anda",
+    "enterUsername": "Masukkan nama pengguna Anda",
+    "confirmYourPassword": "Konfirmasi kata sandi Anda",
+    "guestName": "Nama Tamu",
+    "phoneNumber": "Nomor Telepon",
+    "specialRequests": "Permintaan Khusus (Opsional)",
+    "enterNumberOfGuests": "Masukkan jumlah tamu",
+    "shareYourExperience": "Bagikan pengalaman Anda...",
+    "typeMessage": "Ketik pesan",
+    "enterGuestName": "Masukkan nama tamu",
+    "enterEmail": "Masukkan email",
+    "enterPhoneNumber": "Masukkan nomor telepon",
+    "specialRequestsHint": "Kebutuhan atau permintaan khusus",
+    "reviewPlaceholder": "Bagikan pengalaman Anda...",
+    "confirmNewPassword": "Konfirmasi Kata Sandi Baru"
+  },
+  "buttons": {
+    "login": "Masuk",
+    "signUp": "Daftar",
+    "loggingIn": "Sedang masuk...",
+    "creatingAccount": "Membuat Akun...",
+    "backToLogin": "Kembali ke Login",
+    "forgotPassword": "Lupa Kata Sandi?",
+    "contact": "Kontak",
+    "filter": "Filter",
+    "sort": "Urutkan",
+    "retry": "Coba Lagi",
+    "reset": "Reset",
+    "view": "Lihat",
+    "continuePayment": "Lanjutkan Pembayaran",
+    "close": "Tutup",
+    "choose": "Pilih",
+    "searchPlace": "Cari Tempat",
+    "forgotPassword": "Lupa Kata Sandi?",
+    "alreadyHaveAccount": "Sudah punya akun?",
+    "dontHaveAccount": "Belum punya akun?",
+    "backToLogin": "Kembali ke Login",
+    "writeReview": "Tulis Ulasan",
+    "sendMessage": "Kirim Pesan",
+    "selectTime": "Pilih Waktu",
+    "confirmBooking": "Konfirmasi Booking",
+    "bookNow": "Pesan Sekarang",
+    "showAll": "Tampilkan Semua"
+  },
+  "labels": {
+    "or": "atau",
+    "startFrom": "Mulai dari",
+    "basePricePerHour": "Harga Dasar/jam",
+    "duration": "Durasi",
+    "basePrice": "Harga Dasar",
+    "hours": "jam",
+    "people": "orang",
+    "loadingRating": "Memuat rating...",
+    "noReviewsYet": "Belum ada ulasan",
+    "tapToContactWhatsApp": "Ketuk untuk kontak via WhatsApp",
+    "version": "Versi",
+    "hoursText": "jam",
+    "guestNameLabel": "Nama Tamu",
+    "emailLabel": "Email",
+    "phoneLabel": "Nomor Telepon",
+    "specialRequestsLabel": "Permintaan Khusus (Opsional)",
+    "basePricePerHourLabel": "Harga Dasar/jam",
+    "durationLabel": "Durasi",
+    "openingHours": "Jam Buka",
+    "contactHost": "Hubungi Host",
+    "sizeNotAvailable": "Ukuran tidak tersedia",
+    "activities": "Aktivitas",
+    "unknownActivity": "Aktivitas Tidak Diketahui",
+    "host": "Host",
+    "anonymous": "Anonim",
+    "viewAllReviews": "Lihat semua {count} ulasan",
+    "needHelpContactHost": "Butuh bantuan? Hubungi Host"
+  },
+  "pages": {
+    "termsOfService": "Syarat dan Ketentuan",
+    "privacyPolicy": "Kebijakan Privasi",
+    "chats": "Obrolan",
+    "chattingPage": "Halaman Obrolan",
+    "reviews": "Ulasan",
+    "writeReview": "Tulis Ulasan",
+    "editProfile": "Edit Profil",
+    "reviewsPage": "Ulasan",
+    "editProfilePage": "Edit Profil",
+    "chattingPage": "Halaman Obrolan"
+  },
+  "placeholders": {
+    "selectGuests": "Jumlah tamu",
+    "searchPlaceActivity": "Cari tempat atau aktivitas",
+    "selectCity": "Pilih kota",
+    "selectDate": "Pilih tanggal",
+    "startTime": "Jam mulai",
+    "endTime": "Jam selesai"
+  },
+  "messages": {
+    "agreeToTerms": "Dengan mendaftar, Anda menyetujui",
+    "andPrivacyPolicy": "dan",
+    "alreadyHaveAccount": "Sudah punya akun?",
+    "dontHaveAccount": "Belum punya akun?",
+    "couldNotOpenMaps": "Tidak dapat membuka Google Maps",
+    "noVenuesAvailable": "Tidak ada venue tersedia saat ini",
+    "bySigningUp": "Dengan mendaftar, Anda menyetujui",
+    "termsAndConditions": "Syarat dan Ketentuan",
+    "privacyPolicyLink": "Kebijakan Privasi",
+    "errorOccurred": "Error: {error}"
+  },
+  "conflictDialog": {
+    "timeNotAvailable": "Waktu Tidak Tersedia",
+    "chooseAlternativeTime": "Pilih waktu alternatif",
+    "timeAlreadyBooked": "Waktu yang dipilih sudah dibooking oleh orang lain.",
+    "availableTimesToday": "Waktu tersedia hari ini:",
+    "noSlotsAvailable": "Tidak Ada Slot Tersedia",
+    "allTimesBooked": "Semua waktu hari ini sudah dibooking. Silakan pilih tanggal lain.",
+    "close": "Tutup",
+    "chooseOtherDate": "Pilih Tanggal Lain",
+    "duration1Hour": "Durasi: 1 jam"
+  },
+  "priceDetails": {
+    "basePrice": "Harga Dasar",
+    "discount": "Diskon",
+    "taxes": "Pajak",
+    "totalPrice": "Total Harga"
   },
   "auth": {
     "login": "Masuk",

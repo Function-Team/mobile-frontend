@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/common/bindings/localization_binding.dart';
 import 'package:get/get.dart';
 
@@ -12,7 +13,7 @@ class LanguageSettingsPage extends StatelessWidget {
     
     return Scaffold(
       appBar: AppBar(
-        title: Text(LocalizationHelper.tr('settings.language')),
+        title: Text(LocalizationHelper.tr(LocaleKeys.settings_language)),
         elevation: 0,
       ),
       body: Padding(
@@ -247,17 +248,17 @@ class LanguageSettingsPage extends StatelessWidget {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: Text(LocalizationHelper.tr('settings.change_language')),
+          title: Text(LocalizationHelper.tr(LocaleKeys.settings_changeLanguage)),
           content: Text(
             LocalizationHelper.trArgs(
-              'settings.change_language_confirm',
+              LocaleKeys.settings_changeLanguageConfirm,
               {'language': languageName},
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(LocalizationHelper.tr('common.cancel')),
+              child: Text(LocalizationHelper.tr(LocaleKeys.common_cancel)),
             ),
             ElevatedButton(
               onPressed: () {
@@ -265,7 +266,7 @@ class LanguageSettingsPage extends StatelessWidget {
                 // Perform the language change
                 LocalizationHelper.changeLanguage(context, languageCode);
               },
-              child: Text(LocalizationHelper.tr('common.change')),
+              child: Text(LocalizationHelper.tr(LocaleKeys.common_change)),
             ),
           ],
         );

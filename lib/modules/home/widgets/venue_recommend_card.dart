@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
 import 'package:skeletonizer/skeletonizer.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
 
 class VenueRecommendCard extends StatelessWidget {
   final String imageUrl;
@@ -97,7 +98,7 @@ class VenueRecommendCard extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Start from',
+                        Text(LocalizationHelper.tr('labels.startFrom'),
                             style:
                                 Theme.of(context).textTheme.bodySmall?.copyWith(
                                       color: Theme.of(context).primaryColor,

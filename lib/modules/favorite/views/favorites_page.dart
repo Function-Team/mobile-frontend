@@ -27,52 +27,74 @@ class FavoritesPage extends GetView<FavoritesController> {
         }
 
         if (controller.favorites.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.favorite_border, size: 64, color: Colors.grey[400]),
-                const SizedBox(height: 16),
-                Text(
-                  LocalizationHelper.tr(LocaleKeys.favorites_noFavorites),
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[600],
+          return RefreshIndicator(
+            onRefresh: () async {
+              await controller.loadFavorites();
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Container(
+                height: MediaQuery.of(context).size.height - AppBar().preferredSize.height,
+                child: SafeArea(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.favorite_border,
+                            size: 64, color: Colors.grey[400]),
+                        const SizedBox(height: 16),
+                        Text(
+                          textAlign: TextAlign.center,
+                          LocalizationHelper.tr(LocaleKeys.favorites_noFavorites),
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                fontSize: 16,
+                                color: Colors.grey[600],
+                              ),
+                        ),
+                        const SizedBox(height: 16),
+                        PrimaryButton(
+                          width: 200,
+                          text: 'Add Favorites',
+                          onPressed: () => controller.goToHome(),
+                          isLoading: false,
+                        )
+                      ],
+                    ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                PrimaryButton(
-                  width: 200,
-                  text: 'Add Favorites',
-                  onPressed: () => controller.goToHome(),
-                  isLoading: false,
-                )
-              ],
+              ),
             ),
           );
         }
 
-        return SingleChildScrollView(
-          child: SafeArea(
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              child: GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.8,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
+        return RefreshIndicator(
+            onRefresh: () async {
+              await controller.loadFavorites();
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: SafeArea(
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      childAspectRatio: 0.8,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                    ),
+                    itemCount: controller.favorites.length,
+                    itemBuilder: (context, index) {
+                      return FavoriteCard(
+                          favorite: controller.favorites[index]);
+                    },
+                  ),
                 ),
-                itemCount: controller.favorites.length,
-                itemBuilder: (context, index) {
-                  return FavoriteCard(favorite: controller.favorites[index]);
-                },
               ),
-            ),
-          ),
-        );
+            ));
       }),
     );
   }

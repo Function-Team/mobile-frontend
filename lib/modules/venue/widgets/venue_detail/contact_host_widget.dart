@@ -163,7 +163,7 @@ class ContactHostWidget extends StatelessWidget {
           // Contact button
           ElevatedButton.icon(
             onPressed: _handleContactHost,
-            label: const Text('Contact'),
+            label: Text(LocalizationHelper.tr('buttons.contact')),
             style: ElevatedButton.styleFrom(
               backgroundColor: theme.primaryColor,
               foregroundColor: Colors.white,
@@ -213,7 +213,7 @@ class ContactHostWidget extends StatelessWidget {
         ),
       ),
       title: Text(hostName),
-      subtitle: const Text('Tap to contact via WhatsApp'),
+      subtitle: Text(LocalizationHelper.tr('labels.tapToContactWhatsApp')),
       trailing: const Icon(Icons.chat_bubble_outline),
       onTap: _handleContactHost,
     );

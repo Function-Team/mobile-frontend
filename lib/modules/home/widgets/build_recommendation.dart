@@ -3,6 +3,7 @@ import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/home/controllers/home_controller.dart';
 import 'package:function_mobile/modules/home/widgets/venue_recommend_card.dart';
+
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -54,11 +55,11 @@ Widget buildRecommendation(BuildContext context, HomeController controller) {
         }
 
         if (controller.recommendedVenues.isEmpty) {
-          return const Center(
+          return Center(
             child: Padding(
               padding: EdgeInsets.all(20.0),
               child: Text(
-                'No venues available at the moment',
+                LocalizationHelper.tr('messages.noVenuesAvailable'),
                 style: TextStyle(fontSize: 16),
               ),
             ),

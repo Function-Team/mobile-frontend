@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 import 'package:function_mobile/common/routes/routes.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/reviews/controllers/review_controller.dart';
 import 'package:function_mobile/modules/reviews/widgets/review_card.dart';
 import 'package:get/get.dart';
@@ -15,7 +17,7 @@ class ReviewPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Reviews'),
+        title: Text(LocalizationHelper.tr(LocaleKeys.pages_reviewsPage)),
         centerTitle: true,
         actions: [
           // Add review button if we have a booking ID
@@ -49,7 +51,7 @@ class ReviewPage extends StatelessWidget {
                   PrimaryButton(
                     width: 120,
                     isLoading: false,
-                    text: 'Retry',
+                    text: LocalizationHelper.tr(LocaleKeys.common_retry),
                     onPressed: () => controller
                         .loadReviewsByVenueId(controller.venueId.value),
                   ),
@@ -72,8 +74,8 @@ class ReviewPage extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    'No reviews yet',
+                  Text(
+                    LocalizationHelper.tr(LocaleKeys.labels_noReviewsYet),
                     style: TextStyle(fontSize: 18),
                   ),
                   const SizedBox(height: 16),
@@ -81,7 +83,7 @@ class ReviewPage extends StatelessWidget {
                     PrimaryButton(
                       width: 200,
                       isLoading: false,
-                      text: 'Add Review',
+                      text: LocalizationHelper.tr(LocaleKeys.buttons_writeReview),
                       onPressed: () {
                         Get.toNamed(
                           MyRoutes.reviewForm,

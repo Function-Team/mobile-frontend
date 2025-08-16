@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/buttons/favorite_button.dart';
 import 'package:function_mobile/modules/venue/widgets/category_chip.dart';
+import 'package:function_mobile/modules/favorite/controllers/favorites_controller.dart';
 import 'package:intl/intl.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
+import 'package:get/get.dart';
 
 class VenueCard extends StatelessWidget {
   final VenueModel venue;
@@ -16,6 +18,15 @@ class VenueCard extends StatelessWidget {
     required this.onTap,
     this.showFavoriteButton = true,
   });
+
+  FavoritesController get _favoritesController {
+    try {
+      return Get.find<FavoritesController>();
+    } catch (e) {
+      // If controller not found, put it in GetX
+      return Get.put(FavoritesController());
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,10 +56,15 @@ class VenueCard extends StatelessWidget {
                         BorderRadius.vertical(top: Radius.circular(12)),
                   ),
                 ),
-                Positioned(
+                if (showFavoriteButton)
+                  Positioned(
                     top: 8,
                     right: 8,
-                    child: FavoriteButton(isFavorite: false, onTap: onTap)),
+                    child: Obx(() => FavoriteButton(
+                      isFavorite: _favoritesController.isVenueInFavorites(venue.id),
+                      onTap: () => _favoritesController.toggleFavorite(venue.id),
+                    )),
+                  ),
               ],
             ),
             Container(
@@ -76,13 +92,31 @@ class VenueCard extends StatelessWidget {
                       const SizedBox(width: 8),
 
                       // Rating row
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.star,
-                            color: Colors.amber,
-                            size: 16,
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Availability indicator
+                      if (venue.isAvailable != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: venue.isAvailable! ? Colors.green.shade100 : Colors.red.shade100,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            venue.isAvailable! ? 'Tersedia' : 'Tidak Tersedia',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: venue.isAvailable! ? Colors.green.shade800 : Colors.red.shade800,
+                            ),
+                          ),
+                        ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.star,
+                        color: Colors.amber,
+                        size: 16,
                           ),
                           const SizedBox(width: 4),
                           Text(

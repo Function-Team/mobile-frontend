@@ -91,9 +91,9 @@ class BookingDetailPage extends GetView<BookingDetailController> {
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Booking Detail',
-            style: TextStyle(
+          Text(
+            LocalizationHelper.tr(LocaleKeys.booking_bookingDetail),
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -125,23 +125,23 @@ class BookingDetailPage extends GetView<BookingDetailController> {
     if (booking.isConfirmed && booking.isPaid) {
       backgroundColor = Colors.green;
       textColor = Colors.white;
-      statusText = 'Completed';
+      statusText = LocalizationHelper.tr(LocaleKeys.booking_status_completed);
     } else if (booking.isConfirmed && !booking.isPaid) {
       backgroundColor = Colors.orange;
       textColor = Colors.white;
-      statusText = 'Confirmed';
+      statusText = LocalizationHelper.tr(LocaleKeys.booking_status_confirmed);
     } else if (!booking.isConfirmed && booking.isPaid) {
       backgroundColor = Colors.blue;
       textColor = Colors.white;
-      statusText = 'Paid';
+      statusText = LocalizationHelper.tr(LocaleKeys.booking_status_paid);
     } else if (booking.paymentStatus == 'cancelled') {
       backgroundColor = Colors.red;
       textColor = Colors.white;
-      statusText = 'Cancelled';
+      statusText = LocalizationHelper.tr(LocaleKeys.booking_status_cancelled);
     } else {
       backgroundColor = Colors.grey;
       textColor = Colors.white;
-      statusText = 'Pending';
+      statusText = LocalizationHelper.tr(LocaleKeys.booking_status_pending);
     }
 
     return Container(
@@ -213,7 +213,9 @@ class BookingDetailPage extends GetView<BookingDetailController> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            venue?.name ?? booking.placeName ?? 'Unknown Venue',
+                            venue?.name ??
+                                booking.placeName ??
+                                LocalizationHelper.tr(LocaleKeys.location_unknownVenue),
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -230,7 +232,9 @@ class BookingDetailPage extends GetView<BookingDetailController> {
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
-                                  venue?.address ?? 'Address not available',
+                                  venue?.address ??
+                                      LocalizationHelper.tr(
+                                          'location.addressNotAvailable'),
                                   style: TextStyle(
                                     color: Colors.grey[600],
                                     fontSize: 14,
@@ -245,7 +249,7 @@ class BookingDetailPage extends GetView<BookingDetailController> {
                     OutlinedButton.icon(
                       onPressed: controller.viewVenueDetails,
                       icon: const Icon(Icons.visibility, size: 18),
-                      label: const Text('View'),
+                      label: Text(LocalizationHelper.tr('buttons.view')),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
@@ -281,9 +285,9 @@ class BookingDetailPage extends GetView<BookingDetailController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Booking Information',
-            style: TextStyle(
+          Text(
+            LocalizationHelper.tr(LocaleKeys.booking_bookingInformation),
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -291,21 +295,21 @@ class BookingDetailPage extends GetView<BookingDetailController> {
           const SizedBox(height: 20),
           _buildInfoTile(
             icon: Icons.calendar_today,
-            label: 'Date',
+            label: LocalizationHelper.tr(LocaleKeys.common_date),
             value: _formatDate(booking.startDateTime),
             iconColor: Colors.blue,
           ),
           const SizedBox(height: 16),
           _buildInfoTile(
             icon: Icons.access_time,
-            label: 'Time',
+            label: LocalizationHelper.tr(LocaleKeys.common_time),
             value: _formatTimeRange(booking),
             iconColor: Colors.green,
           ),
           const SizedBox(height: 16),
           _buildInfoTile(
             icon: Icons.timelapse,
-            label: 'Duration',
+            label: LocalizationHelper.tr(LocaleKeys.booking_duration),
             value: _calculateDuration(booking),
             iconColor: Colors.orange,
           ),
@@ -313,7 +317,7 @@ class BookingDetailPage extends GetView<BookingDetailController> {
             const SizedBox(height: 16),
             _buildInfoTile(
               icon: Icons.schedule,
-              label: 'Booked on',
+              label: LocalizationHelper.tr(LocaleKeys.booking_bookedOn),
               value:
                   DateFormat('MMM dd, yyyy - HH:mm').format(booking.createdAt!),
               iconColor: Colors.purple,
@@ -330,7 +334,7 @@ class BookingDetailPage extends GetView<BookingDetailController> {
       child: ContactHostWidget(
         booking: booking,
         style: ContactHostStyle.button,
-        customText: 'Need help? Contact Host',
+        customText: LocalizationHelper.tr('labels.needHelpContactHost'),
       ),
     );
   }
@@ -492,9 +496,9 @@ class BookingDetailPage extends GetView<BookingDetailController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Payment Summary',
-            style: TextStyle(
+          Text(
+            LocalizationHelper.tr(LocaleKeys.booking_paymentSummary),
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -507,7 +511,7 @@ class BookingDetailPage extends GetView<BookingDetailController> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Duration',
+                  LocalizationHelper.tr(LocaleKeys.booking_duration),
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey[600],
@@ -528,7 +532,7 @@ class BookingDetailPage extends GetView<BookingDetailController> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Rate per hour',
+                    LocalizationHelper.tr(LocaleKeys.booking_ratePerHour),
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[600],
@@ -553,8 +557,8 @@ class BookingDetailPage extends GetView<BookingDetailController> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Total Amount',
+              Text(
+                LocalizationHelper.tr(LocaleKeys.booking_totalAmount),
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -563,7 +567,7 @@ class BookingDetailPage extends GetView<BookingDetailController> {
               Text(
                 amount > 0
                     ? 'Rp ${NumberFormat('#,###', 'id_ID').format(amount)}'
-                    : 'Free',
+                    : LocalizationHelper.tr(LocaleKeys.common_free),
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,

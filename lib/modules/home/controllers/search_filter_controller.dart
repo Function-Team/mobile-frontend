@@ -123,6 +123,14 @@ class SearchFilterController extends GetxController {
 
       // Update Rx variable
       dateText.value = dateController.text;
+      
+      // Reset time if date changes
+      if (startTime.value == null) {
+        startTime.value = const TimeOfDay(hour: 8, minute: 0); // Default start time 8:00 AM
+      }
+      if (endTime.value == null) {
+        endTime.value = const TimeOfDay(hour: 22, minute: 0); // Default end time 10:00 PM
+      }
     }
   }
 
@@ -130,25 +138,131 @@ class SearchFilterController extends GetxController {
   Future<void> selectStartTime() async {
     final TimeOfDay? picked = await showTimePicker(
       context: Get.context!,
-      initialTime: startTime.value ?? TimeOfDay.now(),
+      initialTime: startTime.value ?? const TimeOfDay(hour: 8, minute: 0),
+      builder: (BuildContext context, Widget? child) {
+        return MediaQuery(          
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+          child: child!,
+        );
+      },
     );
 
     if (picked != null) {
-      startTime.value = picked;
+      // Validasi waktu operasional (8:00 - 22:00)
+      if (_isTimeWithinOperatingHours(picked)) {
+        startTime.value = picked;
+        
+        // Jika waktu mulai lebih besar dari waktu akhir, sesuaikan waktu akhir
+        if (endTime.value != null) {
+          final startMinutes = picked.hour * 60 + picked.minute;
+          final endMinutes = endTime.value!.hour * 60 + endTime.value!.minute;
+          
+          if (startMinutes >= endMinutes) {
+            // Set waktu akhir 1 jam setelah waktu mulai atau 22:00 (mana yang lebih awal)
+            final newEndHour = picked.hour + 1 > 22 ? 22 : picked.hour + 1;
+            endTime.value = TimeOfDay(hour: newEndHour, minute: picked.minute);
+            
+            CustomSnackbar.show(
+              context: Get.context!,
+              message: 'Waktu akhir disesuaikan menjadi ${endTime.value!.format(Get.context!)}',
+              type: SnackbarType.info,
+            );
+          }
+        } else {
+          // Jika waktu akhir belum dipilih, set default 2 jam setelah waktu mulai atau 22:00 (mana yang lebih awal)
+          final newEndHour = picked.hour + 2 > 22 ? 22 : picked.hour + 2;
+          endTime.value = TimeOfDay(hour: newEndHour, minute: picked.minute);
+        }
+      } else {
+        CustomSnackbar.show(
+          context: Get.context!,
+          message: 'Waktu harus antara 08:00 - 22:00',
+          type: SnackbarType.error,
+        );
+      }
     }
   }
 
   Future<void> selectEndTime() async {
     final TimeOfDay? picked = await showTimePicker(
       context: Get.context!,
-      initialTime: endTime.value ?? TimeOfDay.now(),
+      initialTime: endTime.value ?? const TimeOfDay(hour: 22, minute: 0),
+      builder: (BuildContext context, Widget? child) {
+        return MediaQuery(          
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+          child: child!,
+        );
+      },
     );
 
     if (picked != null) {
-      endTime.value = picked;
+      // Validasi waktu operasional (8:00 - 22:00)
+      if (_isTimeWithinOperatingHours(picked)) {
+        // Validasi waktu akhir harus setelah waktu mulai
+        if (startTime.value != null) {
+          final startMinutes = startTime.value!.hour * 60 + startTime.value!.minute;
+          final endMinutes = picked.hour * 60 + picked.minute;
+          
+          if (endMinutes <= startMinutes) {
+            CustomSnackbar.show(
+              context: Get.context!,
+              message: 'Waktu akhir harus setelah waktu mulai',
+              type: SnackbarType.error,
+            );
+            return;
+          }
+        }
+        
+        endTime.value = picked;
+      } else {
+        CustomSnackbar.show(
+          context: Get.context!,
+          message: 'Waktu harus antara 08:00 - 22:00',
+          type: SnackbarType.error,
+        );
+      }
     }
   }
+  
+  // Helper method untuk validasi waktu operasional
+  bool _isTimeWithinOperatingHours(TimeOfDay time) {
+    final minutes = time.hour * 60 + time.minute;
+    final openingMinutes = 8 * 60; // 08:00
+    final closingMinutes = 22 * 60; // 22:00
+    
+    return minutes >= openingMinutes && minutes <= closingMinutes;
+  }
 
+  // Helper method untuk memformat informasi waktu
+  String _formatTimeInfo() {
+    String timeInfo = '';
+    
+    // Format tanggal
+    if (startDate.value != null && endDate.value != null) {
+      if (startDate.value!.day == endDate.value!.day && 
+          startDate.value!.month == endDate.value!.month && 
+          startDate.value!.year == endDate.value!.year) {
+        // Satu hari
+        timeInfo += '${startDate.value!.day}/${startDate.value!.month}/${startDate.value!.year}';
+      } else {
+        // Rentang hari
+        timeInfo += '${startDate.value!.day}/${startDate.value!.month} - ${endDate.value!.day}/${endDate.value!.month}';
+      }
+      
+      // Tambahkan informasi waktu
+      if (startTime.value != null && endTime.value != null) {
+        timeInfo += ' • ${startTime.value!.hour.toString().padLeft(2, '0')}:${startTime.value!.minute.toString().padLeft(2, '0')} - '
+                  '${endTime.value!.hour.toString().padLeft(2, '0')}:${endTime.value!.minute.toString().padLeft(2, '0')}';
+      }
+    } else if (startTime.value != null && endTime.value != null) {
+      // Hanya waktu tanpa tanggal
+      timeInfo = '${startTime.value!.hour.toString().padLeft(2, '0')}:${startTime.value!.minute.toString().padLeft(2, '0')} - '
+               '${endTime.value!.hour.toString().padLeft(2, '0')}:${endTime.value!.minute.toString().padLeft(2, '0')}';
+    }
+    
+    return timeInfo;
+  }
+  
   // City selection with search
   void showCityPicker() {
     citySearchQuery.value = '';
@@ -408,11 +522,19 @@ class SearchFilterController extends GetxController {
       if (startTime.value != null) {
         searchParams['start_time'] =
             '${startTime.value!.hour.toString().padLeft(2, '0')}:${startTime.value!.minute.toString().padLeft(2, '0')}:00';
+      } else if (startDate.value != null) {
+        // Default start time jika tanggal dipilih tapi waktu tidak
+        searchParams['start_time'] = '08:00:00';
+        startTime.value = const TimeOfDay(hour: 8, minute: 0);
       }
 
       if (endTime.value != null) {
         searchParams['end_time'] =
             '${endTime.value!.hour.toString().padLeft(2, '0')}:${endTime.value!.minute.toString().padLeft(2, '0')}:00';
+      } else if (endDate.value != null) {
+        // Default end time jika tanggal dipilih tapi waktu tidak
+        searchParams['end_time'] = '22:00:00';
+        endTime.value = const TimeOfDay(hour: 22, minute: 0);
       }
 
       final results =
@@ -431,6 +553,7 @@ class SearchFilterController extends GetxController {
         'endTime': endTime.value != null
             ? '${endTime.value!.hour.toString().padLeft(2, '0')}:${endTime.value!.minute.toString().padLeft(2, '0')}'
             : null,
+        'timeInfo': _formatTimeInfo(),
       };
 
       // Navigate to results dengan parameter lengkap

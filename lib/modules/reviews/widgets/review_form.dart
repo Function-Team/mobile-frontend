@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/reviews/controllers/review_controller.dart';
 import 'package:get/get.dart';
 
@@ -79,7 +81,7 @@ class ReviewForm extends StatelessWidget {
             controller: controller.commentController,
             maxLines: 4,
             decoration: InputDecoration(
-              hintText: 'Share your experience...',
+              hintText: LocalizationHelper.tr(LocaleKeys.forms_reviewPlaceholder),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
