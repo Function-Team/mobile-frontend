@@ -13,7 +13,13 @@ class LanguageSettingsPage extends StatelessWidget {
     
     return Scaffold(
       appBar: AppBar(
-        title: Text(LocalizationHelper.tr(LocaleKeys.settings_language)),
+        title: Text(
+          LocalizationHelper.tr(LocaleKeys.settings_language),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: true,
         elevation: 0,
       ),
       body: Padding(
@@ -23,14 +29,14 @@ class LanguageSettingsPage extends StatelessWidget {
           children: [
             // Header section
             Text(
-              LocalizationHelper.tr('settings.choose_language'),
+              LocalizationHelper.tr(LocaleKeys.settings_changeLanguage),
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              LocalizationHelper.tr('settings.language_description'),
+              LocalizationHelper.tr(LocaleKeys.settings_languageDescription),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Colors.grey[600],
               ),
@@ -261,12 +267,25 @@ class LanguageSettingsPage extends StatelessWidget {
               child: Text(LocalizationHelper.tr(LocaleKeys.common_cancel)),
             ),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                elevation: 0,
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6.0),
+                ),
+              ),
               onPressed: () {
                 Navigator.of(dialogContext).pop();
                 // Perform the language change
                 LocalizationHelper.changeLanguage(context, languageCode);
               },
-              child: Text(LocalizationHelper.tr(LocaleKeys.common_change)),
+              child: Text(
+                LocalizationHelper.tr(LocaleKeys.common_change),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimary,
+                ),
+              ),
             ),
           ],
         );

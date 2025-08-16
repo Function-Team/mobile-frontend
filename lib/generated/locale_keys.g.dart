@@ -97,6 +97,7 @@ abstract class LocaleKeys {
   static const settings_about_subtitle = 'settings.about_subtitle';
   static const settings_language = 'settings.language';
   static const settings_changeLanguage = 'settings.changeLanguage';
+  static const settings_languageDescription = 'settings.languageDescription';
   static const settings_languageChanged = 'settings.languageChanged';
   static const settings_changeLanguageConfirm =
       'settings.changeLanguageConfirm';
@@ -635,8 +636,14 @@ abstract class LocaleKeys {
   static const auth_welcome = 'auth.welcome';
   static const auth = 'auth';
   static const favorites_noFavorites = 'favorites.noFavorites';
+  static const favorites_noFavoritesMessage = 'favorites.noFavoritesMessage';
+  static const favorites_addFavorites = 'favorites.addFavorites';
   static const favorites_startExploring = 'favorites.startExploring';
   static const favorites_exploreVenues = 'favorites.exploreVenues';
+  static const appBarTitles_favorites = 'appBarTitles.favorites';
+  static const appBarTitles_bookings = 'appBarTitles.bookings';
+  static const appBarTitles_booking = 'appBarTitles.booking';
+  static const appBarTitles = 'appBarTitles';
   static const time_daysSingular = 'time.daysSingular';
   static const time_daysPlural = 'time.daysPlural';
   static const time_hoursSingular = 'time.hoursSingular';

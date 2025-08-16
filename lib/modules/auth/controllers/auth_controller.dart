@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/core/services/secure_storage_service.dart';
 import 'package:function_mobile/modules/settings/widgets/logout_bottom_sheet.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/modules/auth/models/auth_model.dart';
 import 'package:function_mobile/modules/auth/services/auth_service.dart';
 import 'package:function_mobile/common/routes/routes.dart';
@@ -112,19 +114,71 @@ class AuthController extends GetxController {
         passwordLoginController.clear();
         Get.offAllNamed(MyRoutes.bottomNav);
 
-        CustomSnackbar.show(
-          context: Get.context!,
+        LocalizationHelper.showSnackbarSafe(
           message: 'Welcome back, ${username}!',
           type: SnackbarType.success,
         );
       }
     } catch (e) {
       print('AuthController: Login error: $e');
-      errorMessage.value = e.toString().replaceFirst('Exception: ', '');
+      final cleanErrorMessage = e.toString().replaceFirst('Exception: ', '');
+      errorMessage.value = cleanErrorMessage;
 
+      // Handle email verification error specifically
+      if (cleanErrorMessage == 'EMAIL_NOT_VERIFIED') {
+        // Store the email for verification page
+        emailSignUpController.text = emailLoginController.text.trim();
+        
+        LocalizationHelper.showSnackbarSafe(
+          message: 'Email belum diverifikasi. Silakan verifikasi email Anda terlebih dahulu.',
+          type: SnackbarType.warning,
+        );
+        
+        // Navigate to email verification page
+        await goToEmailVerification();
+        return;
+      }
+      
+      // Handle generic authentication failure - check if it's an unverified email
+      if (cleanErrorMessage == 'AUTHENTICATION_FAILED') {
+        try {
+          // Check if this email exists and is unverified
+          emailSignUpController.text = emailLoginController.text.trim();
+          final isVerified = await checkEmailVerificationStatus();
+          
+          if (!isVerified) {
+            // Email exists but not verified
+            LocalizationHelper.showSnackbarSafe(
+              message: 'Email Anda belum diverifikasi. Silakan cek email Anda untuk link verifikasi.',
+              type: SnackbarType.warning,
+            );
+            
+            // Navigate to email verification page
+            await goToEmailVerification();
+            return;
+          } else {
+            // Email is verified, so it's actually wrong credentials
+            LocalizationHelper.showSnackbarSafe(
+              message: 'Email atau password salah. Silakan periksa kembali.',
+              type: SnackbarType.error,
+            );
+            return;
+          }
+        } catch (e) {
+          // If verification check fails, show generic error
+          CustomSnackbar.show(
+            context: Get.context!,
+            message: 'Email atau password salah. Silakan periksa kembali.',
+            type: SnackbarType.error,
+          );
+          return;
+        }
+      }
+
+      // Show specific error message
       CustomSnackbar.show(
         context: Get.context!,
-        message: 'Login Failed',
+        message: cleanErrorMessage.isNotEmpty ? cleanErrorMessage : 'Login Failed',
         type: SnackbarType.error,
       );
     } finally {
@@ -158,15 +212,53 @@ class AuthController extends GetxController {
           type: SnackbarType.success,
         );
 
-        goToEmailVerification();
+        await goToEmailVerification();
       }
     } catch (e) {
       print('AuthController: Signup error: $e');
-      errorMessage.value = e.toString().replaceFirst('Exception: ', '');
+      final cleanErrorMessage = e.toString().replaceFirst('Exception: ', '');
+      errorMessage.value = cleanErrorMessage;
+
+      // Handle "email already registered" specifically
+      if (cleanErrorMessage.contains('email already registered') ||
+          cleanErrorMessage.contains('Email already registered')) {
+        
+        // Check if this email is already verified
+        try {
+          final isVerified = await checkEmailVerificationStatus();
+          
+          if (isVerified) {
+            // Email exists and verified - redirect to login
+            CustomSnackbar.show(
+              context: Get.context!,
+              message: 'Email already registered and verified. Please login instead.',
+              type: SnackbarType.info,
+            );
+            goToLogin();
+          } else {
+            // Email exists but not verified - continue verification
+            CustomSnackbar.show(
+              context: Get.context!,
+              message: 'Email already registered but not verified. Continue verification.',
+              type: SnackbarType.info,
+            );
+            await goToEmailVerification();
+          }
+        } catch (e) {
+          // If verification check fails, redirect to login (safer fallback)
+          CustomSnackbar.show(
+            context: Get.context!,
+            message: 'Email already registered. Please try logging in.',
+            type: SnackbarType.info,
+          );
+          goToLogin();
+        }
+        return;
+      }
 
       CustomSnackbar.show(
         context: Get.context!,
-        message: 'Signup Failed',
+        message: cleanErrorMessage.isNotEmpty ? cleanErrorMessage : 'Signup Failed',
         type: SnackbarType.error,
       );
     } finally {
@@ -370,21 +462,48 @@ class AuthController extends GetxController {
     errorMessage.value = '';
   }
 
-  void clearSignupForm() {
-    usernameSignUpController.clear();
-    emailSignUpController.clear();
-    passwordSignUpController.clear();
-    confirmSignUpPasswordController.clear();
-    usernameSignUpError.value = '';
-    emailSignUpError.value = '';
-    passwordSignUpError.value = '';
-    confirmPasswordSignUpError.value = '';
+  Future<void> clearSignupForm() async {
+    try {
+      usernameSignUpController.clear();
+      emailSignUpController.clear();
+      passwordSignUpController.clear();
+      confirmSignUpPasswordController.clear();
+      usernameSignUpError.value = '';
+      emailSignUpError.value = '';
+      passwordSignUpError.value = '';
+      confirmPasswordSignUpError.value = '';
+      
+      // Clear pending verification email from storage safely
+      try {
+        final storageService = Get.find<SecureStorageService>();
+        await storageService.clearPendingVerificationEmail();
+      } catch (e) {
+        print('AuthController: Error clearing pending verification email: $e');
+        // Don't rethrow, this is not critical for logout
+      }
+    } catch (e) {
+      print('AuthController: Error clearing signup form: $e');
+      // Don't rethrow, this shouldn't block logout
+    }
   }
 
   // ===== NAVIGATION METHODS =====
-  void goToEmailVerification() {
-    errorMessage.value = '';
-    Get.toNamed(MyRoutes.emailVerification);
+  Future<void> goToEmailVerification() async {
+    try {
+      errorMessage.value = '';
+      
+      // Save the email to secure storage so it persists on page refresh
+      if (emailSignUpController.text.trim().isNotEmpty) {
+        final storageService = Get.find<SecureStorageService>();
+        await storageService.savePendingVerificationEmail(emailSignUpController.text.trim());
+      }
+      
+      Get.toNamed(MyRoutes.emailVerification);
+    } catch (e) {
+      print('AuthController: Error navigating to email verification: $e');
+      // Still navigate even if storage fails
+      Get.toNamed(MyRoutes.emailVerification);
+    }
   }
 
   void goToLogin() {
@@ -421,6 +540,19 @@ class AuthController extends GetxController {
   bool get hasValidUser => user.value != null && user.value!.id > 0;
   int? get userId => user.value?.id;
   String? get userEmail => user.value?.email;
+
+  // Restore email from storage if controller is empty (for page refresh)
+  Future<void> restorePendingVerificationEmail() async {
+    if (emailSignUpController.text.trim().isEmpty) {
+      final storageService = Get.find<SecureStorageService>();
+      final pendingEmail = await storageService.getPendingVerificationEmail();
+      if (pendingEmail != null && pendingEmail.isNotEmpty) {
+        emailSignUpController.text = pendingEmail;
+        // Trigger rebuild for GetBuilder widgets
+        update();
+      }
+    }
+  }
 
   Future<void> refreshUserData() async {
     try {
@@ -504,12 +636,19 @@ class AuthController extends GetxController {
       await _authService.clearAllUserData();
       user.value = null;
       errorMessage.value = '';
-      emailLoginController.clear();
-      passwordLoginController.clear();
-      clearSignupForm();
+      
+      try {
+        emailLoginController.clear();
+        passwordLoginController.clear();
+        await clearSignupForm();
+      } catch (e) {
+        print('AuthController: Error clearing forms during logout: $e');
+      }
+      
       Get.offAllNamed(MyRoutes.login);
     } catch (e) {
       print('AuthController: Error during logout execution: $e');
+      Get.offAllNamed(MyRoutes.login);
     }
   }
 
@@ -596,15 +735,16 @@ class AuthController extends GetxController {
 
 extension AuthControllerLogout on AuthController {
   Future<void> showLogoutConfirmation() async {
-    if (Get.context == null) return;
+    final context = Get.context;
+    if (context == null || !context.mounted) return;
 
     final shouldLogout = await LogoutBottomSheet.show(
-      Get.context!,
+      context,
       imagePath: 'assets/images/logout.png',
     );
 
     if (shouldLogout == true) {
-      await _executeLogout();
+      await logout();
     }
   }
 

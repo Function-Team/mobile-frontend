@@ -2,7 +2,7 @@
   "navigation": {
     "home": "Home",
     "bookings": "Bookings",
-    "favorites": "Favorites",
+    "favorites": "FAVORITE",
     "chat": "Chat",
     "profile": "Profile"
   },
@@ -464,10 +464,17 @@
     "filterByCategory": "Filter by Category"
   },
   "favorites": {
-    "noFavorites": "No favorites yet,\nsearch some venues to add to your favorites",
-    "favorites": "Favorites",
+    "noFavorites": "No Favorites Yet",
+    "noFavoritesMessage": "Start exploring and save your favorite venues here",
+    "addFavorites": "Add Favorites",
     "startExploring": "Start exploring and save venues you love",
     "exploreVenues": "Explore Venues"
+  },
+  "appBarTitles": {
+    "favorites": "FAVORITES",
+    "bookings": "BOOKINGS",
+    "booking": "BOOKING",
+    "settings": "SETTINGS"
   },
   "settings": {
     "settings": "Settings",
@@ -478,6 +485,7 @@
     "description": "Manage your app preferences",
     "about_subtitle": "Learn more about us",
     "changeLanguage": "Change Language",
+    "languageDescription": "Select the language to use in the app. Changes will be applied immediately.",
     "languageChanged": "Language Changed",
     "changeLanguageConfirm": "Language has been changed successfully",
     "theme": "Theme",

@@ -3,14 +3,17 @@ import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/generated/locale_keys.g.dart';
+import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_controller.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:function_mobile/modules/booking/services/booking_service.dart';
+import 'package:function_mobile/modules/navigation/controllers/bottom_nav_controller.dart';
 import 'package:function_mobile/modules/notification/controllers/notification_controllers.dart';
 import 'package:get/get.dart';
 
 class BookingListController extends GetxController {
   final BookingService _bookingService = BookingService();
+  late final AuthController _authController;
 
   final bookings = <BookingModel>[].obs;
   final filteredBookings = <BookingModel>[].obs;
@@ -18,14 +21,17 @@ class BookingListController extends GetxController {
   final hasError = false.obs;
   final errorMessage = ''.obs;
 
+  // Track current user ID to detect account switches
+  int? _currentUserId;
+
   final currentTabIndex = 0.obs;
   List<String> get tabTitles => [
-    LocalizationHelper.tr(LocaleKeys.bookingList_tabs_all),
-    LocalizationHelper.tr(LocaleKeys.bookingList_tabs_pending),
-    LocalizationHelper.tr(LocaleKeys.bookingList_tabs_confirmed),
-    LocalizationHelper.tr(LocaleKeys.bookingList_tabs_completed),
-    LocalizationHelper.tr(LocaleKeys.bookingList_tabs_cancelled)
-  ];
+        LocalizationHelper.tr(LocaleKeys.bookingList_tabs_all),
+        LocalizationHelper.tr(LocaleKeys.bookingList_tabs_pending),
+        LocalizationHelper.tr(LocaleKeys.bookingList_tabs_confirmed),
+        LocalizationHelper.tr(LocaleKeys.bookingList_tabs_completed),
+        LocalizationHelper.tr(LocaleKeys.bookingList_tabs_cancelled)
+      ];
 
   final allCount = 0.obs;
   final pendingCount = 0.obs;
@@ -39,36 +45,47 @@ class BookingListController extends GetxController {
 
   // Sort options for dropdown
   List<Map<String, dynamic>> get sortOptions => [
-    {
-      'value': 'booking_id_desc',
-      'label': LocalizationHelper.tr(LocaleKeys.bookingList_sortOptions_newestIdFirst),
-      'icon': Icons.arrow_downward
-    },
-    {
-      'value': 'booking_id_asc',
-      'label': LocalizationHelper.tr(LocaleKeys.bookingList_sortOptions_oldestIdFirst),
-      'icon': Icons.arrow_upward
-    },
-    {
-      'value': 'date_desc',
-      'label': LocalizationHelper.tr(LocaleKeys.bookingList_sortOptions_latestDate),
-      'icon': Icons.schedule
-    },
-    {
-      'value': 'date_asc',
-      'label': LocalizationHelper.tr(LocaleKeys.bookingList_sortOptions_earliestDate),
-      'icon': Icons.history
-    },
-    {
-      'value': 'venue_name',
-      'label': LocalizationHelper.tr(LocaleKeys.bookingList_sortOptions_venueNameAZ),
-      'icon': Icons.sort_by_alpha
-    },
-  ];
+        {
+          'value': 'booking_id_desc',
+          'label': LocalizationHelper.tr(
+              LocaleKeys.bookingList_sortOptions_newestIdFirst),
+          'icon': Icons.arrow_downward
+        },
+        {
+          'value': 'booking_id_asc',
+          'label': LocalizationHelper.tr(
+              LocaleKeys.bookingList_sortOptions_oldestIdFirst),
+          'icon': Icons.arrow_upward
+        },
+        {
+          'value': 'date_desc',
+          'label': LocalizationHelper.tr(
+              LocaleKeys.bookingList_sortOptions_latestDate),
+          'icon': Icons.schedule
+        },
+        {
+          'value': 'date_asc',
+          'label': LocalizationHelper.tr(
+              LocaleKeys.bookingList_sortOptions_earliestDate),
+          'icon': Icons.history
+        },
+        {
+          'value': 'venue_name',
+          'label': LocalizationHelper.tr(
+              LocaleKeys.bookingList_sortOptions_venueNameAZ),
+          'icon': Icons.sort_by_alpha
+        },
+      ];
 
   @override
   void onInit() {
     super.onInit();
+
+    // Get AuthController instance
+    _authController = Get.find<AuthController>();
+
+    // Set initial user ID
+    _currentUserId = _authController.userId;
 
     final arguments = Get.arguments as Map<String, dynamic>?;
     if (arguments != null && arguments['initialTab'] != null) {
@@ -77,6 +94,38 @@ class BookingListController extends GetxController {
         currentTabIndex.value = initialTab;
       }
     }
+
+    // Listen to user changes and refresh bookings when user switches
+    ever(_authController.user, (user) {
+      final newUserId = user?.id;
+      if (_currentUserId != newUserId) {
+        print(
+            'BookingListController: User changed from $_currentUserId to $newUserId, refreshing bookings...');
+        _currentUserId = newUserId;
+
+        // Add delay to prevent conflicts during logout process
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (newUserId != null) {
+            // Only fetch if there's a valid user and controller is still active
+            if (!Get.isRegistered<BookingListController>()) return;
+            fetchBookings();
+          } else {
+            // Clear bookings if user logged out, but safely
+            try {
+              if (Get.isRegistered<BookingListController>()) {
+                bookings.clear();
+                filteredBookings.clear();
+                updateBookingCounts();
+              }
+            } catch (e) {
+              print(
+                  'BookingListController: Error clearing bookings during logout: $e');
+            }
+          }
+        });
+      }
+    });
+
     fetchBookings();
     _clearBookingNotifications();
   }
@@ -321,11 +370,16 @@ class BookingListController extends GetxController {
                 LocaleKeys.booking_cancelConfirmationMessage)),
             const SizedBox(height: 8),
             Text(
-              LocalizationHelper.trArgs('booking.venueInfo', {'venueName': booking.place?.name ?? booking.placeName ?? LocalizationHelper.tr(LocaleKeys.common_unknown)}),
+              LocalizationHelper.trArgs('booking.venueInfo', {
+                'venueName': booking.place?.name ??
+                    booking.placeName ??
+                    LocalizationHelper.tr(LocaleKeys.common_unknown)
+              }),
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             Text(
-              LocalizationHelper.trArgs('booking.dateInfo', {'date': booking.formattedDate}),
+              LocalizationHelper.trArgs(
+                  'booking.dateInfo', {'date': booking.formattedDate}),
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ],
@@ -385,9 +439,10 @@ class BookingListController extends GetxController {
   }
 
   void showSuccess(String message) {
-    if (Get.context != null) {
+    final context = Get.context;
+    if (context != null && context.mounted) {
       CustomSnackbar.show(
-        context: Get.context!,
+        context: context,
         message: message,
         type: SnackbarType.success,
       );
@@ -395,15 +450,17 @@ class BookingListController extends GetxController {
   }
 
   void showError(String message) {
-    if (Get.context != null) {
+    final context = Get.context;
+    if (context != null && context.mounted) {
       CustomSnackbar.show(
-        context: Get.context!,
+        context: context,
         message: message,
         type: SnackbarType.error,
       );
     }
   }
-    void navigateToBookingDetail(BookingModel booking) {
+
+  void navigateToBookingDetail(BookingModel booking) {
     Get.toNamed(MyRoutes.bookingDetail, arguments: booking.id);
   }
 
@@ -414,4 +471,7 @@ class BookingListController extends GetxController {
       });
     }
   }
+   void goToHome() {
+      Get.find<BottomNavController>().changePage(0);
+    }
 }

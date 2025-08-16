@@ -49,7 +49,20 @@ class AuthService extends GetxService {
           'AuthService: DioException during login: ${e.response?.statusCode} - ${e.response?.data}');
 
       if (e.response?.statusCode == 401) {
-        throw Exception('Invalid email or password. Please try again.');
+        // Check if it's specifically an email verification issue
+        final errorData = e.response?.data;
+        if (errorData is Map && errorData['detail'] != null) {
+          final detail = errorData['detail'].toString();
+          if (detail.toLowerCase().contains('verify') ||
+              detail.toLowerCase().contains('verification') ||
+              detail.toLowerCase().contains('not verified') ||
+              detail.toLowerCase().contains('email belum diverifikasi')) {
+            throw Exception('EMAIL_NOT_VERIFIED');
+          }
+        }
+        // For generic 401 without specific detail, assume it might be unverified email
+        // This will be handled in the controller to check verification status
+        throw Exception('AUTHENTICATION_FAILED');
       } else if (e.response?.statusCode == 422) {
         throw Exception('Please check your email and password format.');
       } else if (e.response?.statusCode == 429) {
@@ -417,6 +430,11 @@ class AuthService extends GetxService {
 
       if (response != null) {
         print('AuthService: Verification email resent successfully');
+        // Optional: Handle next_resend_allowed_at from response
+        if (response['next_resend_allowed_at'] != null) {
+          print(
+              'Next resend allowed at: ${response['next_resend_allowed_at']}');
+        }
       } else {
         throw Exception('Failed to resend verification email');
       }
@@ -427,17 +445,33 @@ class AuthService extends GetxService {
       if (e.response?.statusCode == 400) {
         final errorData = e.response?.data;
         if (errorData != null && errorData['detail'] != null) {
-          throw Exception(errorData['detail'].toString());
+          final detail = errorData['detail'].toString();
+
+          if (detail.contains('already verified')) {
+            throw Exception('Email already verified. You can now login.');
+          } else if (detail.contains('wait') || detail.contains('seconds')) {
+            // Extract remaining seconds if available
+            final match = RegExp(r'(\d+) seconds').firstMatch(detail);
+            if (match != null) {
+              throw Exception(
+                  'Please wait ${match.group(1)} seconds before resending.');
+            } else {
+              throw Exception('Please wait before requesting another email.');
+            }
+          } else {
+            throw Exception(detail);
+          }
         }
-        throw Exception('Invalid email address');
+        throw Exception('Too many requests. Please wait before trying again.');
       } else if (e.response?.statusCode == 404) {
         throw Exception('Email address not found. Please sign up first.');
-      } else if (e.response?.statusCode == 429) {
-        throw Exception('Too many requests. Please wait before trying again.');
+      } else if (e.response?.statusCode == 422) {
+        throw Exception(
+            'Invalid email format. Please check your email address.');
       }
 
       throw Exception(
-          'Unable to resend verification email. Please try again later or contact support.');
+          'Unable to resend verification email. Please try again later.');
     } catch (e) {
       print('AuthService: General error during resend verification: $e');
 
@@ -445,7 +479,8 @@ class AuthService extends GetxService {
         rethrow;
       }
 
-      throw Exception('An unexpected error occurred. Please try again.');
+      throw Exception(
+          'Network error. Please check your connection and try again.');
     }
   }
 
@@ -453,23 +488,12 @@ class AuthService extends GetxService {
     try {
       print('AuthService: Checking verification status for: $email');
 
-      final tokenInfo = await getUserInfoFromToken();
-      if (tokenInfo == null) return false;
+      if (email.isEmpty) return false;
 
-      final userEmail = tokenInfo['sub'] as String?;
-      // final userId = tokenInfo['id'] as int?;
-
-      // Use the passed email parameter or token email
-      final emailToCheck = email.isNotEmpty ? email : userEmail;
-
-      if (emailToCheck == null) {
-        print('AuthService: No email available for verification check');
-        return false;
-      }
-
+      // Use new /check-verification endpoint
       final response = await _apiService.postRequest(
         '/check-verification',
-        {'email': emailToCheck},
+        {'email': email},
       );
 
       if (response != null && response['is_verified'] != null) {
@@ -478,17 +502,10 @@ class AuthService extends GetxService {
 
       return false;
     } on dio.DioException catch (e) {
-      print(
-          'AuthService: DioException during verification check: ${e.response?.statusCode} - ${e.response?.data}');
-
       if (e.response?.statusCode == 404) {
-        return false;
+        throw Exception('Email not found. Please check your email address.');
       }
-
-      return false;
-    } catch (e) {
-      print('AuthService: General error during verification status check: $e');
-      return false;
+      throw Exception('Unable to check verification status.');
     }
   }
 
