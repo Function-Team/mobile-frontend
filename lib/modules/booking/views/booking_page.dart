@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_controller.dart';
 import 'package:function_mobile/modules/booking/widgets/booking_form.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
@@ -22,13 +24,16 @@ class BookingPage extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            'Book ${venue.name}',
+            LocalizationHelper.tr(LocaleKeys.appBarTitles_booking),
             style: Theme.of(context)
                 .textTheme
-                .headlineMedium!
-                .copyWith(color: Colors.white),
+                .titleLarge!
+                .copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
           ),
-          titleTextStyle: TextStyle(color: Colors.white),
+          centerTitle: true,
           elevation: 0,
           backgroundColor: Theme.of(context).primaryColor,
         ),

@@ -155,7 +155,7 @@
     "people": "Orang"
   },
   "bookingList": {
-    "title": "Daftar Pemesanan",
+    "title": "DAFTAR PEMESANAN",
     "sortBookings": "Urutkan Pemesanan",
     "refreshBookings": "Perbarui Pemesanan",
     "sortedBy": "Diurutkan berdasarkan: {sortLabel}",
@@ -180,7 +180,7 @@
     "emptyStates": {
       "noBookings": {
         "title": "Belum Ada Pemesanan",
-        "message": "Mulai jelajahi venue dan buat pemesanan pertama Anda!"
+        "message": "Mulai jelajahi venue dan buat pesanan pertama Anda!"
       },
       "noPending": {
         "title": "Tidak Ada Pemesanan Menunggu",
@@ -465,9 +465,17 @@
     "filterByCategory": "Saring berdasarkan Kategori"
   },
   "favorites": {
-    "noFavorites": "Belum ada venue favorit,\ntambahkan venue favoritmu!",
+    "noFavorites": "Belum Ada Favorit",
+    "noFavoritesMessage": "Mulai jelajahi dan simpan venue favorit Anda di sini",
+    "addFavorites": "Tambah Favorit",
     "startExploring": "Mulai jelajahi dan simpan venue yang Anda suka",
     "exploreVenues": "Jelajahi Venue"
+  },
+  "appBarTitles": {
+    "favorites": "FAVORIT",
+    "bookings": "DAFTAR PEMESANAN",
+    "booking": "BOOKING",
+    "settings": "PENGATURAN"
   },
   "settings": {
     "settings": "Pengaturan",
@@ -479,6 +487,7 @@
     "description": "Kelola preferensi aplikasi Anda",
     "about_subtitle": "Pelajari lebih lanjut tentang kami",
     "changeLanguage": "Ubah Bahasa",
+    "languageDescription": "Pilih bahasa yang akan digunakan dalam aplikasi. Perubahan akan diterapkan secara langsung.",
     "languageChanged": "Bahasa Berubah",
     "changeLanguageConfirm": "Bahasa telah berhasil diubah",
     "theme": "Tema",

@@ -25,20 +25,30 @@ class LocalizationController extends GetxController {
   
   void _initializeLocale() {
     try {
-      if (Get.context != null) {
+      if (Get.context != null && Get.context!.mounted) {
         final context = Get.context!;
         final locale = context.locale.toString();
         currentLocale.value = locale;
         
         debugPrint('🌍 LocalizationController initialized with locale: $locale');
-        
-        // Listen to locale changes and trigger UI updates
-        ever(currentLocale, (String newLocale) {
-          debugPrint('📢 Locale changed to: $newLocale');
-          // Force a complete UI refresh
-          Get.forceAppUpdate();
-        });
+      } else {
+        // Set fallback locale if context is not available
+        currentLocale.value = 'en';
+        debugPrint('🌍 LocalizationController initialized with fallback locale: en');
       }
+      
+      // Listen to locale changes and trigger UI updates
+      ever(currentLocale, (String newLocale) {
+        debugPrint('📢 Locale changed to: $newLocale');
+        // Force a complete UI refresh with a small delay to prevent context issues
+        Future.delayed(const Duration(milliseconds: 100), () {
+          try {
+            Get.forceAppUpdate();
+          } catch (e) {
+            debugPrint('❌ Error forcing app update: $e');
+          }
+        });
+      });
     } catch (e) {
       debugPrint('❌ Error initializing LocalizationController: $e');
       // Set fallback locale
@@ -52,10 +62,31 @@ class LocalizationController extends GetxController {
       isChangingLanguage.value = true;
       currentLocale.value = locale;
       
+      debugPrint('🔄 Updating locale to: $locale');
+      
       // Reset the changing state after a short delay
-      Future.delayed(const Duration(milliseconds: 500), () {
-        isChangingLanguage.value = false;
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (isChangingLanguage.value) {
+          isChangingLanguage.value = false;
+          debugPrint('✅ Language change completed');
+        }
       });
+    }
+  }
+  
+  /// Safely refresh the locale from context
+  void refreshLocale() {
+    try {
+      if (Get.context != null && Get.context!.mounted) {
+        final context = Get.context!;
+        final locale = context.locale.toString();
+        if (currentLocale.value != locale) {
+          currentLocale.value = locale;
+          debugPrint('🔄 Locale refreshed to: $locale');
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ Error refreshing locale: $e');
     }
   }
   

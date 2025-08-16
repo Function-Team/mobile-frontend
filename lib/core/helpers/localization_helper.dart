@@ -44,9 +44,21 @@ class LocalizationHelper {
 
   /// Get current locale
   static Locale getCurrentLocale() {
-    if (Get.context != null) {
-      return Get.context!.locale;
+    try {
+      // Try to get locale from LocalizationController first (safer)
+      if (Get.isRegistered<LocalizationController>()) {
+        final controller = Get.find<LocalizationController>();
+        return controller.currentLocaleObject;
+      }
+      
+      // Fallback to Get.context only if controller is not available
+      if (Get.context != null && Get.context!.mounted) {
+        return Get.context!.locale;
+      }
+    } catch (e) {
+      debugPrint('❌ Error getting current locale: $e');
     }
+    
     return const Locale('en'); // fallback
   }
 
@@ -66,15 +78,22 @@ class LocalizationHelper {
     BuildContext context,
     String languageCode,
   ) async {
+    if (!context.mounted) {
+      debugPrint('❌ Context is not mounted, cannot change language');
+      return;
+    }
+
     try {
       final locale = Locale(languageCode);
 
+      // Update GetX controller first to prevent context issues
+      if (Get.isRegistered<LocalizationController>()) {
+        final localizationController = Get.find<LocalizationController>();
+        localizationController.updateLocale(locale.toString());
+      }
+
       // Change the easy_localization locale
       await context.setLocale(locale);
-
-      // Update GetX controller to trigger UI rebuilds
-      final localizationController = Get.find<LocalizationController>();
-      localizationController.updateLocale(locale.toString());
 
       // Small delay to ensure the change is applied
       await Future.delayed(const Duration(milliseconds: 300));
@@ -82,11 +101,23 @@ class LocalizationHelper {
       // Debug print
       debugPrint('🌍 Language changed to: $languageCode');
 
-      // Show success message using generated keys
-      CustomSnackbar.show(context: context, message: tr(LocaleKeys.settings_changeLanguageConfirm), type: SnackbarType.success);
+      // Show success message using generated keys - use safe context check
+      if (context.mounted) {
+        CustomSnackbar.show(
+          context: context, 
+          message: tr(LocaleKeys.settings_changeLanguageConfirm), 
+          type: SnackbarType.success
+        );
+      }
     } catch (e) {
       debugPrint('❌ Error changing language: $e');
-      CustomSnackbar.show(context: context, message: tr(LocaleKeys.common_error), type: SnackbarType.error);
+      if (context.mounted) {
+        CustomSnackbar.show(
+          context: context, 
+          message: tr(LocaleKeys.common_error), 
+          type: SnackbarType.error
+        );
+      }
     }
   }
 
@@ -318,6 +349,32 @@ class LocalizationHelper {
       return trSafe(text, fallback: text);
     }
     return text;
+  }
+
+  /// Safely execute operations that require context
+  static T? safeContextOperation<T>(T Function(BuildContext context) operation) {
+    try {
+      if (Get.context != null && Get.context!.mounted) {
+        return operation(Get.context!);
+      }
+    } catch (e) {
+      debugPrint('❌ Error in safe context operation: $e');
+    }
+    return null;
+  }
+
+  /// Show snackbar safely with context checks
+  static void showSnackbarSafe({
+    required String message,
+    required SnackbarType type,
+  }) {
+    safeContextOperation((context) {
+      CustomSnackbar.show(
+        context: context,
+        message: message,
+        type: type,
+      );
+    });
   }
 }
 

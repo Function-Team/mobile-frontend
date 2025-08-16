@@ -61,17 +61,18 @@ class NotificationController extends GetxController {
       isLoading.value = true;
       final prefs = await SharedPreferences.getInstance();
       final notificationsJson = prefs.getStringList(_keyNotifications) ?? [];
-      
+
       final loadedNotifications = notificationsJson
           .map((json) => NotificationModel.fromJson(jsonDecode(json)))
           .toList();
-      
+
       // Sort by creation date (newest first)
       loadedNotifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      
+
       notifications.value = loadedNotifications;
-      
-      print('📱 NotificationController: Loaded ${notifications.length} stored notifications');
+
+      print(
+          '📱 NotificationController: Loaded ${notifications.length} stored notifications');
     } catch (e) {
       print('❌ NotificationController: Error loading stored notifications: $e');
     } finally {
@@ -86,11 +87,12 @@ class NotificationController extends GetxController {
       final notificationsJson = notifications
           .map((notification) => jsonEncode(notification.toJson()))
           .toList();
-      
+
       await prefs.setStringList(_keyNotifications, notificationsJson);
-      print('💾 NotificationController: Saved ${notifications.length} notifications');
+      print(
+          ' NotificationController: Saved ${notifications.length} notifications');
     } catch (e) {
-      print('❌ NotificationController: Error saving notifications: $e');
+      print('NotificationController: Error saving notifications: $e');
     }
   }
 
@@ -104,28 +106,28 @@ class NotificationController extends GetxController {
           _keyLastCheckTime, DateTime.now().millisecondsSinceEpoch);
 
       print(
-          '💾 NotificationController: State saved - Updates: ${hasBookingUpdates.value}, Count: ${updateCount.value}');
+          'NotificationController: State saved - Updates: ${hasBookingUpdates.value}, Count: ${updateCount.value}');
     } catch (e) {
-      print('❌ NotificationController: Error saving state: $e');
+      print('NotificationController: Error saving state: $e');
     }
   }
 
   // Add new notification
   Future<void> addNotification(NotificationModel notification) async {
     notifications.insert(0, notification);
-    
+
     // Keep only last 100 notifications
     if (notifications.length > 100) {
       notifications.removeRange(100, notifications.length);
     }
-    
+
     await _saveNotifications();
-    
+
     // Update badge count
     final unreadCount = notifications.where((n) => !n.isRead).length;
     updateCount.value = unreadCount;
     hasBookingUpdates.value = unreadCount > 0;
-    
+
     await _saveState();
   }
 
@@ -135,12 +137,12 @@ class NotificationController extends GetxController {
     if (index != -1) {
       notifications[index] = notifications[index].copyWith(isRead: true);
       await _saveNotifications();
-      
+
       // Update badge count
       final unreadCount = notifications.where((n) => !n.isRead).length;
       updateCount.value = unreadCount;
       hasBookingUpdates.value = unreadCount > 0;
-      
+
       await _saveState();
     }
   }
@@ -150,12 +152,12 @@ class NotificationController extends GetxController {
     for (int i = 0; i < notifications.length; i++) {
       notifications[i] = notifications[i].copyWith(isRead: true);
     }
-    
+
     await _saveNotifications();
-    
+
     updateCount.value = 0;
     hasBookingUpdates.value = false;
-    
+
     await _saveState();
   }
 
@@ -179,13 +181,13 @@ class NotificationController extends GetxController {
   // Main logic to check for booking updates
   Future<void> _checkForBookingUpdates() async {
     try {
-      print('🔍 NotificationController: Checking for booking updates...');
+      print('NotificationController: Checking for booking updates...');
 
       // Get current bookings from API
       final currentBookings = await _bookingService.getUserBookings();
 
       if (currentBookings.isEmpty) {
-        print('📝 NotificationController: No bookings found');
+        print('NotificationController: No bookings found');
         return;
       }
 
@@ -193,7 +195,7 @@ class NotificationController extends GetxController {
       if (_lastKnownBookings.isEmpty) {
         _lastKnownBookings = List.from(currentBookings);
         print(
-            '📚 NotificationController: Initial bookings saved (${currentBookings.length} bookings)');
+            'NotificationController: Initial bookings saved (${currentBookings.length} bookings)');
         return;
       }
 
@@ -202,7 +204,7 @@ class NotificationController extends GetxController {
 
       if (updates.isNotEmpty) {
         print(
-            '🔔 NotificationController: Found ${updates.length} booking updates!');
+            'NotificationController: Found ${updates.length} booking updates!');
 
         // Create notifications for each update
         for (String update in updates) {
@@ -213,9 +215,9 @@ class NotificationController extends GetxController {
             type: NotificationType.booking,
             createdAt: DateTime.now(),
           );
-          
+
           await addNotification(notification);
-          print('📋 Added notification: $update');
+          print('Added notification: $update');
         }
 
         // Update last known state
@@ -287,21 +289,21 @@ class NotificationController extends GetxController {
     try {
       final currentBookings = await _bookingService.getUserBookings();
       _lastKnownBookings = List.from(currentBookings);
-      print('🔄 NotificationController: Refreshed baseline booking state');
+      print('NotificationController: Refreshed baseline booking state');
     } catch (e) {
-      print('❌ NotificationController: Error refreshing baseline: $e');
+      print('NotificationController: Error refreshing baseline: $e');
     }
   }
 
   // Force check for updates (useful for testing or manual refresh)
   Future<void> forceCheck() async {
-    print('🔄 NotificationController: Force checking updates...');
+    print('NotificationController: Force checking updates...');
     await _checkForBookingUpdates();
   }
 
   // Reset notification system (useful for debugging)
   Future<void> resetNotifications() async {
-    print('🔄 NotificationController: Resetting notification system');
+    print('NotificationController: Resetting notification system');
 
     hasBookingUpdates.value = false;
     updateCount.value = 0;

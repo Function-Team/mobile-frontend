@@ -14,12 +14,15 @@ class FavoritesPage extends GetView<FavoritesController> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Favorites',
-          style: Theme.of(context).textTheme.displaySmall?.copyWith(
+          LocalizationHelper.tr(LocaleKeys.appBarTitles_favorites),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 color: Theme.of(context).colorScheme.onPrimary,
+                fontWeight: FontWeight.w600,
               ),
         ),
+        centerTitle: true,
         backgroundColor: Theme.of(context).colorScheme.primary,
+        elevation: 0,
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
@@ -34,7 +37,8 @@ class FavoritesPage extends GetView<FavoritesController> {
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: Container(
-                height: MediaQuery.of(context).size.height - AppBar().preferredSize.height,
+                height: MediaQuery.of(context).size.height -
+                    AppBar().preferredSize.height,
                 child: SafeArea(
                   child: Center(
                     child: Column(
@@ -44,17 +48,22 @@ class FavoritesPage extends GetView<FavoritesController> {
                             size: 64, color: Colors.grey[400]),
                         const SizedBox(height: 16),
                         Text(
-                          textAlign: TextAlign.center,
                           LocalizationHelper.tr(LocaleKeys.favorites_noFavorites),
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                fontSize: 16,
-                                color: Colors.grey[600],
-                              ),
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[600]),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          LocalizationHelper.tr(LocaleKeys.favorites_noFavoritesMessage),
+                          style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                          textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 16),
                         PrimaryButton(
                           width: 200,
-                          text: 'Add Favorites',
+                          text: LocalizationHelper.tr(LocaleKeys.favorites_exploreVenues),
                           onPressed: () => controller.goToHome(),
                           isLoading: false,
                         )

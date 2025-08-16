@@ -19,7 +19,14 @@ class SettingsPage extends StatelessWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(LocalizationHelper.tr(LocaleKeys.settings_settings)),
+        title: Text(
+          LocalizationHelper.tr(LocaleKeys.settings_settings),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: true,
+        elevation: 0,
       ),
       body: SafeArea(
         child: SingleChildScrollView(

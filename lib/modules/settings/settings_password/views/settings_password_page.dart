@@ -19,7 +19,13 @@ class SettingsPasswordPage extends StatelessWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Get.back(),
         ),
-        title: Text(LocalizationHelper.tr(LocaleKeys.settings_changePassword)),
+        title: Text(
+          LocalizationHelper.tr(LocaleKeys.settings_changePassword),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),

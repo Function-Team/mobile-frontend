@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 import 'package:function_mobile/common/widgets/buttons/secondary_button.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
@@ -17,6 +18,16 @@ class EmailVerificationPage extends StatefulWidget {
 class _EmailVerificationPageState extends State<EmailVerificationPage> {
   final RxInt countdownSeconds = 0.obs;
   Timer? _countdownTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Restore email from storage if needed (for page refresh)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final AuthController authController = Get.find<AuthController>();
+      authController.restorePendingVerificationEmail();
+    });
+  }
 
   @override
   void dispose() {
@@ -41,325 +52,350 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
     final AuthController authController = Get.find<AuthController>();
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Back button
-              Row(
+        backgroundColor: Colors.grey[50],
+        body: SafeArea(
+          child: RefreshIndicator(
+            onRefresh: () => _refreshPage(authController),
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  IconButton(
-                    onPressed: () => authController.goToSignup(),
-                    icon: const Icon(Icons.arrow_back_ios, size: 20),
-                    padding: EdgeInsets.zero,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Back to Sign Up',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.w500,
-                        ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 40),
-
-              // Progress indicator
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  children: [
-                    LinearProgressIndicator(
-                      value: 0.75, // 75% complete
-                      backgroundColor: Colors.grey[300],
-                      valueColor: AlwaysStoppedAnimation(
-                        Theme.of(context).colorScheme.primary,
+                  // Back button
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => authController.goToSignup(),
+                        icon: const Icon(Icons.arrow_back_ios, size: 20),
+                        padding: EdgeInsets.zero,
                       ),
-                      minHeight: 4,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Step 2 of 3: Email Verification',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 48),
-
-              // Email icon with animation
-              Center(
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color:
-                        Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .primary
-                            .withOpacity(0.2),
-                        blurRadius: 20,
-                        spreadRadius: 5,
+                      const SizedBox(width: 8),
+                      Text(
+                        'Back to Sign Up',
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w500,
+                            ),
                       ),
                     ],
                   ),
-                  child: Icon(
-                    Icons.mark_email_unread_outlined,
-                    size: 60,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-              ),
 
-              const SizedBox(height: 32),
+                  const SizedBox(height: 80),
 
-              // Title
-              Text(
-                'Check Your Email',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                textAlign: TextAlign.center,
-              ),
-
-              const SizedBox(height: 16),
-
-              // Description
-              Text(
-                'We\'ve sent a verification link to',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.grey[600],
-                    ),
-                textAlign: TextAlign.center,
-              ),
-
-              const SizedBox(height: 8),
-
-              // Email display
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color:
-                        Theme.of(context).colorScheme.primary.withOpacity(0.3),
-                  ),
-                ),
-                child: Text(
-                  authController.emailSignUpController.text.trim(),
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.w600,
+                  // Email icon with animation
+                  Center(
+                    child: Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withOpacity(0.1),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withOpacity(0.2),
+                            blurRadius: 20,
+                            spreadRadius: 5,
+                          ),
+                        ],
                       ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              Text(
-                'Please check your email and click the verification link to activate your account.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey[600],
+                      child: Icon(
+                        Icons.mark_email_unread_outlined,
+                        size: 60,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     ),
-                textAlign: TextAlign.center,
-              ),
+                  ),
 
-              const SizedBox(height: 48),
+                  const SizedBox(height: 32),
 
-              // Primary action buttons
-              Column(
-                children: [
-                  // Open Email App button - Fixed with proper URL launcher
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: PrimaryButton(
-                      isLoading: false,
-                      text: 'Open Email App',
-                      onPressed: () => _openEmailInbox(context),
-                    ),
+                  // Title
+                  Text(
+                    'Check Your Email',
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                    textAlign: TextAlign.center,
                   ),
 
                   const SizedBox(height: 16),
 
-                  // Resend button with countdown
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: Obx(() {
-                      final isLoading = authController.isLoading.value;
-                      final countdown = countdownSeconds.value;
-                      final canResend = countdown == 0 && !isLoading;
-
-                      return SecondaryButton(
-                        text: isLoading
-                            ? 'Sending...'
-                            : countdown > 0
-                                ? 'Resend in ${_formatCountdown(countdown)}'
-                                : 'Resend Email',
-                        onPressed: canResend
-                            ? () => _resendVerificationEmail(
-                                authController, context)
-                            : null,
-                      );
-                    }),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 40),
-
-              // Divider
-              Row(
-                children: [
-                  Expanded(
-                      child: Divider(color: Colors.grey[300], thickness: 1)),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Text(
-                      'or',
-                      style: TextStyle(
-                        color: Colors.grey[500],
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                      child: Divider(color: Colors.grey[300], thickness: 1)),
-                ],
-              ),
-
-              const SizedBox(height: 40),
-
-              // Secondary action buttons
-              Column(
-                children: [
-                  // Check verification status button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: OutlinedButton.icon(
-                      onPressed: () =>
-                          _checkVerificationStatus(authController, context),
-                      icon: Icon(
-                        Icons.verified_user_outlined,
-                        size: 20,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      label: Text(
-                        'I\'ve verified, continue',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                        ),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(
-                          color: Theme.of(context).colorScheme.primary,
-                          width: 2,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Change email button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: TextButton.icon(
-                      onPressed: () => authController.goToSignup(),
-                      icon: Icon(
-                        Icons.edit_outlined,
-                        size: 20,
-                        color: Colors.grey[600],
-                      ),
-                      label: Text(
-                        'Change Email Address',
-                        style: TextStyle(
+                  // Description
+                  Text(
+                    'We\'ve sent a verification link to',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color: Colors.grey[600],
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
                         ),
-                      ),
-                      style: TextButton.styleFrom(
-                        backgroundColor: Colors.grey[100],
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
+                    textAlign: TextAlign.center,
                   ),
+
+                  const SizedBox(height: 8),
+
+                  // Email display
+                  GetBuilder<AuthController>(builder: (controller) {
+                    final email = controller.emailSignUpController.text.trim();
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      margin: const EdgeInsets.symmetric(horizontal: 20),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withOpacity(0.3),
+                        ),
+                      ),
+                      child: Text(
+                        email.isNotEmpty ? email : 'your-email@example.com',
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              color: email.isNotEmpty
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Colors.grey[500],
+                              fontWeight: FontWeight.w600,
+                              fontStyle: email.isNotEmpty
+                                  ? FontStyle.normal
+                                  : FontStyle.italic,
+                            ),
+                        textAlign: TextAlign.center,
+                      ),
+                    );
+                  }),
+
+                  const SizedBox(height: 16),
+
+                  Text(
+                    'Please check your email and click the verification link to activate your account.',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Colors.grey[600],
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+
+                  const SizedBox(height: 48),
+
+                  // Primary action buttons
+                  Column(
+                    children: [
+                      // Open Email App button - Fixed with proper URL launcher
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: PrimaryButton(
+                          isLoading: false,
+                          text: 'Open Email App',
+                          onPressed: () => _openEmailInbox(context),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Resend button with countdown
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: Obx(() {
+                          final isLoading = authController.isLoading.value;
+                          final countdown = countdownSeconds.value;
+                          final canResend = countdown == 0 && !isLoading;
+
+                          return SecondaryButton(
+                            text: isLoading
+                                ? 'Sending...'
+                                : countdown > 0
+                                    ? 'Resend in ${_formatCountdown(countdown)}'
+                                    : 'Resend Email',
+                            onPressed: canResend
+                                ? () => _resendVerificationEmail(
+                                    authController, context)
+                                : null,
+                          );
+                        }),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 40),
+
+                  // Divider
+                  Row(
+                    children: [
+                      Expanded(
+                          child:
+                              Divider(color: Colors.grey[300], thickness: 1)),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Text(
+                          'or',
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                          child:
+                              Divider(color: Colors.grey[300], thickness: 1)),
+                    ],
+                  ),
+
+                  const SizedBox(height: 40),
+
+                  // Secondary action buttons
+                  Column(
+                    children: [
+                      // Check verification status button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: OutlinedButton.icon(
+                          onPressed: () =>
+                              _checkVerificationStatus(authController, context),
+                          icon: Icon(
+                            Icons.verified_user_outlined,
+                            size: 20,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          label: Text(
+                            'I\'ve verified, continue',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(
+                              color: Theme.of(context).colorScheme.primary,
+                              width: 2,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Change email button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: TextButton.icon(
+                          onPressed: () => authController.goToSignup(),
+                          icon: Icon(
+                            Icons.edit_outlined,
+                            size: 20,
+                            color: Colors.grey[600],
+                          ),
+                          label: Text(
+                            'Change Email Address',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                            ),
+                          ),
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors.grey[100],
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 24),
                 ],
               ),
-
-              const SizedBox(height: 48),
-
-              // Help text
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.blue[50],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blue[200]!),
-                ),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: Colors.blue[700],
-                      size: 20,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Didn\'t receive the email?',
-                      style: TextStyle(
-                        color: Colors.blue[700],
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Check your spam folder or try resending.',
-                      style: TextStyle(
-                        color: Colors.blue[600],
-                        fontSize: 12,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
-    );
+        ));
+  }
+
+  // Pull-to-refresh functionality
+  Future<void> _refreshPage(AuthController authController) async {
+    try {
+      // Restore email from storage if needed
+      await authController.restorePendingVerificationEmail();
+
+      // Check if email is available before checking verification status
+      if (authController.emailSignUpController.text.trim().isEmpty) {
+        if (mounted) {
+          CustomSnackbar.show(
+            context: context,
+            message: 'Email not found. Please go back to signup.',
+            type: SnackbarType.warning,
+          );
+        }
+        return;
+      }
+
+      // Only check verification status via API (no auto-login)
+      try {
+        final isVerified = await authController.checkEmailVerificationStatus();
+
+        if (isVerified) {
+          // Email is verified - clear signup data and redirect to login
+          await authController.clearSignupForm();
+
+          if (mounted) {
+            CustomSnackbar.show(
+              context: context,
+              message:
+                  'Email verified successfully! Please login with your credentials.',
+              type: SnackbarType.success,
+            );
+          }
+
+          // Navigate to login page
+          authController.goToLogin();
+        } else {
+          // Email not yet verified
+          if (mounted) {
+            CustomSnackbar.show(
+              context: context,
+              message:
+                  'Email not yet verified. Please check your email and click the verification link.',
+              type: SnackbarType.info,
+            );
+          }
+        }
+      } catch (e) {
+        // If API check fails, show gentle message
+        if (mounted) {
+          CustomSnackbar.show(
+            context: context,
+            message: 'Unable to check verification status. Please try again.',
+            type: SnackbarType.info,
+          );
+        }
+      }
+    } catch (e) {
+      print('Error refreshing verification page: $e');
+      if (mounted) {
+        CustomSnackbar.show(
+          context: context,
+          message: 'Failed to check verification status. Please try again.',
+          type: SnackbarType.error,
+        );
+      }
+    }
   }
 
   Future<void> _openEmailInbox(BuildContext context) async {
@@ -481,6 +517,16 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
   void _resendVerificationEmail(
       AuthController authController, BuildContext context) async {
     try {
+      // Check if email is available
+      if (authController.emailSignUpController.text.trim().isEmpty) {
+        CustomSnackbar.show(
+          context: context,
+          message: 'Please go back to signup to enter your email address.',
+          type: SnackbarType.warning,
+        );
+        return;
+      }
+
       await authController.resendVerificationEmail();
 
       // Start countdown timer
@@ -531,36 +577,53 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
   void _checkVerificationStatus(
       AuthController authController, BuildContext context) async {
     try {
-      final isVerified = await authController.checkEmailVerificationStatus();
-
-      if (isVerified) {
-        // Clear stored signup data dan clear form
-        authController.clearSignupForm();
-
+      // Check if email is available
+      if (authController.emailSignUpController.text.trim().isEmpty) {
         CustomSnackbar.show(
           context: context,
-          message: 'Email verified successfully! You can now login.',
-          type: SnackbarType.success,
+          message: 'Please go back to signup to enter your email address.',
+          type: SnackbarType.warning,
         );
+        return;
+      }
 
-        // Navigate to login page
-        authController.goToLogin();
-      } else {
+      // Only check verification status via API (no auto-login)
+      try {
+        final isVerified = await authController.checkEmailVerificationStatus();
+
+        if (isVerified) {
+          // Clear stored signup data and redirect to login
+          await authController.clearSignupForm();
+
+          CustomSnackbar.show(
+            context: context,
+            message:
+                'Email verified successfully! Please login with your credentials.',
+            type: SnackbarType.success,
+          );
+
+          // Navigate to login page
+          authController.goToLogin();
+        } else {
+          CustomSnackbar.show(
+            context: context,
+            message:
+                'Email not yet verified. Please check your email and click the verification link.',
+            type: SnackbarType.info,
+          );
+        }
+      } catch (apiError) {
+        // If API fails, suggest user try logging in
         CustomSnackbar.show(
           context: context,
-          message:
-              'Email not yet verified. Please check your email and click the verification link.',
+          message: 'Unable to verify status. Please try again.',
           type: SnackbarType.info,
         );
       }
     } catch (e) {
-      final errorMessage = e.toString().replaceFirst('Exception: ', '');
-
       CustomSnackbar.show(
         context: context,
-        message: errorMessage.isNotEmpty
-            ? errorMessage
-            : 'Unable to check verification status. Please try again.',
+        message: 'Unable to check verification status. Please try again.',
         type: SnackbarType.error,
       );
     }

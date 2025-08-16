@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
+import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_list_controller.dart';
 import 'package:function_mobile/modules/booking/widgets/booking_card.dart';
+import 'package:function_mobile/modules/navigation/controllers/bottom_nav_controller.dart';
 import 'package:get/get.dart';
 
 class BookingListPage extends GetView<BookingListController> {
@@ -31,17 +33,21 @@ class BookingListPage extends GetView<BookingListController> {
     return AppBar(
       backgroundColor: Theme.of(context).primaryColor,
       title: Text(
-        LocalizationHelper.tr(LocaleKeys.bookingList_title),
+        LocalizationHelper.tr(LocaleKeys.appBarTitles_bookings),
         style: Theme.of(context)
             .textTheme
-            .displaySmall!
-            .copyWith(color: Colors.white),
+            .titleLarge!
+            .copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
       ),
+      centerTitle: true,
       actions: [
         _buildSortButton(context),
-        _buildRefreshButton(),
         const SizedBox(width: 8),
       ],
+      elevation: 0,
     );
   }
 
@@ -63,14 +69,7 @@ class BookingListPage extends GetView<BookingListController> {
         ));
   }
 
-  // Extract refresh button to separate method
-  Widget _buildRefreshButton() {
-    return IconButton(
-      onPressed: controller.refreshBookings,
-      icon: const Icon(Icons.refresh, color: Colors.white),
-      tooltip: LocalizationHelper.tr(LocaleKeys.bookingList_refreshBookings),
-    );
-  }
+  // Refresh button removed - using pull to refresh instead
 
   // Extract active indicator to separate method
   Widget _buildActiveIndicator() {
@@ -148,7 +147,8 @@ class BookingListPage extends GetView<BookingListController> {
             ),
             const SizedBox(width: 8),
             Text(
-              LocalizationHelper.trArgs(LocaleKeys.bookingList_sortedBy, {'sortLabel': controller.getCurrentSortLabel()}),
+              LocalizationHelper.trArgs(LocaleKeys.bookingList_sortedBy,
+                  {'sortLabel': controller.getCurrentSortLabel()}),
               style: TextStyle(
                 fontSize: 12,
                 color: Theme.of(context).primaryColor,
@@ -339,33 +339,45 @@ class BookingListPage extends GetView<BookingListController> {
 
     switch (controller.currentTabIndex.value) {
       case 0:
-        title = LocalizationHelper.tr(LocaleKeys.bookingList_emptyStates_noBookings_title);
-        message = LocalizationHelper.tr(LocaleKeys.bookingList_emptyStates_noBookings_message);
+        title = LocalizationHelper.tr(
+            LocaleKeys.bookingList_emptyStates_noBookings_title);
+        message = LocalizationHelper.tr(
+            LocaleKeys.bookingList_emptyStates_noBookings_message);
         icon = Icons.calendar_today;
         break;
       case 1:
-        title = LocalizationHelper.tr(LocaleKeys.bookingList_emptyStates_noPending_title);
-        message = LocalizationHelper.tr(LocaleKeys.bookingList_emptyStates_noPending_message);
+        title = LocalizationHelper.tr(
+            LocaleKeys.bookingList_emptyStates_noPending_title);
+        message = LocalizationHelper.tr(
+            LocaleKeys.bookingList_emptyStates_noPending_message);
         icon = Icons.pending;
         break;
       case 2:
-        title = LocalizationHelper.tr(LocaleKeys.bookingList_emptyStates_noConfirmed_title);
-        message = LocalizationHelper.tr(LocaleKeys.bookingList_emptyStates_noConfirmed_message);
+        title = LocalizationHelper.tr(
+            LocaleKeys.bookingList_emptyStates_noConfirmed_title);
+        message = LocalizationHelper.tr(
+            LocaleKeys.bookingList_emptyStates_noConfirmed_message);
         icon = Icons.check_circle;
         break;
       case 3:
-        title = LocalizationHelper.tr(LocaleKeys.bookingList_emptyStates_noCompleted_title);
-        message = LocalizationHelper.tr(LocaleKeys.bookingList_emptyStates_noCompleted_message);
+        title = LocalizationHelper.tr(
+            LocaleKeys.bookingList_emptyStates_noCompleted_title);
+        message = LocalizationHelper.tr(
+            LocaleKeys.bookingList_emptyStates_noCompleted_message);
         icon = Icons.done_all;
         break;
       case 4:
-        title = LocalizationHelper.tr(LocaleKeys.bookingList_emptyStates_noCancelled_title);
-        message = LocalizationHelper.tr(LocaleKeys.bookingList_emptyStates_noCancelled_message);
+        title = LocalizationHelper.tr(
+            LocaleKeys.bookingList_emptyStates_noCancelled_title);
+        message = LocalizationHelper.tr(
+            LocaleKeys.bookingList_emptyStates_noCancelled_message);
         icon = Icons.cancel;
         break;
       default:
-        title = LocalizationHelper.tr(LocaleKeys.bookingList_emptyStates_noResults_title);
-        message = LocalizationHelper.tr(LocaleKeys.bookingList_emptyStates_noResults_message);
+        title = LocalizationHelper.tr(
+            LocaleKeys.bookingList_emptyStates_noResults_title);
+        message = LocalizationHelper.tr(
+            LocaleKeys.bookingList_emptyStates_noResults_message);
         icon = Icons.search_off;
     }
 
@@ -390,9 +402,11 @@ class BookingListPage extends GetView<BookingListController> {
           ),
           if (controller.currentTabIndex.value == 0) ...[
             const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () => Get.offAllNamed('/home'),
-              child: Text(LocalizationHelper.tr(LocaleKeys.bookingList_exploreVenues)),
+            PrimaryButton(
+              width: 200,
+              text: LocalizationHelper.tr(LocaleKeys.bookingList_exploreVenues),
+              onPressed: () => controller.goToHome(),
+              isLoading: false,
             ),
           ],
         ],

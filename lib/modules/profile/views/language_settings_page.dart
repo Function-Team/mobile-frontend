@@ -10,7 +10,13 @@ class LanguageSettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-       title: Text(LocalizationHelper.tr(LocaleKeys.settings_language)),
+        title: Text(
+          LocalizationHelper.tr(LocaleKeys.settings_language),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: true,
         elevation: 0,
       ),
       body: Padding(
@@ -26,7 +32,7 @@ class LanguageSettingsPage extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              LocalizationHelper.tr('settings.language_description'),
+              LocalizationHelper.tr(LocaleKeys.settings_languageDescription),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Colors.grey[600],
               ),
@@ -137,12 +143,25 @@ class LanguageSettingsPage extends StatelessWidget {
               child: Text(LocalizationHelper.tr(LocaleKeys.common_cancel)),
             ),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                elevation: 0,
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6.0),
+                ),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
                 // Call the language change
                 LocalizationHelper.changeLanguage(context, languageCode);
               },
-              child: Text(LocalizationHelper.tr(LocaleKeys.common_change)), 
+              child: Text(
+                LocalizationHelper.tr(LocaleKeys.common_change),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimary,
+                ),
+              ), 
             ),
           ],
         );
