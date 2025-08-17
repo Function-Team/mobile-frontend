@@ -742,7 +742,8 @@ abstract class LocaleKeys {
   static const messages_privacyPolicyLink = 'messages.privacyPolicyLink';
   static const messages_errorOccurred = 'messages.errorOccurred';
   static const placeholders_selectGuests = 'placeholders.selectGuests';
-  static const placeholders_searchPlaceActivity = 'placeholders.searchPlaceActivity';
+  static const placeholders_searchPlaceActivity =
+      'placeholders.searchPlaceActivity';
   static const placeholders_selectCity = 'placeholders.selectCity';
   static const placeholders_selectDate = 'placeholders.selectDate';
   static const placeholders_startTime = 'placeholders.startTime';
@@ -762,33 +763,67 @@ abstract class LocaleKeys {
   static const bookingList_tabs_confirmed = 'bookingList.tabs.confirmed';
   static const bookingList_tabs_completed = 'bookingList.tabs.completed';
   static const bookingList_tabs_cancelled = 'bookingList.tabs.cancelled';
-  static const bookingList_sortOptions_newestIdFirst = 'bookingList.sortOptions.newestIdFirst';
-  static const bookingList_sortOptions_oldestIdFirst = 'bookingList.sortOptions.oldestIdFirst';
-  static const bookingList_sortOptions_latestDate = 'bookingList.sortOptions.latestDate';
-  static const bookingList_sortOptions_earliestDate = 'bookingList.sortOptions.earliestDate';
-  static const bookingList_sortOptions_venueNameAZ = 'bookingList.sortOptions.venueNameAZ';
-  static const bookingList_sortOptions_byStatus = 'bookingList.sortOptions.byStatus';
-  static const bookingList_emptyStates_noBookings_title = 'bookingList.emptyStates.noBookings.title';
-  static const bookingList_emptyStates_noBookings_message = 'bookingList.emptyStates.noBookings.message';
-  static const bookingList_emptyStates_noPending_title = 'bookingList.emptyStates.noPending.title';
-  static const bookingList_emptyStates_noPending_message = 'bookingList.emptyStates.noPending.message';
-  static const bookingList_emptyStates_noConfirmed_title = 'bookingList.emptyStates.noConfirmed.title';
-  static const bookingList_emptyStates_noConfirmed_message = 'bookingList.emptyStates.noConfirmed.message';
-  static const bookingList_emptyStates_noCompleted_title = 'bookingList.emptyStates.noCompleted.title';
-  static const bookingList_emptyStates_noCompleted_message = 'bookingList.emptyStates.noCompleted.message';
-  static const bookingList_emptyStates_noCancelled_title = 'bookingList.emptyStates.noCancelled.title';
-  static const bookingList_emptyStates_noCancelled_message = 'bookingList.emptyStates.noCancelled.message';
-  static const bookingList_emptyStates_noResults_title = 'bookingList.emptyStates.noResults.title';
-  static const bookingList_emptyStates_noResults_message = 'bookingList.emptyStates.noResults.message';
+  static const bookingList_tabs_paid = 'bookingList.tabs.paid';
+  static const bookingList_tabs_expired = 'bookingList.tabs.expired';
+  static const bookingList_sortOptions_newestIdFirst =
+      'bookingList.sortOptions.newestIdFirst';
+  static const bookingList_sortOptions_oldestIdFirst =
+      'bookingList.sortOptions.oldestIdFirst';
+  static const bookingList_sortOptions_latestDate =
+      'bookingList.sortOptions.latestDate';
+  static const bookingList_sortOptions_earliestDate =
+      'bookingList.sortOptions.earliestDate';
+  static const bookingList_sortOptions_venueNameAZ =
+      'bookingList.sortOptions.venueNameAZ';
+  static const bookingList_sortOptions_byStatus =
+      'bookingList.sortOptions.byStatus';
+  static const bookingList_emptyStates_noBookings_title =
+      'bookingList.emptyStates.noBookings.title';
+  static const bookingList_emptyStates_noBookings_message =
+      'bookingList.emptyStates.noBookings.message';
+  static const bookingList_emptyStates_noPending_title =
+      'bookingList.emptyStates.noPending.title';
+  static const bookingList_emptyStates_noPending_message =
+      'bookingList.emptyStates.noPending.message';
+  static const bookingList_emptyStates_noConfirmed_title =
+      'bookingList.emptyStates.noConfirmed.title';
+  static const bookingList_emptyStates_noConfirmed_message =
+      'bookingList.emptyStates.noConfirmed.message';
+  static const bookingList_emptyStates_noCompleted_title =
+      'bookingList.emptyStates.noCompleted.title';
+  static const bookingList_emptyStates_noCompleted_message =
+      'bookingList.emptyStates.noCompleted.message';
+  static const bookingList_emptyStates_noCancelled_title =
+      'bookingList.emptyStates.noCancelled.title';
+  static const bookingList_emptyStates_noCancelled_message =
+      'bookingList.emptyStates.noCancelled.message';
+  static const bookingList_emptyStates_noExpired_message =
+      'bookingList.emptyStates.noExpired.message';
+  static const bookingList_emptyStates_noExpired_title =
+      'bookingList.emptyStates.noExpired.title';
+  static const bookingList_emptyStates_noPaid_message =
+      'bookingList.emptyStates.noPaid.message';
+  static const bookingList_emptyStates_noPaid_title =
+      'bookingList.emptyStates.noPaid.title';
+  static const bookingList_emptyStates_noResults_title =
+      'bookingList.emptyStates.noResults.title';
+  static const bookingList_emptyStates_noResults_message =
+      'bookingList.emptyStates.noResults.message';
   static const bookingList_exploreVenues = 'bookingList.exploreVenues';
-  static const conflictDialog_timeNotAvailable = 'conflictDialog.timeNotAvailable';
-  static const conflictDialog_chooseAlternativeTime = 'conflictDialog.chooseAlternativeTime';
-  static const conflictDialog_timeAlreadyBooked = 'conflictDialog.timeAlreadyBooked';
-  static const conflictDialog_availableTimesToday = 'conflictDialog.availableTimesToday';
-  static const conflictDialog_noSlotsAvailable = 'conflictDialog.noSlotsAvailable';
+  static const conflictDialog_timeNotAvailable =
+      'conflictDialog.timeNotAvailable';
+  static const conflictDialog_chooseAlternativeTime =
+      'conflictDialog.chooseAlternativeTime';
+  static const conflictDialog_timeAlreadyBooked =
+      'conflictDialog.timeAlreadyBooked';
+  static const conflictDialog_availableTimesToday =
+      'conflictDialog.availableTimesToday';
+  static const conflictDialog_noSlotsAvailable =
+      'conflictDialog.noSlotsAvailable';
   static const conflictDialog_allTimesBooked = 'conflictDialog.allTimesBooked';
   static const conflictDialog_close = 'conflictDialog.close';
-  static const conflictDialog_chooseOtherDate = 'conflictDialog.chooseOtherDate';
+  static const conflictDialog_chooseOtherDate =
+      'conflictDialog.chooseOtherDate';
   static const conflictDialog_duration1Hour = 'conflictDialog.duration1Hour';
   static const priceDetails_basePrice = 'priceDetails.basePrice';
   static const priceDetails_discount = 'priceDetails.discount';

@@ -472,15 +472,6 @@ class AuthController extends GetxController {
       emailSignUpError.value = '';
       passwordSignUpError.value = '';
       confirmPasswordSignUpError.value = '';
-      
-      // Clear pending verification email from storage safely
-      try {
-        final storageService = Get.find<SecureStorageService>();
-        await storageService.clearPendingVerificationEmail();
-      } catch (e) {
-        print('AuthController: Error clearing pending verification email: $e');
-        // Don't rethrow, this is not critical for logout
-      }
     } catch (e) {
       print('AuthController: Error clearing signup form: $e');
       // Don't rethrow, this shouldn't block logout
@@ -491,13 +482,6 @@ class AuthController extends GetxController {
   Future<void> goToEmailVerification() async {
     try {
       errorMessage.value = '';
-      
-      // Save the email to secure storage so it persists on page refresh
-      if (emailSignUpController.text.trim().isNotEmpty) {
-        final storageService = Get.find<SecureStorageService>();
-        await storageService.savePendingVerificationEmail(emailSignUpController.text.trim());
-      }
-      
       Get.toNamed(MyRoutes.emailVerification);
     } catch (e) {
       print('AuthController: Error navigating to email verification: $e');
@@ -541,18 +525,6 @@ class AuthController extends GetxController {
   int? get userId => user.value?.id;
   String? get userEmail => user.value?.email;
 
-  // Restore email from storage if controller is empty (for page refresh)
-  Future<void> restorePendingVerificationEmail() async {
-    if (emailSignUpController.text.trim().isEmpty) {
-      final storageService = Get.find<SecureStorageService>();
-      final pendingEmail = await storageService.getPendingVerificationEmail();
-      if (pendingEmail != null && pendingEmail.isNotEmpty) {
-        emailSignUpController.text = pendingEmail;
-        // Trigger rebuild for GetBuilder widgets
-        update();
-      }
-    }
-  }
 
   Future<void> refreshUserData() async {
     try {

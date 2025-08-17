@@ -2,6 +2,10 @@ import 'package:function_mobile/core/services/api_service.dart';
 import 'package:function_mobile/modules/payment/models/payment_model.dart'
     as payment;
 import 'package:function_mobile/modules/payment/models/payment_model.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'dart:async';
 
 class PaymentService {
   final ApiService _apiService = ApiService();
@@ -73,27 +77,147 @@ class PaymentService {
     }
   }
 
+  // Get payment by booking ID
+  Future<PaymentResponse> getPaymentByBookingId(int bookingId) async {
+    try {
+      print('[PaymentService] Fetching payment for booking ID: $bookingId');
+
+      final response =
+          await _apiService.getRequest('/payment/booking/$bookingId');
+
+      print('[PaymentService] Payment data for booking: $response');
+
+      if (response == null) {
+        throw Exception('Payment not found for booking');
+      }
+
+      return PaymentResponse.fromJson({'payment': response});
+    } catch (e) {
+      print('[PaymentService] Failed to get payment by booking ID: $e');
+      throw Exception('Failed to get payment by booking ID: $e');
+    }
+  }
+
   // Start Midtrans payment process
   Future<Map<String, dynamic>?> startPayment(
       {required String snapToken}) async {
     try {
-      print(
-          '[PaymentService] Starting mock payment with snapToken: $snapToken');
+      print('[PaymentService] Starting payment with snapToken: $snapToken');
 
-      await Future.delayed(const Duration(seconds: 2));
-
-      final result = {
-        'transactionStatus': 'success',
-        'orderId': DateTime.now().millisecondsSinceEpoch.toString(),
-        'grossAmount': '100000.00'
-      };
-
-      print('[PaymentService] Mock payment result: $result');
-
+      // Open Midtrans payment page in webview
+      final result = await _openMidtransWebView(snapToken);
+      print('[PaymentService] Payment result: $result');
       return result;
     } catch (e) {
       print('[PaymentService] Failed to start payment: $e');
       throw Exception('Failed to start payment: $e');
+    }
+  }
+
+  // Open Midtrans payment page in webview
+  Future<Map<String, dynamic>> _openMidtransWebView(String snapToken) async {
+    final completer = Completer<Map<String, dynamic>>();
+
+    // Create webview controller
+    late final WebViewController controller;
+
+    controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageStarted: (String url) {
+            print('[PaymentService] Page started loading: $url');
+          },
+          onPageFinished: (String url) {
+            print('[PaymentService] Page finished loading: $url');
+
+            // Check if this is a callback URL indicating payment completion
+            if (url.contains('finish') ||
+                url.contains('unfinish') ||
+                url.contains('error')) {
+              _handlePaymentCallback(url, completer);
+            }
+          },
+          onNavigationRequest: (NavigationRequest request) {
+            print('[PaymentService] Navigation request: ${request.url}');
+
+            // Allow all navigation for Midtrans payment flow
+            return NavigationDecision.navigate;
+          },
+        ),
+      );
+
+    // Load Midtrans Snap payment page
+    final snapUrl = 'https://app.sandbox.midtrans.com/snap/v2/vtweb/$snapToken';
+    controller.loadRequest(Uri.parse(snapUrl));
+
+    // Show webview in a dialog or new page
+    Get.to(() => Scaffold(
+          appBar: AppBar(
+            title: const Text('Pembayaran'),
+            leading: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () {
+                Get.back();
+                if (!completer.isCompleted) {
+                  completer.complete({
+                    'transactionStatus': 'cancelled',
+                    'orderId': '',
+                    'grossAmount': '0'
+                  });
+                }
+              },
+            ),
+          ),
+          body: WebViewWidget(controller: controller),
+        ));
+
+    return completer.future;
+  }
+
+  // Handle payment callback from webview
+  void _handlePaymentCallback(
+      String url, Completer<Map<String, dynamic>> completer) {
+    if (completer.isCompleted) return;
+
+    Map<String, dynamic> result;
+
+    if (url.contains('finish')) {
+      // Payment successful
+      result = {
+        'transactionStatus': 'success',
+        'orderId': _extractOrderId(url),
+        'grossAmount': '0' // Will be updated from backend
+      };
+    } else if (url.contains('unfinish')) {
+      // Payment pending or cancelled by user
+      result = {
+        'transactionStatus': 'pending',
+        'orderId': _extractOrderId(url),
+        'grossAmount': '0'
+      };
+    } else {
+      // Payment failed
+      result = {
+        'transactionStatus': 'failed',
+        'orderId': _extractOrderId(url),
+        'grossAmount': '0'
+      };
+    }
+
+    // Close webview and return result
+    Get.back();
+    completer.complete(result);
+  }
+
+  // Extract order ID from callback URL
+  String _extractOrderId(String url) {
+    try {
+      final uri = Uri.parse(url);
+      return uri.queryParameters['order_id'] ??
+          DateTime.now().millisecondsSinceEpoch.toString();
+    } catch (e) {
+      return DateTime.now().millisecondsSinceEpoch.toString();
     }
   }
 

@@ -2,6 +2,7 @@ import 'package:function_mobile/modules/auth/views/email_verification_page.dart'
 import 'package:function_mobile/modules/auth/views/forgot_password_page.dart';
 import 'package:function_mobile/modules/auth/views/signup_page.dart';
 import 'package:function_mobile/modules/booking/bindings/booking_binding.dart';
+import 'package:function_mobile/modules/booking/controllers/booking_list_controller.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:function_mobile/modules/booking/views/booking_detail.dart';
 import 'package:function_mobile/modules/booking/views/booking_page.dart';
@@ -138,6 +139,11 @@ class MyRoutes {
     GetPage(
       name: bookingList,
       page: () => BookingListPage(),
+      binding: BindingsBuilder(() {
+        if (!Get.isRegistered<BookingListController>()) {
+          Get.put(BookingListController());
+        }
+      }),
     ),
     GetPage(
         name: bookingDetail,

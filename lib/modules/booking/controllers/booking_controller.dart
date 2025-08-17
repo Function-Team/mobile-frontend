@@ -663,12 +663,22 @@ class BookingController extends GetxController {
         return;
       }
 
-      final paymentData = {
-        'booking_id': booking.id,
-        'amount': booking.place?.price ?? 0,
-      };
-
-      final response = await _apiService.postRequest('/payment', paymentData);
+      // First, try to get existing payment for this booking
+      var response;
+      try {
+        response =
+            await _apiService.getRequest('/payment/booking/${booking.id}');
+        print('Found existing payment for booking ${booking.id}');
+      } catch (e) {
+        // If no existing payment found, create a new one
+        print(
+            'No existing payment found, creating new payment for booking ${booking.id}');
+        final paymentData = {
+          'booking_id': booking.id,
+          'amount': booking.place?.price ?? 0,
+        };
+        response = await _apiService.postRequest('/payment', paymentData);
+      }
 
       if (response != null && response['midtrans'] != null) {
         final snapToken = response['midtrans']['token'];
@@ -692,7 +702,7 @@ class BookingController extends GetxController {
           throw Exception('Could not open payment page');
         }
       } else {
-        throw Exception('Failed to create payment session');
+        throw Exception('Failed to get payment session');
       }
     } catch (e) {
       showError('Payment Error: ${e.toString()}');
@@ -786,7 +796,7 @@ class BookingController extends GetxController {
   // NAVIGATION
   Future<void> goToBookingListPage() async {
     Get.offAllNamed(MyRoutes.bottomNav);
-    Get.find<BottomNavController>().changePage(1);
+    Get.find<BottomNavController>().changePage(0);
     Get.find<BookingListController>().refreshBookings();
   }
 }

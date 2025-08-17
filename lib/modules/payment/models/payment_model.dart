@@ -144,13 +144,21 @@ extension PaymentStatusExtension on PaymentStatus {
   static PaymentStatus? fromString(String value) {
     switch (value.toLowerCase()) {
       case 'success':
+      case 'settlement':
+      case 'paid':
         return PaymentStatus.success;
       case 'failed':
+      case 'deny':
+      case 'cancel':
         return PaymentStatus.failed;
       case 'pending':
         return PaymentStatus.pending;
+      case 'expired':
+        return PaymentStatus.expired;
+      case 'cancelled':
+        return PaymentStatus.cancelled;
       default:
-        return null;
+        return PaymentStatus.pending; // Default to pending instead of null
     }
   }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/generated/locale_keys.g.dart';
+import 'package:function_mobile/modules/booking/constants/status_constants.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_card_controller.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:intl/intl.dart';
@@ -124,7 +125,6 @@ class BookingCard extends StatelessWidget {
                             ),
                           ],
                         ),
-
                         if (bookingModel.createdAt != null) ...[
                           const SizedBox(height: 4),
                           Row(
@@ -145,7 +145,6 @@ class BookingCard extends StatelessWidget {
                             ],
                           ),
                         ],
-
                         if (_shouldShowPaymentTimer()) ...[
                           const SizedBox(height: 8),
                           _buildPaymentTimer(),
@@ -195,33 +194,15 @@ class BookingCard extends StatelessWidget {
   }
 
   Widget _buildStatusBadge() {
-    Color badgeColor;
-    String statusText;
-
-    if (bookingModel.isInCancelledSection) {
-      badgeColor = Colors.red;
-      statusText = bookingModel.detailedStatusDisplayName;
-    } else if (isCompleted) {
-      badgeColor = Colors.green;
-      statusText = LocalizationHelper.tr(LocaleKeys.booking_status_completed);
-    } else if (bookingModel.isConfirmed) {
-      badgeColor = Colors.blue;
-      statusText = LocalizationHelper.tr(LocaleKeys.booking_status_confirmed);
-    } else if (bookingModel.isPaid) {
-      badgeColor = Colors.orange;
-      statusText =
-          LocalizationHelper.tr(LocaleKeys.booking_waitingConfirmation);
-    } else {
-      badgeColor = Colors.grey;
-      statusText =
-          LocalizationHelper.tr(LocaleKeys.booking_waitingConfirmation);
-    }
+    // Menggunakan getter dari BookingModel untuk konsistensi
+    final statusColor = bookingModel.statusColor;
+    final statusText = bookingModel.statusDisplayName;
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: badgeColor.withOpacity(0.1),
+        color: statusColor.withOpacity(0.1),
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(12),
           topRight: Radius.circular(12),
@@ -231,7 +212,7 @@ class BookingCard extends StatelessWidget {
         statusText,
         textAlign: TextAlign.center,
         style: TextStyle(
-          color: badgeColor,
+          color: statusColor,
           fontWeight: FontWeight.bold,
           fontSize: 12,
         ),
@@ -361,21 +342,29 @@ class BookingCard extends StatelessWidget {
     return bookingModel.place != null;
   }
 
-
-Widget _buildPaymentTimer() {
+  Widget _buildPaymentTimer() {
     return GetBuilder<BookingCardController>(
       init: BookingCardController(),
       builder: (timerController) {
-        if (bookingModel.payment?.expiresAt != null) {
+        // Check if timer should be stopped based on booking status
+        timerController.checkAndStopTimerIfExpired(bookingModel.status);
+
+        if (bookingModel.payment?.expiresAt != null &&
+            bookingModel.status != BookingStatus.expired &&
+            !bookingModel.isBookingCancelled) {
           timerController.initializeTimer(bookingModel.payment!.expiresAt);
+        } else {
+          // Stop timer if conditions are not met
+          timerController.stopTimer();
         }
-        
+
         return Obx(() {
-          if (timerController.remainingTime.value == null) return const SizedBox.shrink();
-          
+          if (timerController.remainingTime.value == null)
+            return const SizedBox.shrink();
+
           final remaining = timerController.remainingTime.value!;
           final isUrgent = remaining.inHours < 1;
-          
+
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
@@ -398,7 +387,8 @@ Widget _buildPaymentTimer() {
                   'Pay within: ${timerController.formatDuration(remaining)}',
                   style: TextStyle(
                     fontSize: 12,
-                    color: isUrgent ? Colors.red.shade700 : Colors.orange.shade700,
+                    color:
+                        isUrgent ? Colors.red.shade700 : Colors.orange.shade700,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -411,9 +401,21 @@ Widget _buildPaymentTimer() {
   }
 
   bool _shouldShowPaymentTimer() {
+    // UNIFIED LOGIC: Jangan tampilkan timer jika booking sudah expired
+    // (baik karena payment expired maupun booking time expired)
+    if (bookingModel.status == BookingStatus.expired) {
+      return false;
+    }
+
+    // Jangan tampilkan timer jika booking sudah dibatalkan
+    if (bookingModel.isBookingCancelled) {
+      return false;
+    }
+
+    // Tampilkan timer hanya untuk booking yang dikonfirmasi tapi belum dibayar
     return bookingModel.isConfirmed &&
-           !bookingModel.isPaid &&
-           bookingModel.paymentStatus == 'pending' &&
-           bookingModel.payment?.expiresAt != null;
+        !bookingModel.isPaid &&
+        bookingModel.paymentStatus == 'pending' &&
+        bookingModel.payment?.expiresAt != null;
   }
 }

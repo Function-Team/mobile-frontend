@@ -28,6 +28,19 @@ class BookingModel {
   final String? cancelReason;
   final String? cancelledBy;
 
+  // Guest information fields
+  final String? guestName;
+  final String? guestEmail;
+  final String? guestPhone;
+  final int? guestCount;
+  final String? specialRequest;
+
+  // Computed status fields dari backend - menggantikan logika frontend
+  final bool? isPaidFromBackend;
+  final bool? isExpiredFromBackend;
+  final String? bookingStatusFromBackend;
+  final String? detailedStatusFromBackend;
+
   // Related models (populated from joins)
   final VenueModel? place;
   final UserModel? user;
@@ -48,6 +61,15 @@ class BookingModel {
     this.isCancelled,
     this.cancelReason,
     this.cancelledBy,
+    this.guestName,
+    this.guestEmail,
+    this.guestPhone,
+    this.guestCount,
+    this.specialRequest,
+    this.isPaidFromBackend,
+    this.isExpiredFromBackend,
+    this.bookingStatusFromBackend,
+    this.detailedStatusFromBackend,
     this.place,
     this.user,
     this.reviews,
@@ -55,6 +77,24 @@ class BookingModel {
   });
 
   BookingStatus get status {
+    // Gunakan computed status dari backend jika tersedia
+    if (bookingStatusFromBackend != null) {
+      switch (bookingStatusFromBackend!.toLowerCase()) {
+        case 'cancelled':
+          return BookingStatus.cancelled;
+        case 'expired':
+          return BookingStatus.expired;
+        case 'completed':
+          return BookingStatus.completed;
+        case 'confirmed':
+          return BookingStatus.confirmed;
+        case 'pending':
+        default:
+          return BookingStatus.pending;
+      }
+    }
+
+    // Fallback ke logika lama jika backend belum menyediakan computed status
     // Priority 1: Check if explicitly cancelled
     if (isCancelled == true || isBookingCancelled) {
       return BookingStatus.cancelled;
@@ -65,8 +105,12 @@ class BookingModel {
       return BookingStatus.completed;
     }
 
-    // Priority 3: Check if expired (end time passed and not confirmed/paid)
-    if (endDateTime.isBefore(DateTime.now()) && (!isConfirmed || !isPaid)) {
+    // Priority 3: Check if expired - rely on backend status only
+    // Backend handles all expiry logic including payment and booking time
+    if (paymentStatus != null && paymentStatus!.toLowerCase() == 'expired') {
+      return BookingStatus.expired;
+    }
+    if (payment != null && payment!.status.toLowerCase() == 'expired') {
       return BookingStatus.expired;
     }
 
@@ -83,8 +127,8 @@ class BookingModel {
     // Check explicit cancellation flag
     if (isCancelled == true) return true;
 
-    // Check payment status indicators
-    final cancelledPaymentStatuses = ['cancelled', 'failed', 'expired'];
+    // Check payment status indicators - align with backend PaymentStatusMapper
+    final cancelledPaymentStatuses = ['cancelled', 'failed', 'deny', 'cancel'];
     if (paymentStatus != null &&
         cancelledPaymentStatuses.contains(paymentStatus!.toLowerCase())) {
       return true;
@@ -105,10 +149,16 @@ class BookingModel {
         isBookingCancelled;
   }
 
-  // Helper to check if booking is paid
+  // Helper to check if booking is paid - gunakan computed status dari backend
   bool get isPaid {
-    // First check the direct payment_status field
-    final validPaidStatuses = ['paid', 'success', 'settlement'];
+    // Gunakan computed status dari backend jika tersedia
+    if (isPaidFromBackend != null) {
+      return isPaidFromBackend!;
+    }
+
+    // Fallback ke logika lama jika backend belum menyediakan computed status
+    // Valid paid statuses from backend: settlement, paid, success
+    final validPaidStatuses = ['settlement', 'paid', 'success'];
 
     // Check payment_status field
     if (paymentStatus != null &&
@@ -126,6 +176,12 @@ class BookingModel {
   }
 
   String get statusDisplayName {
+    // Gunakan detailed status dari backend jika tersedia
+    if (detailedStatusFromBackend != null && detailedStatusFromBackend!.isNotEmpty) {
+      return detailedStatusFromBackend!;
+    }
+
+    // Fallback ke logika lama
     switch (status) {
       case BookingStatus.completed:
         return 'Completed';
@@ -141,6 +197,12 @@ class BookingModel {
   }
 
   String get detailedStatusDisplayName {
+    // Gunakan detailed status dari backend jika tersedia
+    if (detailedStatusFromBackend != null && detailedStatusFromBackend!.isNotEmpty) {
+      return detailedStatusFromBackend!;
+    }
+
+    // Fallback ke logika lama
     if (isCancelled == true) {
       if (cancelledBy != null) {
         return cancelledBy == 'user'
@@ -150,12 +212,21 @@ class BookingModel {
       return 'Cancelled';
     }
 
-    if (paymentStatus == 'expired') {
+    // Check payment status for detailed messages
+    final currentPaymentStatus =
+        paymentStatus?.toLowerCase() ?? payment?.status.toLowerCase();
+
+    if (currentPaymentStatus == 'expired') {
       return 'Payment Expired';
     }
 
-    if (paymentStatus == 'failed') {
+    if (currentPaymentStatus == 'failed' || currentPaymentStatus == 'deny') {
       return 'Payment Failed';
+    }
+
+    if (currentPaymentStatus == 'cancelled' ||
+        currentPaymentStatus == 'cancel') {
+      return 'Payment Cancelled';
     }
 
     return statusDisplayName;
@@ -206,14 +277,29 @@ class BookingModel {
   }
 
   String get paymentStatusDisplay {
-    // First check direct payment_status
-    if (paymentStatus != null) {
-      return paymentStatus!.toUpperCase();
-    }
+    // Get current payment status
+    final currentStatus = paymentStatus ?? payment?.status;
 
-    // Then check payment object
-    if (payment != null) {
-      return payment!.status.toUpperCase();
+    if (currentStatus != null) {
+      // Normalize status display for consistency
+      switch (currentStatus.toLowerCase()) {
+        case 'settlement':
+        case 'paid':
+        case 'success':
+          return 'PAID';
+        case 'expired':
+          return 'EXPIRED';
+        case 'failed':
+        case 'deny':
+          return 'FAILED';
+        case 'cancelled':
+        case 'cancel':
+          return 'CANCELLED';
+        case 'pending':
+          return 'PENDING';
+        default:
+          return currentStatus.toUpperCase();
+      }
     }
 
     return 'PENDING';
@@ -307,6 +393,11 @@ class BookingModel {
       isCancelled: json['is_cancelled'] as bool?,
       cancelReason: json['cancel_reason'] as String?,
       cancelledBy: json['cancelled_by'] as String?,
+      guestName: json['guest_name'] as String?,
+      guestEmail: json['guest_email'] as String?,
+      guestPhone: json['guest_phone'] as String?,
+      guestCount: json['guest_count'] as int?,
+      specialRequest: json['special_request'] as String?,
       place: json['place'] != null ? VenueModel.fromJson(json['place']) : null,
       user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
       reviews: json['reviews'] != null
@@ -317,6 +408,11 @@ class BookingModel {
       payment: json['payment'] != null
           ? PaymentModel.fromJson(json['payment'])
           : null,
+      // Parse computed status fields dari backend
+      isPaidFromBackend: json['is_paid'] as bool?,
+      isExpiredFromBackend: json['is_expired'] as bool?,
+      bookingStatusFromBackend: json['booking_status'] as String?,
+      detailedStatusFromBackend: json['detailed_status'] as String?,
     );
   }
 
@@ -335,6 +431,16 @@ class BookingModel {
       'is_cancelled': isCancelled,
       'cancel_reason': cancelReason,
       'cancelled_by': cancelledBy,
+      'guest_name': guestName,
+      'guest_email': guestEmail,
+      'guest_phone': guestPhone,
+      'guest_count': guestCount,
+      'special_request': specialRequest,
+      // Include computed status fields dari backend
+      'is_paid': isPaidFromBackend,
+      'is_expired': isExpiredFromBackend,
+      'booking_status': bookingStatusFromBackend,
+      'detailed_status': detailedStatusFromBackend,
     };
   }
 
@@ -363,10 +469,20 @@ class BookingModel {
     bool? isCancelled,
     String? cancelReason,
     String? cancelledBy,
+    String? guestName,
+    String? guestEmail,
+    String? guestPhone,
+    int? guestCount,
+    String? specialRequest,
     VenueModel? place,
     UserModel? user,
     List<ReviewModel>? reviews,
     PaymentModel? payment,
+    // Computed status fields dari backend
+    bool? isPaidFromBackend,
+    bool? isExpiredFromBackend,
+    String? bookingStatusFromBackend,
+    String? detailedStatusFromBackend,
   }) {
     return BookingModel(
       id: id ?? this.id,
@@ -382,10 +498,20 @@ class BookingModel {
       isCancelled: isCancelled ?? this.isCancelled,
       cancelReason: cancelReason ?? this.cancelReason,
       cancelledBy: cancelledBy ?? this.cancelledBy,
+      guestName: guestName ?? this.guestName,
+      guestEmail: guestEmail ?? this.guestEmail,
+      guestPhone: guestPhone ?? this.guestPhone,
+      guestCount: guestCount ?? this.guestCount,
+      specialRequest: specialRequest ?? this.specialRequest,
       place: place ?? this.place,
       user: user ?? this.user,
       reviews: reviews ?? this.reviews,
       payment: payment ?? this.payment,
+      // Include computed status fields dari backend
+      isPaidFromBackend: isPaidFromBackend ?? this.isPaidFromBackend,
+      isExpiredFromBackend: isExpiredFromBackend ?? this.isExpiredFromBackend,
+      bookingStatusFromBackend: bookingStatusFromBackend ?? this.bookingStatusFromBackend,
+      detailedStatusFromBackend: detailedStatusFromBackend ?? this.detailedStatusFromBackend,
     );
   }
 }
@@ -501,8 +627,6 @@ class BookingCreateRequest {
     );
   }
 }
-
-
 
 class PaymentModel {
   final int id;
