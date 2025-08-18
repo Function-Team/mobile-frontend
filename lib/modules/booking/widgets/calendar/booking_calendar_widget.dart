@@ -3,31 +3,39 @@ import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/booking/models/booking_response_models.dart';
+import 'package:function_mobile/modules/booking/widgets/modals/booking_guide_modal.dart';
 import 'package:function_mobile/modules/booking/widgets/calendar/time_category_segment.dart';
 import 'package:function_mobile/modules/booking/widgets/calendar/time_slot_chip.dart';
-import 'package:function_mobile/modules/booking/widgets/modals/booking_guide_modal.dart';
+import 'package:function_mobile/modules/booking/widgets/shared/selection_summary_widget.dart';
 import 'package:get/get.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_controller.dart';
 
-class CalendarBookingWidget extends StatefulWidget {
+class BookingCalendarWidget extends StatefulWidget {
+
   final BookingController controller;
+  
+
   final int venueId;
 
-  const CalendarBookingWidget({
+  const BookingCalendarWidget({
     Key? key,
     required this.controller,
     required this.venueId,
   }) : super(key: key);
 
   @override
-  State<CalendarBookingWidget> createState() => _CalendarBookingWidgetState();
+  State<BookingCalendarWidget> createState() => _BookingCalendarWidgetState();
 }
 
-class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
+class _BookingCalendarWidgetState extends State<BookingCalendarWidget> {
+  
+  /// Currently hovered time slot for preview functionality
   DetailedTimeSlot? _hoveredSlot;
+  
+  /// Currently selected time category (Morning, Afternoon, Evening)
   TimeCategory _selectedCategory = TimeCategory.morning;
-
+  
   @override
   void initState() {
     super.initState();
@@ -41,6 +49,10 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
     });
   }
 
+  /// Loads availability data for the current month from the API.
+  /// 
+  /// This method is called during widget initialization to populate the calendar
+  /// with availability indicators for all dates in the current month.
   void _loadCurrentMonthAvailability() {
     final now = DateTime.now();
     final startOfMonth = DateTime(now.year, now.month, 1);
@@ -49,13 +61,18 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
         .loadCalendarAvailability(widget.venueId, startOfMonth, endOfMonth);
   }
 
+  /// Pre-selects today's date and loads its time slots if available.
+  /// 
+  /// This provides a better user experience by immediately showing available
+  /// time slots for today, eliminating the need for users to manually select
+  /// the current date.
   void _preSelectTodayIfAvailable() {
     final today = DateTime.now();
     // Pre-select today and load its time slots
     widget.controller.selectedDate.value = today;
     widget.controller.loadDetailedTimeSlots(widget.venueId, today);
   }
-
+  
   @override
   Widget build(BuildContext context) {
     return Obx(() {
@@ -523,7 +540,14 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
             SizedBox(height: 16),
             
             // Floating Selection Summary (if any selection exists)
-            _buildSelectionSummary(),
+            SelectionSummaryWidget(
+              startTime: widget.controller.startTime.value,
+              endTime: widget.controller.endTime.value,
+              onClear: () {
+                widget.controller.startTime.value = null;
+                widget.controller.endTime.value = null;
+              },
+            ),
             
             // Time Category Segmented Control
             TimeCategorySegment(
@@ -1243,68 +1267,6 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
       // Check if slot can be end time (continuation logic)
       return _canSlotBeEndTime(slot);
     }
-  }
-
-  Widget _buildSelectionSummary() {
-    final startTime = widget.controller.startTime.value;
-    final endTime = widget.controller.endTime.value;
-    
-    if (startTime == null) {
-      return const SizedBox.shrink();
-    }
-    
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Get.theme.primaryColor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Get.theme.primaryColor.withOpacity(0.3)),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.schedule,
-            color: Get.theme.primaryColor,
-            size: 18,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              endTime != null 
-                  ? '${_formatTime(startTime)} - ${_formatTime(endTime)} (${_calculateSelectedDuration()})'
-                  : '${_formatTime(startTime)} - ?',
-              style: TextStyle(
-                color: Get.theme.primaryColor,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          if (endTime == null)
-            Text(
-              'Pilih waktu selesai',
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 12,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          const SizedBox(width: 8),
-          GestureDetector(
-            onTap: () {
-              widget.controller.startTime.value = null;
-              widget.controller.endTime.value = null;
-            },
-            child: Icon(
-              Icons.close,
-              color: Colors.grey[600],
-              size: 18,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildCrossCategoryIndicator() {

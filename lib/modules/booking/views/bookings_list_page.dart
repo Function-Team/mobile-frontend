@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_list_controller.dart';
 import 'package:function_mobile/modules/booking/widgets/booking_card.dart';
-import 'package:function_mobile/modules/navigation/controllers/bottom_nav_controller.dart';
 import 'package:get/get.dart';
 
 class BookingListPage extends GetView<BookingListController> {

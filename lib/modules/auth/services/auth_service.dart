@@ -563,6 +563,8 @@ class AuthService extends GetxService {
           context: Get.context!,
           message: 'Session expired. Please login again to continue',
           type: SnackbarType.error,
+          autoClear: true,
+          enableDebounce: false,
         );
       } catch (e) {
         print('AuthService: Error handling session expiry: $e');

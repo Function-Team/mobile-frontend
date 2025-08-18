@@ -2,6 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/reviews/models/review_model.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
@@ -530,8 +532,10 @@ class VenueDetailController extends GetxController {
     } else {
       CustomSnackbar.show(
           context: Get.context!,
-          message: 'Cannot book this venue at the moment',
-          type: SnackbarType.error);
+          message: LocalizationHelper.tr(LocaleKeys.errors_venueUnavailable),
+          type: SnackbarType.error,
+          autoClear: true,
+          enableDebounce: false);
     }
   }
 

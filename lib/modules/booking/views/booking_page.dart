@@ -36,6 +36,9 @@ class BookingPage extends StatelessWidget {
           centerTitle: true,
           elevation: 0,
           backgroundColor: Theme.of(context).primaryColor,
+          iconTheme: IconThemeData(
+            color: Colors.white,
+          ),
         ),
         body: Stack(
           children: [
@@ -45,19 +48,16 @@ class BookingPage extends StatelessWidget {
                 children: [
                   // Venue Summary Card
                   _buildVenueSummaryCard(context),
-
-                  // Price Information
-                  _buildPriceInfoCard(context),
-
                   // Booking Form
                   BookingForm(
                     controller: controller,
                     venue: venue,
                   ),
-                  SizedBox(height: 100),
+                  SizedBox(height: 100), // Extra space for bottom bar
                 ],
               ),
             ),
+            // Bottom Bar
             Positioned(
               bottom: 0,
               left: 0,
@@ -73,7 +73,13 @@ class BookingPage extends StatelessWidget {
   Future<void> _refreshPageData() async {
     try {
       // Show loading feedback
-      CustomSnackbar.show(context: Get.context!, message: 'Refreshing...', type: SnackbarType.info);
+      CustomSnackbar.show(
+        context: Get.context!, 
+        message: LocalizationHelper.tr(LocaleKeys.bookingPage_refreshing), 
+        type: SnackbarType.info,
+        autoClear: true,
+        enableDebounce: false, // Show loading immediately
+      );
 
       final now = DateTime.now();
       final startOfMonth = DateTime(now.year, now.month, 1);
@@ -89,11 +95,23 @@ class BookingPage extends StatelessWidget {
       }
 
       // Success feedback
-      CustomSnackbar.show(context: Get.context!, message: 'Updated', type: SnackbarType.success);
+      CustomSnackbar.show(
+        context: Get.context!, 
+        message: LocalizationHelper.tr(LocaleKeys.bookingPage_updated), 
+        type: SnackbarType.success,
+        autoClear: true,
+        enableDebounce: false, // Show success immediately
+      );
 
     } catch (e) {
       // Error feedback
-      CustomSnackbar.show(context: Get.context!, message: 'Refresh Failed', type: SnackbarType.error);
+      CustomSnackbar.show(
+        context: Get.context!, 
+        message: LocalizationHelper.tr(LocaleKeys.bookingPage_refreshFailed), 
+        type: SnackbarType.error,
+        autoClear: true,
+        enableDebounce: false, // Show errors immediately
+      );
     }
   }
 
@@ -130,10 +148,10 @@ class BookingPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    venue.name ?? 'Venue',
+                    venue.name ?? LocalizationHelper.tr(LocaleKeys.bookingPage_venue),
                     style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -145,9 +163,10 @@ class BookingPage extends StatelessWidget {
                       SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          venue.city?.name ?? 'Location',
+                          venue.city?.name ?? LocalizationHelper.tr(LocaleKeys.venue_location),
                           style: TextStyle(
                             fontSize: 14,
+                            fontWeight: FontWeight.w400,
                             color: Colors.grey[600],
                           ),
                           maxLines: 1,
@@ -162,9 +181,10 @@ class BookingPage extends StatelessWidget {
                       Icon(Icons.people, size: 16, color: Colors.grey),
                       SizedBox(width: 4),
                       Text(
-                        'Max: ${venue.maxCapacity} guests',
+                        LocalizationHelper.tr(LocaleKeys.bookingPage_maxGuests).replaceAll('{count}', '${venue.maxCapacity}'),
                         style: TextStyle(
                           fontSize: 14,
+                          fontWeight: FontWeight.w400,
                           color: Colors.grey[600],
                         ),
                       ),
@@ -176,9 +196,10 @@ class BookingPage extends StatelessWidget {
                       Icon(Icons.category, size: 16, color: Colors.grey),
                       SizedBox(width: 4),
                       Text(
-                        venue.category?.name ?? 'Category',
+                        venue.category?.name ?? LocalizationHelper.tr(LocaleKeys.bookingPage_category),
                         style: TextStyle(
                           fontSize: 14,
+                          fontWeight: FontWeight.w400,
                           color: Colors.grey[600],
                         ),
                       ),
@@ -199,60 +220,6 @@ class BookingPage extends StatelessWidget {
       height: 80,
       color: Colors.grey[300],
       child: Icon(Icons.image, color: Colors.grey[600]),
-    );
-  }
-
-  Widget _buildPriceInfoCard(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16),
-      color: Colors.white,
-      child: Card(
-        color: Colors.blue[50],
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.info_outline, color: Colors.blue[700]),
-                  SizedBox(width: 8),
-                  Text(
-                    'Pricing Information',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue[700],
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 12),
-              Text(
-                'Base Price: Rp ${NumberFormat('#,###').format(venue.price ?? 0)} per hour',
-                style: TextStyle(fontSize: 14),
-              ),
-              SizedBox(height: 4),
-              Text(
-                '• Minimum booking: 1 hour',
-                style: TextStyle(fontSize: 14),
-              ),
-              Text(
-                '• Maximum booking: 7 days',
-                style: TextStyle(fontSize: 14),
-              ),
-              Text(
-                '• Time slots: 30-minute increments',
-                style: TextStyle(fontSize: 14),
-              ),
-              Text(
-                '• Payment after host confirmation',
-                style: TextStyle(fontSize: 14),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 
@@ -277,6 +244,7 @@ class BookingPage extends StatelessWidget {
     );
   }
 
+
   Widget _buildTotalPriceBar(BuildContext context) {
     if (controller.selectedDate.value == null ||
         controller.startTime.value == null ||
@@ -285,8 +253,12 @@ class BookingPage extends StatelessWidget {
         height: 48,
         alignment: Alignment.center,
         child: Text(
-          'Please select date and time to see total price',
-          style: TextStyle(color: Colors.grey[600]),
+          LocalizationHelper.tr(LocaleKeys.bookingPage_selectDateTimePrompt),
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+            color: Colors.grey[600],
+          ),
         ),
       );
     }
@@ -321,19 +293,12 @@ class BookingPage extends StatelessWidget {
         height: 48,
         alignment: Alignment.center,
         child: Text(
-          'Minimum booking duration is 1 hour',
-          style: TextStyle(color: Colors.red),
-        ),
-      );
-    }
-
-    if (duration > Duration(days: 7)) {
-      return Container(
-        height: 48,
-        alignment: Alignment.center,
-        child: Text(
-          'Maximum booking duration is 7 days',
-          style: TextStyle(color: Colors.red),
+          LocalizationHelper.tr(LocaleKeys.bookingPage_minimumDuration),
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.red,
+          ),
         ),
       );
     }
@@ -346,9 +311,10 @@ class BookingPage extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Total (${totalHours.toStringAsFixed(1)} hours)',
+              LocalizationHelper.tr(LocaleKeys.bookingPage_totalHours).replaceAll('{hours}', totalHours.toStringAsFixed(1)),
               style: TextStyle(
                 fontSize: 12,
+                fontWeight: FontWeight.w400,
                 color: Colors.grey[600],
               ),
             ),
@@ -357,6 +323,7 @@ class BookingPage extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
+                color: Colors.grey[800],
               ),
             ),
           ],
@@ -364,8 +331,8 @@ class BookingPage extends StatelessWidget {
         Text(
           'Rp ${NumberFormat('#,###').format(totalAmount)}',
           style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
             color: Theme.of(context).primaryColor,
           ),
         ),

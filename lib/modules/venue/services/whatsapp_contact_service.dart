@@ -22,8 +22,10 @@ class WhatsAppContactService {
     if (venue.host == null) {
       CustomSnackbar.show(
         context: Get.context!,
-        message: 'Host information not available',
+        message: LocalizationHelper.tr(LocaleKeys.contact_phone_unavailable),
         type: SnackbarType.error,
+        autoClear: true,
+        enableDebounce: false,
       );
       return;
     }
@@ -32,8 +34,10 @@ class WhatsAppContactService {
     if (!venue.host!.hasPhone) {
       CustomSnackbar.show(
         context: Get.context!,
-        message: 'Host phone number not available',
+        message: LocalizationHelper.tr(LocaleKeys.contact_phone_unavailable),
         type: SnackbarType.error,
+        autoClear: true,
+        enableDebounce: false,
       );
       return;
     }
@@ -65,8 +69,10 @@ class WhatsAppContactService {
     if (booking.place?.host == null) {
       CustomSnackbar.show(
         context: Get.context!,
-        message: 'Host information not available',
+        message: LocalizationHelper.tr(LocaleKeys.contact_phone_unavailable),
         type: SnackbarType.error,
+        autoClear: true,
+        enableDebounce: false,
       );
       return;
     }
@@ -75,8 +81,10 @@ class WhatsAppContactService {
     if (!booking.place!.host!.hasPhone) {
       CustomSnackbar.show(
         context: Get.context!,
-        message: 'Host phone number not available',
+        message: LocalizationHelper.tr(LocaleKeys.contact_phone_unavailable),
         type: SnackbarType.error,
+        autoClear: true,
+        enableDebounce: false,
       );
       return;
     }
@@ -297,22 +305,28 @@ class WhatsAppContactService {
         await launchUrl(whatsappUrl, mode: LaunchMode.externalApplication);
         CustomSnackbar.show(
           context: Get.context!,
-          message: 'Opening WhatsApp...',
+          message: LocalizationHelper.tr(LocaleKeys.contact_whatsapp_message),
           type: SnackbarType.success,
+          autoClear: true,
+          enableDebounce: false,
         );
       } else {
         CustomSnackbar.show(
           context: Get.context!,
-          message: 'WhatsApp not installed on this device',
+          message: LocalizationHelper.tr(LocaleKeys.errors_serviceUnavailable),
           type: SnackbarType.error,
+          autoClear: true,
+          enableDebounce: false,
         );
       }
     } catch (e) {
       print('Error opening WhatsApp: $e');
       CustomSnackbar.show(
         context: Get.context!,
-        message: 'Failed to open WhatsApp',
+        message: LocalizationHelper.tr(LocaleKeys.errors_serviceUnavailable),
         type: SnackbarType.error,
+        autoClear: true,
+        enableDebounce: false,
       );
     }
   }

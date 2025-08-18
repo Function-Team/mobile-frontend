@@ -170,6 +170,8 @@ class AuthController extends GetxController {
             context: Get.context!,
             message: 'Email atau password salah. Silakan periksa kembali.',
             type: SnackbarType.error,
+            autoClear: true,
+            enableDebounce: false,
           );
           return;
         }
@@ -180,6 +182,8 @@ class AuthController extends GetxController {
         context: Get.context!,
         message: cleanErrorMessage.isNotEmpty ? cleanErrorMessage : 'Login Failed',
         type: SnackbarType.error,
+        autoClear: true,
+        enableDebounce: false,
       );
     } finally {
       isLoading.value = false;
@@ -210,6 +214,8 @@ class AuthController extends GetxController {
           context: Get.context!,
           message: 'Account created! Check your email for verification link.',
           type: SnackbarType.success,
+          autoClear: true,
+          enableDebounce: false,
         );
 
         await goToEmailVerification();
@@ -233,6 +239,8 @@ class AuthController extends GetxController {
               context: Get.context!,
               message: 'Email already registered and verified. Please login instead.',
               type: SnackbarType.info,
+              autoClear: true,
+              enableDebounce: false,
             );
             goToLogin();
           } else {
@@ -241,6 +249,8 @@ class AuthController extends GetxController {
               context: Get.context!,
               message: 'Email already registered but not verified. Continue verification.',
               type: SnackbarType.info,
+              autoClear: true,
+              enableDebounce: false,
             );
             await goToEmailVerification();
           }
@@ -250,6 +260,8 @@ class AuthController extends GetxController {
             context: Get.context!,
             message: 'Email already registered. Please try logging in.',
             type: SnackbarType.info,
+            autoClear: true,
+            enableDebounce: false,
           );
           goToLogin();
         }
@@ -260,6 +272,8 @@ class AuthController extends GetxController {
         context: Get.context!,
         message: cleanErrorMessage.isNotEmpty ? cleanErrorMessage : 'Signup Failed',
         type: SnackbarType.error,
+        autoClear: true,
+        enableDebounce: false,
       );
     } finally {
       isLoading.value = false;
@@ -278,6 +292,8 @@ class AuthController extends GetxController {
         context: Get.context!,
         message: 'You have been successfully logged out',
         type: SnackbarType.success,
+        autoClear: true,
+        enableDebounce: false,
       );
     } catch (e) {
       print('AuthController: Logout error: $e');
@@ -287,6 +303,8 @@ class AuthController extends GetxController {
         context: Get.context!,
         message: 'Logout Failed',
         type: SnackbarType.error,
+        autoClear: true,
+        enableDebounce: false,
       );
     } finally {
       isLoading.value = false;
@@ -726,6 +744,8 @@ class AuthController extends GetxController {
         context: Get.context!,
         message: 'Session expired. Please login again.',
         type: SnackbarType.warning,
+        autoClear: true,
+        enableDebounce: false,
       );
     } catch (e) {
       print('AuthController: Error handling session expiry: $e');
@@ -768,6 +788,8 @@ extension AuthControllerLogout on AuthController {
         message:
             'If your email is registered, you will receive a password reset link.',
         type: SnackbarType.success,
+        autoClear: true,
+        enableDebounce: false,
       );
 
       // Kembali ke halaman login
@@ -877,6 +899,8 @@ extension AuthControllerLogout on AuthController {
         message:
             'Password reset successful. You can now login with your new password.',
         type: SnackbarType.success,
+        autoClear: true,
+        enableDebounce: false,
       );
 
       // Kembali ke halaman login

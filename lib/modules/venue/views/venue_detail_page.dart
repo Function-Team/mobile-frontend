@@ -723,6 +723,8 @@ class VenueDetailPage extends StatelessWidget {
                         message: LocalizationHelper.tr(
                             LocaleKeys.errors_venueUnavailable),
                         type: SnackbarType.error,
+                        autoClear: true,
+                        enableDebounce: false
                       );
                     }
                   },

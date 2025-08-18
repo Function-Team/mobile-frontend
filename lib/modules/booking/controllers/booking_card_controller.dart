@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:get/get.dart';
-import 'package:function_mobile/common/routes/routes.dart';
 
 class BookingCardController extends GetxController {
   Rxn<Duration> remainingTime = Rxn<Duration>();
@@ -18,10 +17,6 @@ class BookingCardController extends GetxController {
         // Optional: Add notification when booking expires
       }
     });
-  }
-
-  void goToDetail(String bookingId) {
-    Get.toNamed(MyRoutes.bookingDetail, arguments: bookingId);
   }
 
   void startTimer() {

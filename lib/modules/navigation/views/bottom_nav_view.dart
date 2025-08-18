@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/modules/booking/views/bookings_list_page.dart';
+import 'package:function_mobile/modules/booking/controllers/booking_list_controller.dart';
 // import 'package:function_mobile/modules/chat/views/chat_page.dart'; // DIHAPUS
 import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/common/bindings/localization_binding.dart';
@@ -19,7 +20,15 @@ class BottomNavView extends StatelessWidget {
 
   final List<Widget> pages = [
     HomePage(),
-    BookingListPage(),
+    Builder(
+      builder: (context) {
+        // Ensure BookingListController is available before building page
+        if (!Get.isRegistered<BookingListController>()) {
+          Get.put(BookingListController());
+        }
+        return BookingListPage();
+      },
+    ),
     FavoritesPage(),
     // ChatPage(), // DIHAPUS
     ProfilePage(), // Index berubah dari 4 menjadi 3

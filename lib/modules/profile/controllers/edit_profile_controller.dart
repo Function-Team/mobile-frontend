@@ -201,7 +201,9 @@ class EditProfileController extends GetxController {
           CustomSnackbar.show(
               context: Get.context!,
               message: message,
-              type: SnackbarType.success);
+              type: SnackbarType.success,
+              autoClear: true,
+              enableDebounce: false);
 
           // Go back after a short delay
           Future.delayed(const Duration(seconds: 1), () {
