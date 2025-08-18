@@ -106,7 +106,9 @@ class LocalizationHelper {
         CustomSnackbar.show(
           context: context, 
           message: tr(LocaleKeys.settings_changeLanguageConfirm), 
-          type: SnackbarType.success
+          type: SnackbarType.success,
+          autoClear: true,
+          enableDebounce: false
         );
       }
     } catch (e) {
@@ -115,7 +117,9 @@ class LocalizationHelper {
         CustomSnackbar.show(
           context: context, 
           message: tr(LocaleKeys.common_error), 
-          type: SnackbarType.error
+          type: SnackbarType.error,
+          autoClear: true,
+          enableDebounce: false
         );
       }
     }
@@ -373,6 +377,8 @@ class LocalizationHelper {
         context: context,
         message: message,
         type: type,
+        autoClear: true,
+        enableDebounce: false
       );
     });
   }

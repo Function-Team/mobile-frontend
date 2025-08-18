@@ -2,7 +2,7 @@
   "navigation": {
     "home": "Home",
     "bookings": "Bookings",
-    "favorites": "FAVORITE",
+    "favorites": "Favorite",
     "chat": "Chat",
     "profile": "Profile"
   },
@@ -151,7 +151,10 @@
     "discount": "Discount",
     "taxes": "Taxes",
     "totalPrice": "Total Price",
-    "people": "People"
+    "people": "People",
+    "morning": "Morning",
+    "afternoon": "Afternoon",
+    "evening": "Evening"
   },
   "bookingList": {
     "title": "Booking List",
@@ -213,6 +216,18 @@
       }
     },
     "exploreVenues": "Explore Venues"
+  },
+  "bookingPage": {
+    "refreshing": "Refreshing...",
+    "updated": "Updated",
+    "refreshFailed": "Refresh Failed",
+    "venue": "Venue",
+    "maxGuests": "Max: {count} guests",
+    "category": "Category",
+    "selectDateTimePrompt": "Please select date and time to see total price",
+    "minimumDuration": "Minimum booking duration is 1 hour",
+    "maximumDuration": "Maximum booking duration is 7 days",
+    "totalHours": "Total ({hours} hours)"
   },
   "booking": {
     "details": "Details",
@@ -754,16 +769,33 @@
     "privacyPolicyLink": "Privacy Policy",
     "errorOccurred": "Error: {error}"
   },
-  "conflictDialog": {
-    "timeNotAvailable": "Time Not Available",
-    "chooseAlternativeTime": "Choose alternative time",
-    "timeAlreadyBooked": "The selected time has already been booked by someone else.",
-    "availableTimesToday": "Available times today:",
-    "noSlotsAvailable": "No Slots Available",
-    "allTimesBooked": "All times today are already booked. Please choose another date.",
-    "close": "Close",
-    "chooseOtherDate": "Choose Other Date",
-    "duration1Hour": "Duration: 1 hour"
+  "bookingGuide": {
+    "title": "How to Book",
+    "gotIt": "Got it!",
+    "step1Title": "Select a Date",
+    "step1Description": "Tap on any available date in the calendar. Dates are color-coded:",
+    "availableDates": "Available dates",
+    "limitedAvailability": "Limited availability",
+    "fullyBooked": "Fully booked",
+    "step2Title": "Choose Time Period",
+    "step2Description": "Select the time period that works best for you:",
+    "morningTime": "6:00 - 11:59 AM",
+    "afternoonTime": "12:00 - 5:59 PM",
+    "eveningTime": "6:00 - 10:00 PM",
+    "step3Title": "Select Time Slots",
+    "step3Description": "Time slots show the exact duration (e.g., \"8:00-9:00\" means 1 hour booking from 8 AM to 9 AM). You can:",
+    "feature1": "• Tap once to select start time",
+    "feature2": "• Tap another slot to extend duration",
+    "feature3": "• Book across different time periods",
+    "feature4": "• Minimum booking: 1 hour",
+    "step4Title": "Cross-Period Booking",
+    "step4Description": "You can book across time periods (e.g., 11 AM - 2 PM). Purple slots show available connections:",
+    "connectableSlots": "Connectable slots",
+    "rangeContinues": "Range continues from Morning",
+    "example": "Example:",
+    "exampleDescription": "Tap 10:00-11:00 = Book from 10 AM to 11 AM (1 hour)",
+    "tipTitle": "Tip:",
+    "tipDescription": "Your selection summary appears at the top, showing the total duration and allowing you to clear the selection."
   },
   "priceDetails": {
     "basePrice": "Base Price",

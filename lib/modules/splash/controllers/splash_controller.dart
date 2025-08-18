@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 import 'package:function_mobile/modules/auth/services/auth_service.dart';
 import 'package:get/get.dart';
@@ -179,7 +181,7 @@ class SplashController extends GetxController {
 
         Future.delayed(const Duration(seconds: 1), () {
           if (Get.isRegistered<SplashController>()) {
-            CustomSnackbar.show(context: Get.context!, message: 'Please try restarting the app', type: SnackbarType.error);
+            CustomSnackbar.show(context: Get.context!, message: LocalizationHelper.tr(LocaleKeys.common_tryAgain), type: SnackbarType.error, autoClear: true, enableDebounce: false);
           }
         });
       }
@@ -197,7 +199,7 @@ class SplashController extends GetxController {
 
     Future.delayed(const Duration(seconds: 1), () {
       if (Get.isRegistered<SplashController>()) {
-        CustomSnackbar.show(context: Get.context!, message: 'App took too long to initialize', type: SnackbarType.error);
+        CustomSnackbar.show(context: Get.context!, message: LocalizationHelper.tr(LocaleKeys.common_loading), type: SnackbarType.error, autoClear: true, enableDebounce: false);
       }
     });
   }

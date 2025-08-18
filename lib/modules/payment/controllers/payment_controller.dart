@@ -59,7 +59,9 @@ class PaymentController extends GetxController {
       CustomSnackbar.show(
           context: Get.context!,
           message: 'Payment Initialized, Amount: Rp ${_formatCurrency(amount)}',
-          type: SnackbarType.success);
+          type: SnackbarType.success,
+          autoClear: true,
+          enableDebounce: false);
 
       return true;
     } catch (e) {
@@ -67,7 +69,9 @@ class PaymentController extends GetxController {
       CustomSnackbar.show(
           context: Get.context!,
           message: 'Failed to initialize payment: ${e.toString()}',
-          type: SnackbarType.error);
+          type: SnackbarType.error,
+          autoClear: true,
+          enableDebounce: false);
       return false;
     } finally {
       isLoading.value = false;
@@ -290,17 +294,29 @@ class PaymentController extends GetxController {
 
   void _showSuccessSnackbar(String title, String message) {
     CustomSnackbar.show(
-        context: Get.context!, message: message, type: SnackbarType.success);
+        context: Get.context!, 
+        message: message, 
+        type: SnackbarType.success,
+        autoClear: true,
+        enableDebounce: false);
   }
 
   void _showErrorSnackbar(String title, String message) {
     CustomSnackbar.show(
-        context: Get.context!, message: message, type: SnackbarType.error);
+        context: Get.context!, 
+        message: message, 
+        type: SnackbarType.error,
+        autoClear: true,
+        enableDebounce: false);
   }
 
   void _showInfoSnackbar(String title, String message) {
     CustomSnackbar.show(
-        context: Get.context!, message: message, type: SnackbarType.info);
+        context: Get.context!, 
+        message: message, 
+        type: SnackbarType.info,
+        autoClear: true,
+        enableDebounce: false);
   }
 
   @override

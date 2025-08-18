@@ -6,7 +6,8 @@
       "Bash(flutter packages pub run:*)",
       "Bash(flutter pub run easy_localization:generate:*)",
       "Bash(find:*)",
-      "Bash(dart run easy_localization:generate:*)"
+      "Bash(dart run easy_localization:generate:*)",
+      "Bash(mv:*)"
     ],
     "deny": [],
     "ask": []

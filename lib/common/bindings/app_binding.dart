@@ -25,9 +25,7 @@ class AppBinding extends Bindings {
     Get.put(NotificationController(), permanent: true);
     Get.put(HomeController(), permanent: true);
     Get.put(ReviewService(), permanent: true);
-    // Non-permanent controllers that can be lazy-loaded
-    Get.lazyPut(
-      () => BookingListController(),
-    );
+    // BookingListController should be permanent as it's used in navigation
+    Get.put(BookingListController(), permanent: true);
   }
 }

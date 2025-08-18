@@ -474,6 +474,8 @@ class BookingDetailController extends GetxController {
         context: Get.context!,
         message: message,
         type: SnackbarType.success,
+        autoClear: true,
+        enableDebounce: false,
       );
     }
   }
@@ -484,6 +486,8 @@ class BookingDetailController extends GetxController {
         context: Get.context!,
         message: message,
         type: SnackbarType.error,
+        autoClear: true,
+        enableDebounce: false,
       );
     }
   }

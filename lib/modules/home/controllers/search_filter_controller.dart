@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:function_mobile/modules/venue/data/repositories/venue_repository.dart';
 import 'package:get/get.dart';
@@ -164,8 +166,10 @@ class SearchFilterController extends GetxController {
             
             CustomSnackbar.show(
               context: Get.context!,
-              message: 'Waktu akhir disesuaikan menjadi ${endTime.value!.format(Get.context!)}',
+              message: LocalizationHelper.tr(LocaleKeys.common_success),
               type: SnackbarType.info,
+              autoClear: true,
+              enableDebounce: true,
             );
           }
         } else {
@@ -176,8 +180,10 @@ class SearchFilterController extends GetxController {
       } else {
         CustomSnackbar.show(
           context: Get.context!,
-          message: 'Waktu harus antara 08:00 - 22:00',
+          message: LocalizationHelper.tr(LocaleKeys.common_error),
           type: SnackbarType.error,
+          autoClear: true,
+          enableDebounce: false,
         );
       }
     }
@@ -206,8 +212,10 @@ class SearchFilterController extends GetxController {
           if (endMinutes <= startMinutes) {
             CustomSnackbar.show(
               context: Get.context!,
-              message: 'Waktu akhir harus setelah waktu mulai',
+              message: LocalizationHelper.tr(LocaleKeys.common_error),
               type: SnackbarType.error,
+              autoClear: true,
+              enableDebounce: false,
             );
             return;
           }
@@ -217,8 +225,10 @@ class SearchFilterController extends GetxController {
       } else {
         CustomSnackbar.show(
           context: Get.context!,
-          message: 'Waktu harus antara 08:00 - 22:00',
+          message: LocalizationHelper.tr(LocaleKeys.common_error),
           type: SnackbarType.error,
+          autoClear: true,
+          enableDebounce: false,
         );
       }
     }
@@ -395,8 +405,10 @@ class SearchFilterController extends GetxController {
       // Show feedback
       CustomSnackbar.show(
           context: Get.context!,
-          message: 'Maksimal 1000 orang',
-          type: SnackbarType.warning);
+          message: LocalizationHelper.tr(LocaleKeys.errors_capacityExceeded),
+          type: SnackbarType.warning,
+          autoClear: true,
+          enableDebounce: true);
     }
   }
 
@@ -466,16 +478,20 @@ class SearchFilterController extends GetxController {
     if (activityText.value.isEmpty) {
       CustomSnackbar.show(
           context: Get.context!,
-          message: 'Silakan pilih aktivitas atau tempat terlebih dahulu',
-          type: SnackbarType.error);
+          message: LocalizationHelper.tr(LocaleKeys.search_selectActivity),
+          type: SnackbarType.error,
+          autoClear: true,
+          enableDebounce: false);
       return;
     }
 
     if (locationText.value.isEmpty) {
       CustomSnackbar.show(
           context: Get.context!,
-          message: 'Silakan pilih lokasi terlebih dahulu',
-          type: SnackbarType.error);
+          message: LocalizationHelper.tr(LocaleKeys.search_selectLocation),
+          type: SnackbarType.error,
+          autoClear: true,
+          enableDebounce: false);
       return;
     }
 

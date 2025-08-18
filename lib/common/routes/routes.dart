@@ -7,6 +7,7 @@ import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:function_mobile/modules/booking/views/booking_detail.dart';
 import 'package:function_mobile/modules/booking/views/booking_page.dart';
 import 'package:function_mobile/modules/booking/views/bookings_list_page.dart';
+import 'package:function_mobile/modules/booking/controllers/booking_list_controller.dart';
 import 'package:function_mobile/modules/chat/bindings/chat_binding.dart';
 import 'package:function_mobile/modules/chat/views/chat_page.dart';
 import 'package:function_mobile/modules/chat/views/chatting_page.dart';

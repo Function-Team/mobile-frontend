@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:get/get.dart';
 
 class TimeSlotPicker extends StatelessWidget {
@@ -6,7 +8,7 @@ class TimeSlotPicker extends StatelessWidget {
   final TimeOfDay? selectedTime;
   final Function(TimeOfDay) onTimeSelected;
   final List<TimeOfDay> timeSlots;
-  
+
   const TimeSlotPicker({
     Key? key,
     required this.label,
@@ -14,7 +16,7 @@ class TimeSlotPicker extends StatelessWidget {
     required this.onTimeSelected,
     required this.timeSlots,
   }) : super(key: key);
-  
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -36,7 +38,7 @@ class TimeSlotPicker extends StatelessWidget {
               Text(
                 selectedTime != null
                     ? selectedTime!.format(context)
-                    : 'Select',
+                    : LocalizationHelper.tr(LocaleKeys.buttons_choose),
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -48,7 +50,7 @@ class TimeSlotPicker extends StatelessWidget {
       ),
     );
   }
-  
+
   void _showTimeSlotPicker(BuildContext context) {
     Get.bottomSheet(
       Container(
@@ -66,7 +68,7 @@ class TimeSlotPicker extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Select Time',
+                    LocalizationHelper.tr(LocaleKeys.booking_selectTime),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -79,9 +81,9 @@ class TimeSlotPicker extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             Divider(height: 1),
-            
+
             // Time slots grid
             Expanded(
               child: GridView.builder(
@@ -95,9 +97,10 @@ class TimeSlotPicker extends StatelessWidget {
                 itemCount: timeSlots.length,
                 itemBuilder: (context, index) {
                   final time = timeSlots[index];
-                  final timeString = '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+                  final timeString =
+                      '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
                   final isSelected = selectedTime == time;
-                  
+
                   return InkWell(
                     onTap: () {
                       onTimeSelected(time);
@@ -105,10 +108,14 @@ class TimeSlotPicker extends StatelessWidget {
                     },
                     child: Container(
                       decoration: BoxDecoration(
-                        color: isSelected ? Theme.of(context).primaryColor : Colors.grey[100],
+                        color: isSelected
+                            ? Theme.of(context).primaryColor
+                            : Colors.grey[100],
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: isSelected ? Theme.of(context).primaryColor : Colors.grey[300]!,
+                          color: isSelected
+                              ? Theme.of(context).primaryColor
+                              : Colors.grey[300]!,
                         ),
                       ),
                       child: Center(

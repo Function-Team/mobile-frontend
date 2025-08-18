@@ -152,7 +152,10 @@
     "discount": "Diskon",
     "taxes": "Pajak",
     "totalPrice": "Total Harga",
-    "people": "Orang"
+    "people": "Orang",
+    "morning": "Pagi",
+    "afternoon": "Siang",
+    "evening": "Malam"
   },
   "bookingList": {
     "title": "DAFTAR PEMESANAN",
@@ -215,6 +218,18 @@
       }
     },
     "exploreVenues": "Jelajahi Venue"
+  },
+  "bookingPage": {
+    "refreshing": "Memperbarui...",
+    "updated": "Diperbarui",
+    "refreshFailed": "Gagal Memperbarui",
+    "venue": "Tempat",
+    "maxGuests": "Maks: {count} tamu",
+    "category": "Kategori",
+    "selectDateTimePrompt": "Pilih tanggal dan waktu untuk melihat total harga",
+    "minimumDuration": "Durasi booking minimum 1 jam",
+    "maximumDuration": "Durasi booking maksimum 7 hari",
+    "totalHours": "Total ({hours} jam)"
   },
   "booking": {
     "details": "Detail",
@@ -756,16 +771,33 @@
     "privacyPolicyLink": "Kebijakan Privasi",
     "errorOccurred": "Error: {error}"
   },
-  "conflictDialog": {
-    "timeNotAvailable": "Waktu Tidak Tersedia",
-    "chooseAlternativeTime": "Pilih waktu alternatif",
-    "timeAlreadyBooked": "Waktu yang dipilih sudah dibooking oleh orang lain.",
-    "availableTimesToday": "Waktu tersedia hari ini:",
-    "noSlotsAvailable": "Tidak Ada Slot Tersedia",
-    "allTimesBooked": "Semua waktu hari ini sudah dibooking. Silakan pilih tanggal lain.",
-    "close": "Tutup",
-    "chooseOtherDate": "Pilih Tanggal Lain",
-    "duration1Hour": "Durasi: 1 jam"
+  "bookingGuide": {
+    "title": "Cara Booking",
+    "gotIt": "Mengerti!",
+    "step1Title": "Pilih Tanggal",
+    "step1Description": "Ketuk tanggal yang tersedia di kalender. Tanggal diberi kode warna:",
+    "availableDates": "Tanggal tersedia",
+    "limitedAvailability": "Ketersediaan terbatas",
+    "fullyBooked": "Sudah penuh",
+    "step2Title": "Pilih Periode Waktu",
+    "step2Description": "Pilih periode waktu yang sesuai untuk Anda:",
+    "morningTime": "6:00 - 11:59 AM",
+    "afternoonTime": "12:00 - 5:59 PM",
+    "eveningTime": "6:00 - 10:00 PM",
+    "step3Title": "Pilih Slot Waktu",
+    "step3Description": "Slot waktu menunjukkan durasi pasti (misalnya, \"8:00-9:00\" berarti booking 1 jam dari 8 pagi sampai 9 pagi). Anda bisa:",
+    "feature1": "• Ketuk sekali untuk pilih waktu mulai",
+    "feature2": "• Ketuk slot lain untuk perpanjang durasi",
+    "feature3": "• Booking lintas periode waktu",
+    "feature4": "• Minimum booking: 1 jam",
+    "step4Title": "Booking Lintas Periode",
+    "step4Description": "Anda bisa booking lintas periode waktu (misalnya, 11 AM - 2 PM). Slot ungu menunjukkan koneksi yang tersedia:",
+    "connectableSlots": "Slot yang bisa dihubungkan",
+    "rangeContinues": "Rentang berlanjut dari Pagi",
+    "example": "Contoh:",
+    "exampleDescription": "Ketuk 10:00-11:00 = Booking dari 10 pagi sampai 11 pagi (1 jam)",
+    "tipTitle": "Tips:",
+    "tipDescription": "Ringkasan pilihan Anda muncul di atas, menampilkan total durasi dan memungkinkan Anda menghapus pilihan."
   },
   "priceDetails": {
     "basePrice": "Harga Dasar",

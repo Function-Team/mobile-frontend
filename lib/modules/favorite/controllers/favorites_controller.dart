@@ -1,4 +1,6 @@
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/navigation/controllers/bottom_nav_controller.dart';
 import 'package:get/get.dart';
 import 'package:function_mobile/core/services/secure_storage_service.dart';
@@ -72,8 +74,10 @@ class FavoritesController extends GetxController {
 
         CustomSnackbar.show(
             context: Get.context!,
-            message: 'Failed to load favorites from server',
-            type: SnackbarType.error);
+            message: LocalizationHelper.tr(LocaleKeys.errors_networkError),
+            type: SnackbarType.error,
+            autoClear: true,
+            enableDebounce: false);
       }
     } catch (e) {
       favorites.clear(); // Clear on unexpected error
@@ -88,8 +92,10 @@ class FavoritesController extends GetxController {
       if (currentUser == null) {
         CustomSnackbar.show(
             context: Get.context!,
-            message: 'Please log in to manage favorites',
-            type: SnackbarType.error);
+            message: LocalizationHelper.tr(LocaleKeys.errors_unauthorized),
+            type: SnackbarType.error,
+            autoClear: true,
+            enableDebounce: false);
         return;
       }
 
@@ -114,8 +120,10 @@ class FavoritesController extends GetxController {
         await _storageService.addFavorite(venueId, currentUser.id);
         CustomSnackbar.show(
             context: Get.context!,
-            message: 'Added to favorites',
-            type: SnackbarType.success);
+            message: LocalizationHelper.tr(LocaleKeys.venue_addToFavorites),
+            type: SnackbarType.success,
+            autoClear: true,
+            enableDebounce: true);
       } else if (result['action'] == 'removed') {
         favorites.removeWhere((fav) => fav.id == venueId);
 
@@ -123,8 +131,10 @@ class FavoritesController extends GetxController {
         await _storageService.removeFavorite(venueId, currentUser.id);
         CustomSnackbar.show(
             context: Get.context!,
-            message: 'Removed from favorites',
-            type: SnackbarType.success);
+            message: LocalizationHelper.tr(LocaleKeys.venue_removeFromFavorites),
+            type: SnackbarType.success,
+            autoClear: true,
+            enableDebounce: true);
       }
     } catch (e) {
       print('Error toggling favorite: $e');
@@ -141,8 +151,10 @@ class FavoritesController extends GetxController {
             favorites.removeWhere((fav) => fav.id == venueId);
             CustomSnackbar.show(
                 context: Get.context!,
-                message: 'Removed from favorites',
-                type: SnackbarType.success);
+                message: LocalizationHelper.tr(LocaleKeys.venue_removeFromFavorites),
+                type: SnackbarType.success,
+                autoClear: true,
+                enableDebounce: true);
           } else {
             await _storageService.addFavorite(venueId, currentUser.id);
 
@@ -160,16 +172,20 @@ class FavoritesController extends GetxController {
 
             CustomSnackbar.show(
                 context: Get.context!,
-                message: 'Added to favorites',
-                type: SnackbarType.success);
+                message: LocalizationHelper.tr(LocaleKeys.venue_addToFavorites),
+                type: SnackbarType.success,
+                autoClear: true,
+                enableDebounce: true);
           }
         }
       } catch (localError) {
         print('Error with local storage fallback: $localError');
         CustomSnackbar.show(
             context: Get.context!,
-            message: 'Failed to update favorites',
-            type: SnackbarType.error);
+            message: LocalizationHelper.tr(LocaleKeys.errors_networkError),
+            type: SnackbarType.error,
+            autoClear: true,
+            enableDebounce: false);
       }
     }
   }
@@ -211,15 +227,19 @@ class FavoritesController extends GetxController {
       favorites.clear();
       CustomSnackbar.show(
           context: Get.context!,
-          message: 'All favorites cleared',
-          type: SnackbarType.success);
+          message: LocalizationHelper.tr(LocaleKeys.common_success),
+          type: SnackbarType.success,
+          autoClear: true,
+          enableDebounce: false);
     } catch (e) {
       print('Error clearing favorites: $e');
 
       CustomSnackbar.show(
           context: Get.context!,
-          message: 'Failed to clear favorites',
-          type: SnackbarType.error);
+          message: LocalizationHelper.tr(LocaleKeys.errors_networkError),
+          type: SnackbarType.error,
+          autoClear: true,
+          enableDebounce: false);
     }
   }
 
@@ -246,13 +266,17 @@ class FavoritesController extends GetxController {
       CustomSnackbar.show(
           context: Get.context!,
           message: 'Removed from favorites',
-          type: SnackbarType.success);
+          type: SnackbarType.success,
+          autoClear: true,
+          enableDebounce: true);
     } catch (e) {
       print('Error removing favorite: $e');
       CustomSnackbar.show(
           context: Get.context!,
-          message: 'Failed to remove favorite',
-          type: SnackbarType.error);
+          message: LocalizationHelper.tr(LocaleKeys.errors_networkError),
+          type: SnackbarType.error,
+          autoClear: true,
+          enableDebounce: false);
     }
   }
 

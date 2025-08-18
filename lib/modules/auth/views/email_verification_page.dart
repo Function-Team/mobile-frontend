@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 import 'package:function_mobile/common/widgets/buttons/secondary_button.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/auth/controllers/auth_controller.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -333,8 +335,10 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
         if (mounted) {
           CustomSnackbar.show(
             context: context,
-            message: 'Email not found. Please go back to signup.',
+            message: LocalizationHelper.tr(LocaleKeys.errors_emailNotVerified),
             type: SnackbarType.warning,
+            autoClear: true,
+            enableDebounce: false,
           );
         }
         return;
@@ -354,6 +358,8 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
               message:
                   'Email verified successfully! Please login with your credentials.',
               type: SnackbarType.success,
+              autoClear: true,
+              enableDebounce: false,
             );
           }
 
@@ -367,6 +373,8 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
               message:
                   'Email not yet verified. Please check your email and click the verification link.',
               type: SnackbarType.info,
+              autoClear: true,
+              enableDebounce: false,
             );
           }
         }
@@ -375,8 +383,10 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
         if (mounted) {
           CustomSnackbar.show(
             context: context,
-            message: 'Unable to check verification status. Please try again.',
+            message: LocalizationHelper.tr(LocaleKeys.common_error),
             type: SnackbarType.info,
+            autoClear: true,
+            enableDebounce: false,
           );
         }
       }
@@ -387,6 +397,8 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
           context: context,
           message: 'Failed to check verification status. Please try again.',
           type: SnackbarType.error,
+          autoClear: true,
+          enableDebounce: false,
         );
       }
     }
@@ -405,6 +417,8 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
           context: context,
           message: 'Opening Gmail to check your inbox...',
           type: SnackbarType.info,
+          autoClear: true,
+          enableDebounce: false,
         );
         return;
       }
@@ -517,6 +531,8 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
           context: context,
           message: 'Please go back to signup to enter your email address.',
           type: SnackbarType.warning,
+          autoClear: true,
+          enableDebounce: false,
         );
         return;
       }
@@ -528,8 +544,10 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
 
       CustomSnackbar.show(
         context: context,
-        message: 'Verification email sent! Please check your inbox.',
+        message: LocalizationHelper.tr(LocaleKeys.auth_verifyEmail),
         type: SnackbarType.success,
+        autoClear: true,
+        enableDebounce: false,
       );
     } catch (e) {
       final errorMessage = e.toString().replaceFirst('Exception: ', '');
@@ -540,6 +558,8 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
           context: context,
           message: 'Email already verified! You can now login.',
           type: SnackbarType.success,
+          autoClear: true,
+          enableDebounce: false,
         );
         authController.goToLogin();
       } else if (errorMessage.contains('wait 2 minutes')) {
@@ -548,12 +568,16 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
           context: context,
           message: 'Please wait 2 minutes before requesting another email.',
           type: SnackbarType.warning,
+          autoClear: true,
+          enableDebounce: true,
         );
       } else if (errorMessage.contains('Email not found')) {
         CustomSnackbar.show(
           context: context,
           message: 'Email not found. Please check your email address.',
           type: SnackbarType.error,
+          autoClear: true,
+          enableDebounce: false,
         );
       } else {
         CustomSnackbar.show(
@@ -562,6 +586,8 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
               ? errorMessage
               : 'Failed to resend email. Please try again.',
           type: SnackbarType.error,
+          autoClear: true,
+          enableDebounce: false,
         );
       }
     }
@@ -577,6 +603,8 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
           context: context,
           message: 'Please go back to signup to enter your email address.',
           type: SnackbarType.warning,
+          autoClear: true,
+          enableDebounce: false,
         );
         return;
       }
@@ -594,6 +622,8 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
             message:
                 'Email verified successfully! Please login with your credentials.',
             type: SnackbarType.success,
+            autoClear: true,
+            enableDebounce: false,
           );
 
           // Navigate to login page
@@ -604,6 +634,8 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
             message:
                 'Email not yet verified. Please check your email and click the verification link.',
             type: SnackbarType.info,
+            autoClear: true,
+            enableDebounce: false,
           );
         }
       } catch (apiError) {
@@ -612,6 +644,8 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
           context: context,
           message: 'Unable to verify status. Please try again.',
           type: SnackbarType.info,
+          autoClear: true,
+          enableDebounce: false,
         );
       }
     } catch (e) {
@@ -619,6 +653,8 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
         context: context,
         message: 'Unable to check verification status. Please try again.',
         type: SnackbarType.error,
+        autoClear: true,
+        enableDebounce: false,
       );
     }
   }
