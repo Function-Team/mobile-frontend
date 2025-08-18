@@ -11,11 +11,11 @@ class ConflictDialog extends StatelessWidget {
   final Function(TimeSlot slot) onSlotSelected;
 
   const ConflictDialog({
-    Key? key,
+    super.key,
     required this.availableSlots,
     required this.venue,
     required this.onSlotSelected,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -42,14 +42,16 @@ class ConflictDialog extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  LocalizationHelper.tr(LocaleKeys.conflictDialog_timeNotAvailable),
+                  LocalizationHelper.tr(
+                      LocaleKeys.conflictDialog_timeNotAvailable),
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
-                  LocalizationHelper.tr(LocaleKeys.conflictDialog_chooseAlternativeTime),
+                  LocalizationHelper.tr(
+                      LocaleKeys.conflictDialog_chooseAlternativeTime),
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey[600],
@@ -81,7 +83,8 @@ class ConflictDialog extends StatelessWidget {
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      LocalizationHelper.tr(LocaleKeys.conflictDialog_timeAlreadyBooked),
+                      LocalizationHelper.tr(
+                          LocaleKeys.conflictDialog_timeAlreadyBooked),
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.red[700],
@@ -98,7 +101,8 @@ class ConflictDialog extends StatelessWidget {
                   Icon(Icons.access_time, color: Colors.green[600], size: 20),
                   SizedBox(width: 8),
                   Text(
-                    LocalizationHelper.tr(LocaleKeys.conflictDialog_availableTimesToday),
+                    LocalizationHelper.tr(
+                        LocaleKeys.conflictDialog_availableTimesToday),
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -141,7 +145,8 @@ class ConflictDialog extends StatelessWidget {
                     Icon(Icons.event_busy, color: Colors.red[600], size: 32),
                     SizedBox(height: 8),
                     Text(
-                      LocalizationHelper.tr(LocaleKeys.conflictDialog_noSlotsAvailable),
+                      LocalizationHelper.tr(
+                          LocaleKeys.conflictDialog_noSlotsAvailable),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -150,7 +155,8 @@ class ConflictDialog extends StatelessWidget {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      LocalizationHelper.tr(LocaleKeys.conflictDialog_allTimesBooked),
+                      LocalizationHelper.tr(
+                          LocaleKeys.conflictDialog_allTimesBooked),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.red[600],
@@ -186,7 +192,8 @@ class ConflictDialog extends StatelessWidget {
               ),
             ),
             icon: Icon(Icons.calendar_today, size: 18),
-            label: Text(LocalizationHelper.tr(LocaleKeys.conflictDialog_chooseOtherDate)),
+            label: Text(LocalizationHelper.tr(
+                LocaleKeys.conflictDialog_chooseOtherDate)),
           ),
       ],
       actionsPadding: EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -247,7 +254,8 @@ class ConflictDialog extends StatelessWidget {
                 ),
                 SizedBox(height: 2),
                 Text(
-                  LocalizationHelper.tr(LocaleKeys.conflictDialog_duration1Hour),
+                  LocalizationHelper.tr(
+                      LocaleKeys.conflictDialog_duration1Hour),
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.green[600],
@@ -289,10 +297,21 @@ class ConflictDialog extends StatelessWidget {
   List<TimeSlot> _filterOperatingHourSlots(List<TimeSlot> slots) {
     return slots.where((slot) {
       final startHour = int.parse(slot.start.split(':')[0]);
+      final startMinute = int.parse(slot.start.split(':')[1]);
       final endHour = int.parse(slot.end.split(':')[0]);
+      final endMinute = int.parse(slot.end.split(':')[1]);
 
-      // Only include slots that start >= 8 and end <= 22
-      return startHour >= 8 && endHour <= 22;
+      // Convert to minutes for precise comparison
+      final startTotalMinutes = startHour * 60 + startMinute;
+      final endTotalMinutes = endHour * 60 + endMinute;
+
+      // Operating hours: 08:00 (480 minutes) to 22:00 (1320 minutes)
+      final openingMinutes = 8 * 60; // 08:00
+      final closingMinutes = 22 * 60; // 22:00
+
+      // Only include slots that start >= 08:00 and end <= 22:00
+      return startTotalMinutes >= openingMinutes &&
+          endTotalMinutes <= closingMinutes;
     }).toList();
   }
 }

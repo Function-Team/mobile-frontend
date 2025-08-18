@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_controller.dart';
-import 'package:function_mobile/modules/booking/widgets/time_slot_picker.dart';
+import 'package:function_mobile/modules/booking/widgets/time_display_widget.dart';
 import 'package:function_mobile/modules/booking/widgets/calendar_booking_widget.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:get/get.dart';
@@ -29,7 +29,7 @@ class BookingForm extends StatelessWidget {
           const SizedBox(height: 16),
           // Calendar widget
           CalendarBookingWidget(
-            controller: controller,
+            bookingController: controller,
             venueId: venue.id,
           ),
           const SizedBox(height: 16),
@@ -86,58 +86,56 @@ class BookingForm extends StatelessWidget {
 
   Widget _timeRangePicker(BookingController controller) {
     return Obx(() {
-      // Generate time slots based on venue operating hours
-      final timeSlots = _generateTimeSlots();
-
-      return Row(
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Start Time
-          Expanded(
-            child: TimeSlotPicker(
-              label: 'Start Time',
-              selectedTime: controller.startTime.value,
-              timeSlots: timeSlots, // Use venue-specific time slots
-              onTimeSelected: (time) {
-                controller.startTime.value = time;
-                // Auto-set end time to +2 hours if not set, but respect venue hours
-                if (controller.endTime.value == null) {
-                  final endHour = (time.hour + 2) % 24;
-                  final endTime = TimeOfDay(hour: endHour, minute: time.minute);
-
-                  // Make sure end time is within venue operating hours
-                  if (timeSlots.any((slot) =>
-                      slot.hour == endTime.hour &&
-                      slot.minute == endTime.minute)) {
-                    controller.endTime.value = endTime;
-                  } else {
-                    // Find next available end time within operating hours
-                    final availableEndTimes = timeSlots
-                        .where((slot) =>
-                            (slot.hour * 60 + slot.minute) >
-                            (time.hour * 60 + time.minute))
-                        .toList();
-
-                    if (availableEndTimes.isNotEmpty) {
-                      controller.endTime.value = availableEndTimes.first;
-                    }
-                  }
-                }
-              },
+          // Info text
+          Container(
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.blue[50],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.blue[200]!),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline, color: Colors.blue[600], size: 20),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Pilih slot waktu yang tersedia di kalender di atas untuk menentukan waktu booking Anda',
+                    style: TextStyle(
+                      color: Colors.blue[700],
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
+          SizedBox(height: 16),
+          
+          // Time display containers
+          Row(
+            children: [
+              // Start Time Display
+              Expanded(
+                child: TimeDisplayWidget(
+                  label: 'Waktu Mulai',
+                  selectedTime: controller.startTime.value,
+                ),
+              ),
 
-          SizedBox(width: 16),
+              SizedBox(width: 16),
 
-          // End Time
-          Expanded(
-            child: TimeSlotPicker(
-              label: 'End Time',
-              selectedTime: controller.endTime.value,
-              timeSlots: timeSlots, // Use venue-specific time slots
-              onTimeSelected: (time) {
-                controller.endTime.value = time;
-              },
-            ),
+              // End Time Display
+              Expanded(
+                child: TimeDisplayWidget(
+                  label: 'Waktu Berakhir',
+                  selectedTime: controller.endTime.value,
+                ),
+              ),
+            ],
           ),
         ],
       );

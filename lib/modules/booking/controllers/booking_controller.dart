@@ -13,6 +13,7 @@ import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
+import 'dart:convert';
 import 'package:url_launcher/url_launcher.dart';
 
 class BookingController extends GetxController {
@@ -112,10 +113,20 @@ class BookingController extends GetxController {
   List<TimeSlot> _filterOperatingHourSlots(List<TimeSlot> slots) {
     return slots.where((slot) {
       final startHour = int.parse(slot.start.split(':')[0]);
+      final startMinute = int.parse(slot.start.split(':')[1]);
       final endHour = int.parse(slot.end.split(':')[0]);
+      final endMinute = int.parse(slot.end.split(':')[1]);
 
-      // Only include slots that start >= 8 and end <= 22
-      return startHour >= 8 && endHour <= 22;
+      // Convert to minutes for precise comparison
+      final startTotalMinutes = startHour * 60 + startMinute;
+      final endTotalMinutes = endHour * 60 + endMinute;
+      
+      // Operating hours: 08:00 (480 minutes) to 22:00 (1320 minutes)
+      final openingMinutes = 8 * 60; // 08:00
+      final closingMinutes = 22 * 60; // 22:00
+
+      // Only include slots that start >= 08:00 and end <= 22:00
+      return startTotalMinutes >= openingMinutes && endTotalMinutes <= closingMinutes;
     }).toList();
   }
 
@@ -239,11 +250,68 @@ class BookingController extends GetxController {
     }
   }
 
-  // friendly error messages
+  // Enhanced friendly error messages with JSON parsing
   String _getUserFriendlyErrorMessage(String error) {
-    final lowerError = error.toLowerCase();
-
     print('🔍 Analyzing error: $error');
+
+    // Try to parse JSON error response from backend
+    try {
+      final Map<String, dynamic> errorData = json.decode(error);
+
+      // Check if it's a structured error response
+      if (errorData.containsKey('detail') && errorData['detail'] is Map) {
+        final detail = errorData['detail'] as Map<String, dynamic>;
+
+        // Return the user-friendly message from backend
+        if (detail.containsKey('message')) {
+          String message = detail['message'];
+
+          // Add suggestion if available
+          if (detail.containsKey('suggestion')) {
+            message += '\n\n💡 ${detail['suggestion']}';
+          }
+
+          // Add valid options for specific errors
+          if (detail.containsKey('valid_latest_slots')) {
+            final validSlots = detail['valid_latest_slots'] as List;
+            message +=
+                '\n\n⏰ Slot terakhir yang valid: ${validSlots.join(', ')}';
+          }
+
+          return message;
+        }
+
+        // Fallback to error type specific messages
+        final errorType = detail['error'] ?? '';
+        switch (errorType) {
+          case 'Invalid start time':
+          case 'Invalid end time':
+            return detail['message'] ?? 'Waktu harus dalam kelipatan 30 menit';
+          case 'Duration too short':
+            return detail['message'] ?? 'Durasi booking minimum 1 jam';
+          case 'Duration too long':
+            return detail['message'] ?? 'Durasi booking maksimum 7 hari';
+          case 'Start time too early':
+          case 'Start time too late':
+          case 'End time too early':
+          case 'End time too late':
+          case 'End time exceeds venue hours':
+            return detail['message'] ??
+                'Waktu booking di luar jam operasional venue';
+          case 'Guest count exceeds capacity':
+            return detail['message'] ?? 'Jumlah tamu melebihi kapasitas venue';
+          case 'Time slot not available':
+            return detail['message'] ?? 'Waktu yang dipilih sudah dibooking';
+          default:
+            return detail['message'] ?? 'Terjadi kesalahan validasi';
+        }
+      }
+    } catch (e) {
+      print('Error parsing JSON, falling back to string analysis: $e');
+    }
+
+    // Fallback to original string-based error detection
+    final lowerError = error.toLowerCase();
 
     // Specific conflict detection - multiple patterns
     if (lowerError.contains('venue not available') ||
@@ -451,6 +519,17 @@ class BookingController extends GetxController {
       final startHour = int.parse(startParts[0]);
       final startMinute = int.parse(startParts[1]);
 
+      // Validate slot is within operating hours
+      final startTotalMinutes = startHour * 60 + startMinute;
+      final closingMinutes = 22 * 60; // 22:00
+      final minimumBookingMinutes = 30; // 30 minutes minimum
+      final latestValidStartMinutes = closingMinutes - minimumBookingMinutes;
+      
+      if (startTotalMinutes > latestValidStartMinutes) {
+        showError('Slot tidak dapat digunakan - akan melewati jam operasional');
+        return;
+      }
+
       // Set start time
       startTime.value = TimeOfDay(
         hour: startHour,
@@ -458,12 +537,15 @@ class BookingController extends GetxController {
       );
 
       // Calculate end time (1 hour after start time)
-      final startTotalMinutes = startHour * 60 + startMinute;
       final endTotalMinutes = startTotalMinutes + 60;
-      final endHour = (endTotalMinutes ~/ 60) % 24;
-      final endMinute = endTotalMinutes % 60;
+      
+      // Operating hours constraint: end time cannot exceed 22:00 (1320 minutes)
+      final actualEndMinutes = endTotalMinutes > closingMinutes ? closingMinutes : endTotalMinutes;
+      
+      final endHour = actualEndMinutes ~/ 60;
+      final endMinute = actualEndMinutes % 60;
 
-      // Set end time (1 hour duration)
+      // Set end time (1 hour duration or until closing time)
       endTime.value = TimeOfDay(
         hour: endHour,
         minute: endMinute,
@@ -476,9 +558,14 @@ class BookingController extends GetxController {
           '${endHour.toString().padLeft(2, '0')}:${endMinute.toString().padLeft(2, '0')}';
       final timeRangeDisplay = '$startTimeDisplay - $endTimeDisplay';
 
-      // Use event/callback instead of direct snackbar
-      showSuccess(
-          'Waktu booking diperbarui ke $timeRangeDisplay\nSilakan review detail booking dan tekan "Book Now" jika sudah yakin.');
+      // Show warning if end time was adjusted due to operating hours
+      if (endTotalMinutes > closingMinutes) {
+        showSuccess(
+            'Waktu booking diperbarui ke $timeRangeDisplay\n⚠️ Waktu akhir disesuaikan dengan jam operasional (sampai 22:00)\nSilakan review detail booking dan tekan "Book Now" jika sudah yakin.');
+      } else {
+        showSuccess(
+            'Waktu booking diperbarui ke $timeRangeDisplay\nSilakan review detail booking dan tekan "Book Now" jika sudah yakin.');
+      }
 
       print('Time updated successfully: $timeRangeDisplay');
     } catch (e) {

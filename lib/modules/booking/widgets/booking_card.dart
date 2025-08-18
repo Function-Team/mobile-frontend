@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:function_mobile/common/widgets/images/network_image.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/generated/locale_keys.g.dart';
-import 'package:function_mobile/modules/booking/constants/status_constants.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_card_controller.dart';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:intl/intl.dart';
@@ -194,7 +193,6 @@ class BookingCard extends StatelessWidget {
   }
 
   Widget _buildStatusBadge() {
-    // Menggunakan getter dari BookingModel untuk konsistensi
     final statusColor = bookingModel.statusColor;
     final statusText = bookingModel.statusDisplayName;
 

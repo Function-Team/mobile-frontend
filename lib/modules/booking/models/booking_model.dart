@@ -177,7 +177,8 @@ class BookingModel {
 
   String get statusDisplayName {
     // Gunakan detailed status dari backend jika tersedia
-    if (detailedStatusFromBackend != null && detailedStatusFromBackend!.isNotEmpty) {
+    if (detailedStatusFromBackend != null &&
+        detailedStatusFromBackend!.isNotEmpty) {
       return detailedStatusFromBackend!;
     }
 
@@ -198,7 +199,8 @@ class BookingModel {
 
   String get detailedStatusDisplayName {
     // Gunakan detailed status dari backend jika tersedia
-    if (detailedStatusFromBackend != null && detailedStatusFromBackend!.isNotEmpty) {
+    if (detailedStatusFromBackend != null &&
+        detailedStatusFromBackend!.isNotEmpty) {
       return detailedStatusFromBackend!;
     }
 
@@ -510,8 +512,10 @@ class BookingModel {
       // Include computed status fields dari backend
       isPaidFromBackend: isPaidFromBackend ?? this.isPaidFromBackend,
       isExpiredFromBackend: isExpiredFromBackend ?? this.isExpiredFromBackend,
-      bookingStatusFromBackend: bookingStatusFromBackend ?? this.bookingStatusFromBackend,
-      detailedStatusFromBackend: detailedStatusFromBackend ?? this.detailedStatusFromBackend,
+      bookingStatusFromBackend:
+          bookingStatusFromBackend ?? this.bookingStatusFromBackend,
+      detailedStatusFromBackend:
+          detailedStatusFromBackend ?? this.detailedStatusFromBackend,
     );
   }
 }

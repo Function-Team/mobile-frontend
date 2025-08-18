@@ -1,55 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
 import 'package:function_mobile/modules/booking/models/booking_response_models.dart';
 import 'package:get/get.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_controller.dart';
+import 'package:function_mobile/modules/booking/controllers/calendar_booking_controller.dart';
 
-class CalendarBookingWidget extends StatefulWidget {
-  final BookingController controller;
+class CalendarBookingWidget extends GetView<CalendarBookingController> {
+  final BookingController bookingController;
   final int venueId;
 
   const CalendarBookingWidget({
-    Key? key,
-    required this.controller,
+    super.key,
+    required this.bookingController,
     required this.venueId,
-  }) : super(key: key);
-
-  @override
-  State<CalendarBookingWidget> createState() => _CalendarBookingWidgetState();
-}
-
-class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
-  @override
-  void initState() {
-    super.initState();
-    // Auto-load current month availability on widget initialization
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadCurrentMonthAvailability();
-      _preSelectTodayIfAvailable();
-
-      // Listen for booking success to refresh data
-      _listenForBookingUpdates();
-    });
-  }
-
-  void _loadCurrentMonthAvailability() {
-    final now = DateTime.now();
-    final startOfMonth = DateTime(now.year, now.month, 1);
-    final endOfMonth = DateTime(now.year, now.month + 1, 0);
-    widget.controller
-        .loadCalendarAvailability(widget.venueId, startOfMonth, endOfMonth);
-  }
-
-  void _preSelectTodayIfAvailable() {
-    final today = DateTime.now();
-    // Pre-select today and load its time slots
-    widget.controller.selectedDate.value = today;
-    widget.controller.loadDetailedTimeSlots(widget.venueId, today);
-  }
+  });
 
   @override
   Widget build(BuildContext context) {
+    // Initialize controller with dependency injection
+    Get.put(CalendarBookingController(
+      bookingController: bookingController,
+      venueId: venueId,
+    ));
+
     return Obx(() {
       return Container(
         decoration: BoxDecoration(
@@ -129,9 +102,9 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildLegendItem(Colors.green[100]!, 'Available'),
-          _buildLegendItem(Colors.orange[100]!, 'Limited'),
-          _buildLegendItem(Colors.red[100]!, 'Fully Booked'),
+          Flexible(child: _buildLegendItem(Colors.green[200]!, 'Available')),
+          Flexible(child: _buildLegendItem(Colors.orange[200]!, 'Limited')),
+          Flexible(child: _buildLegendItem(Colors.red[200]!, 'Fully Booked')),
         ],
       ),
     );
@@ -142,8 +115,8 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 16,
-          height: 16,
+          width: 14,
+          height: 14,
           decoration: BoxDecoration(
             color: color,
             borderRadius: BorderRadius.circular(4),
@@ -153,13 +126,16 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
             ),
           ),
         ),
-        SizedBox(width: 6),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: Colors.grey[700],
+        SizedBox(width: 4),
+        Flexible(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[700],
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
@@ -167,16 +143,7 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
   }
 
   Color _getBorderColor(String label) {
-    switch (label) {
-      case 'Available':
-        return Colors.green[300]!;
-      case 'Limited':
-        return Colors.orange[300]!;
-      case 'Fully Booked':
-        return Colors.red[300]!;
-      default:
-        return Colors.grey[300]!;
-    }
+    return controller.getBorderColor(label);
   }
 
   Widget _buildTableCalendar() {
@@ -185,14 +152,14 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
       child: TableCalendar<String>(
         firstDay: DateTime.utc(2020, 1, 1),
         lastDay: DateTime.utc(2030, 12, 31),
-        focusedDay: widget.controller.selectedDate.value ?? DateTime.now(),
+        focusedDay: controller.selectedDate ?? DateTime.now(),
         calendarFormat: CalendarFormat.month,
         startingDayOfWeek: StartingDayOfWeek.monday,
 
         // Enhanced selection logic
         selectedDayPredicate: (day) {
-          return widget.controller.selectedDate.value != null &&
-              isSameDay(widget.controller.selectedDate.value!, day);
+          return controller.selectedDate != null &&
+              isSameDay(controller.selectedDate!, day);
         },
 
         // Enhanced available days logic
@@ -265,11 +232,11 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
 
         // Enhanced event handling
         onDaySelected: (selectedDay, focusedDay) {
-          _onDaySelected(selectedDay);
+          controller.onDaySelected(selectedDay);
         },
 
         onPageChanged: (focusedDay) {
-          _onPageChanged(focusedDay);
+          controller.onPageChanged(focusedDay);
         },
       ),
     );
@@ -277,7 +244,7 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
 
   // SIMPLIFIED calendar cells - only color, no text info
   Widget _buildSimpleDayCell(DateTime day, bool isToday, bool isSelected) {
-    final availability = widget.controller.getAvailabilityStatus(day);
+    final availability = controller.getAvailabilityStatus(day);
 
     Color backgroundColor;
     Color borderColor;
@@ -289,9 +256,9 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
       borderColor = Get.theme.primaryColor;
       textColor = Colors.white;
     } else {
-      backgroundColor = _getColorForAvailability(availability);
+      backgroundColor = controller.getColorForAvailability(availability);
       borderColor =
-          isToday ? Colors.blue : _getBorderColorForAvailability(availability);
+          isToday ? Colors.blue : controller.getBorderColorForAvailability(availability);
 
       if (availability == 'booked') {
         textColor = Colors.grey[500]!;
@@ -344,7 +311,7 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
 
   Widget _buildTimeSlotGrid() {
     return Obx(() {
-      if (widget.controller.selectedDate.value == null) {
+      if (controller.selectedDate == null) {
         return Container(
           padding: EdgeInsets.all(20),
           child: Column(
@@ -364,7 +331,7 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
         );
       }
 
-      if (widget.controller.isLoadingTimeSlots.value) {
+      if (controller.isLoadingTimeSlots) {
         return Container(
           height: 120,
           child: Center(
@@ -383,8 +350,8 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
         );
       }
 
-      final timeSlots = widget.controller.detailedTimeSlots;
-      final selectedDate = widget.controller.selectedDate.value!;
+      final timeSlots = controller.detailedTimeSlots;
+      final selectedDate = controller.selectedDate!;
 
       return Container(
         padding: EdgeInsets.all(16),
@@ -411,7 +378,7 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
             ),
             SizedBox(height: 4),
             Text(
-              '${_formatSelectedDate(selectedDate)} • ${timeSlots.where((slot) => slot.available).length} of ${timeSlots.length} slots available',
+              '${controller.formatSelectedDate(selectedDate)} • ${timeSlots.where((slot) => slot.available && controller.isSlotWithinOperatingHours(slot)).length} of ${timeSlots.length} slots available',
               style: TextStyle(
                 color: Colors.grey[600],
                 fontSize: 13,
@@ -456,7 +423,7 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
                 itemCount: timeSlots.length,
                 itemBuilder: (context, index) {
                   final slot = timeSlots[index];
-                  return _buildTimeSlotChip(slot);
+                  return Obx(() => _buildTimeSlotChip(slot));
                 },
               ),
 
@@ -470,8 +437,8 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
   }
 
   Widget _buildTimeSlotChip(DetailedTimeSlot slot) {
-    final isAvailable = slot.available;
-    final isSelected = _isSlotSelected(slot);
+    final isAvailable = slot.available && controller.isSlotWithinOperatingHours(slot);
+    final isSelected = controller.isSlotSelected(slot);
 
     Color backgroundColor;
     Color borderColor;
@@ -495,7 +462,7 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
     }
 
     return GestureDetector(
-      onTap: isAvailable ? () => _onSlotTap(slot) : null,
+      onTap: isAvailable ? () => controller.onSlotTap(slot) : null,
       child: AnimatedContainer(
         duration: Duration(milliseconds: 200),
         decoration: BoxDecoration(
@@ -526,15 +493,8 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
                   fontSize: 12,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                 ),
+                overflow: TextOverflow.ellipsis,
               ),
-              if (!isAvailable) ...[
-                SizedBox(height: 2),
-                Icon(
-                  Icons.block,
-                  color: textColor,
-                  size: 10,
-                ),
-              ],
             ],
           ),
         ),
@@ -553,26 +513,32 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildSlotLegendItem(
-            Colors.green[50]!,
-            Colors.green[300]!,
-            Colors.green[700]!,
-            'Available',
-            Icons.check_circle_outline,
+          Flexible(
+            child: _buildSlotLegendItem(
+              Colors.green[50]!,
+              Colors.green[300]!,
+              Colors.green[700]!,
+              'Available',
+              Icons.check_circle_outline,
+            ),
           ),
-          _buildSlotLegendItem(
-            Get.theme.primaryColor,
-            Get.theme.primaryColor,
-            Colors.white,
-            'Selected',
-            Icons.radio_button_checked,
+          Flexible(
+            child: _buildSlotLegendItem(
+              Get.theme.primaryColor,
+              Get.theme.primaryColor,
+              Colors.white,
+              'Selected',
+              Icons.radio_button_checked,
+            ),
           ),
-          _buildSlotLegendItem(
-            Colors.red[100]!,
-            Colors.red[300]!,
-            Colors.red[600]!,
-            'Booked',
-            Icons.block,
+          Flexible(
+            child: _buildSlotLegendItem(
+              Colors.red[100]!,
+              Colors.red[300]!,
+              Colors.red[600]!,
+              'Booked',
+              Icons.block,
+            ),
           ),
         ],
       ),
@@ -590,8 +556,8 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 20,
-          height: 20,
+          width: 18,
+          height: 18,
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: BorderRadius.circular(4),
@@ -600,220 +566,46 @@ class _CalendarBookingWidgetState extends State<CalendarBookingWidget> {
           child: Icon(
             icon,
             color: textColor,
-            size: 12,
+            size: 10,
           ),
         ),
-        SizedBox(width: 6),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: Colors.grey[700],
+        SizedBox(width: 4),
+        Flexible(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[700],
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
     );
   }
 
-  // Helper methods
-  Color _getColorForAvailability(String availability) {
-    switch (availability) {
-      case 'available':
-        return Colors.green[50]!;
-      case 'partial':
-        return Colors.orange[50]!;
-      case 'booked':
-        return Colors.red[50]!;
-      default:
-        return Colors.grey[50]!;
-    }
-  }
+  // Helper methods moved to CalendarBookingController
 
-  Color _getBorderColorForAvailability(String availability) {
-    switch (availability) {
-      case 'available':
-        return Colors.green[300]!;
-      case 'partial':
-        return Colors.orange[300]!;
-      case 'booked':
-        return Colors.red[300]!;
-      default:
-        return Colors.grey[300]!;
-    }
-  }
-
-  bool _isSlotSelected(DetailedTimeSlot slot) {
-    final startTime = widget.controller.startTime.value;
-    final endTime = widget.controller.endTime.value;
-
-    if (startTime == null || endTime == null) return false;
-
-    final slotStart = _parseTimeOfDay(slot.start);
-    _parseTimeOfDay(slot.end);
-
-    // Check if this slot is within selected time range (inclusive)
-    final startMinutes = startTime.hour * 60 + startTime.minute;
-    final endMinutes = endTime.hour * 60 + endTime.minute;
-    final slotStartMinutes = slotStart.hour * 60 + slotStart.minute;
-
-    // Slot is selected if it overlaps with selected time range
-    return slotStartMinutes >= startMinutes && slotStartMinutes < endMinutes;
-  }
-
-  void _onSlotTap(DetailedTimeSlot slot) {
-    _parseTimeOfDay(slot.start);
-    _parseTimeOfDay(slot.end);
-
-    // Handle multi-slot selection for longer duration
-    _handleMultiSlotSelection(slot);
-  }
-
-  void _handleMultiSlotSelection(DetailedTimeSlot slot) {
-    final currentStart = widget.controller.startTime.value;
-    final currentEnd = widget.controller.endTime.value;
-    final slotStart = _parseTimeOfDay(slot.start);
-    final slotEnd = _parseTimeOfDay(slot.end);
-
-    if (currentStart == null) {
-      // First selection - set this single 30-min slot
-      widget.controller.startTime.value = slotStart;
-      widget.controller.endTime.value = slotEnd;
-    } else {
-      // Check if clicking the same slot (deselect)
-      final currentStartMinutes = currentStart.hour * 60 + currentStart.minute;
-      final currentEndMinutes = currentEnd!.hour * 60 + currentEnd.minute;
-      final slotStartMinutes = slotStart.hour * 60 + slotStart.minute;
-
-      if (currentStartMinutes == slotStartMinutes &&
-          currentEndMinutes == slotStartMinutes + 30) {
-        // Clicking same slot - deselect
-        widget.controller.startTime.value = null;
-        widget.controller.endTime.value = null;
-        CustomSnackbar.show(
-            context: context, message: 'Time Cleared', type: SnackbarType.info);
-        return;
-      }
-
-      // Extend selection
-      if (slotStartMinutes < currentStartMinutes) {
-        // Extend backwards
-        widget.controller.startTime.value = slotStart;
-      } else {
-        // Extend forwards
-        widget.controller.endTime.value = slotEnd;
-      }
-    }
-
-    // Show feedback
-    _calculateSelectedDuration();
-    CustomSnackbar.show(
-        context: context, message: 'Time Updated', type: SnackbarType.success);
-  }
-
-  String _calculateSelectedDuration() {
-    final start = widget.controller.startTime.value;
-    final end = widget.controller.endTime.value;
-
-    if (start == null || end == null) return '';
-
-    final startMinutes = start.hour * 60 + start.minute;
-    final endMinutes = end.hour * 60 + end.minute;
-    final duration = endMinutes - startMinutes;
-
-    if (duration >= 60) {
-      final hours = duration ~/ 60;
-      final mins = duration % 60;
-      return mins > 0 ? '${hours}h ${mins}m' : '${hours}h';
-    } else {
-      return '${duration}m';
-    }
-  }
-
-  TimeOfDay _parseTimeOfDay(String timeString) {
-    final parts = timeString.split(':');
-    return TimeOfDay(
-      hour: int.parse(parts[0]),
-      minute: int.parse(parts[1]),
-    );
-  }
-
-  String _formatSelectedDate(DateTime date) {
-    final weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    final months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-
-    return '${weekdays[date.weekday - 1]}, ${date.day} ${months[date.month - 1]}';
-  }
-
-  void _onDaySelected(DateTime selectedDay) {
-    // Prevent selecting past dates
-    if (selectedDay.isBefore(DateTime.now().subtract(Duration(days: 1)))) {
-      CustomSnackbar.show(
-          context: context, message: 'Invalid Date', type: SnackbarType.error);
-      return;
-    }
-
-    widget.controller.selectedDate.value = selectedDay;
-
-    // Load detailed time slots for selected date
-    widget.controller.loadDetailedTimeSlots(widget.venueId, selectedDay);
-
-    // Clear existing time selection when date changes
-    widget.controller.startTime.value = null;
-    widget.controller.endTime.value = null;
-  }
-
-  void _onPageChanged(DateTime focusedDay) {
-    // Load calendar availability for the new month
-    final startOfMonth = DateTime(focusedDay.year, focusedDay.month, 1);
-    final endOfMonth = DateTime(focusedDay.year, focusedDay.month + 1, 0);
-
-    widget.controller
-        .loadCalendarAvailability(widget.venueId, startOfMonth, endOfMonth);
-  }
+  // All business logic methods moved to CalendarBookingController
 
   // NEW: Force refresh calendar and time slots data
   void refreshAvailabilityData() {
-    if (widget.controller.selectedDate.value != null) {
+    final currentDate = controller.selectedDate;
+    if (currentDate != null) {
       // Refresh calendar for current month
-      final currentDate = widget.controller.selectedDate.value!;
       final startOfMonth = DateTime(currentDate.year, currentDate.month, 1);
       final endOfMonth = DateTime(currentDate.year, currentDate.month + 1, 0);
 
       // Force refresh both calendar and time slots
-      widget.controller
-          .loadCalendarAvailability(widget.venueId, startOfMonth, endOfMonth);
-      widget.controller.loadDetailedTimeSlots(widget.venueId, currentDate);
+      controller
+          .loadCalendarAvailability(controller.venueId, startOfMonth, endOfMonth);
+      controller.loadDetailedTimeSlots(controller.venueId, currentDate);
 
       print(
           '🔄 Force refreshed availability data for ${currentDate.toString()}');
     }
   }
 
-  void _listenForBookingUpdates() {
-    // Listen to booking status changes
-    ever(widget.controller.bookingStatus, (status) {
-      if (status == 'success') {
-        // Delay refresh to allow backend to update
-        Future.delayed(Duration(milliseconds: 1500), () {
-          refreshAvailabilityData();
-          CustomSnackbar.show(
-              context: context, message: 'Updated', type: SnackbarType.success);
-        });
-      }
-    });
-  }
+  // Method removed - booking updates are now handled in controller
 }
