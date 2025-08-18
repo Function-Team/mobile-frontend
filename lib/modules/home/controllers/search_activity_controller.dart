@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
+import 'package:function_mobile/core/helpers/localization_helper.dart';
+import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:function_mobile/modules/venue/data/repositories/venue_repository.dart';
 import 'package:get/get.dart';
@@ -44,7 +46,12 @@ class SearchActivityController extends GetxController {
       print('Error loading data: $e');
       errorMessage.value = 'Failed to load data: $e';
       // Show error message to user
-      CustomSnackbar.show(context: Get.context!, message: 'Failed to load data', type: SnackbarType.error);
+      CustomSnackbar.show(
+          context: Get.context!, 
+          message: LocalizationHelper.tr(LocaleKeys.errors_networkError), 
+          type: SnackbarType.error,
+          autoClear: true,
+          enableDebounce: false);
     } finally {
       isLoading.value = false;
     }

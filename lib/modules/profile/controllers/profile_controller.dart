@@ -43,7 +43,9 @@ class ProfileController extends GetxController {
       CustomSnackbar.show(
           context: Get.context!,
           message: 'Failed to load user profile',
-          type: SnackbarType.error);
+          type: SnackbarType.error,
+          autoClear: true,
+          enableDebounce: false);
     } finally {
       isLoading.value = false;
     }
@@ -68,6 +70,8 @@ class ProfileController extends GetxController {
         context: Get.context!,
         message: 'Failed to refresh profile data',
         type: SnackbarType.error,
+        autoClear: true,
+        enableDebounce: false,
       );
     } finally {
       isRefreshing.value = false;
@@ -92,12 +96,16 @@ class ProfileController extends GetxController {
       CustomSnackbar.show(
           context: Get.context!,
           message: 'Success to update profile',
-          type: SnackbarType.success);
+          type: SnackbarType.success,
+          autoClear: true,
+          enableDebounce: false);
     } catch (e) {
       CustomSnackbar.show(
           context: Get.context!,
           message: 'Failed to update profile',
-          type: SnackbarType.error);
+          type: SnackbarType.error,
+          autoClear: true,
+          enableDebounce: false);
     } finally {
       isLoading.value = false;
     }

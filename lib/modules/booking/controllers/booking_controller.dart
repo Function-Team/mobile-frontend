@@ -7,7 +7,6 @@ import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:function_mobile/modules/booking/models/booking_response_models.dart';
 import 'package:function_mobile/modules/booking/services/booking_service.dart';
 import 'package:function_mobile/modules/booking/services/booking_validation_service.dart';
-import 'package:function_mobile/modules/booking/widgets/conflict_dialog.dart';
 import 'package:function_mobile/modules/navigation/controllers/bottom_nav_controller.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:get/get.dart';
@@ -52,7 +51,6 @@ class BookingController extends GetxController {
   // Booking state
   final RxBool isProcessing = false.obs;
   final RxString bookingStatus = 'idle'.obs;
-  final RxInt remainingSeconds = 300.obs;
   final RxInt maxVenueCapacity = 100.obs;
   Timer? _timer;
 
@@ -109,15 +107,6 @@ class BookingController extends GetxController {
     }
   }
 
-  List<TimeSlot> _filterOperatingHourSlots(List<TimeSlot> slots) {
-    return slots.where((slot) {
-      final startHour = int.parse(slot.start.split(':')[0]);
-      final endHour = int.parse(slot.end.split(':')[0]);
-
-      // Only include slots that start >= 8 and end <= 22
-      return startHour >= 8 && endHour <= 22;
-    }).toList();
-  }
 
   Future<void> loadDetailedTimeSlots(int venueId, DateTime date) async {
     try {
@@ -226,7 +215,7 @@ class BookingController extends GetxController {
       } else if (response is BookingConflictResponse) {
         // CONFLICT - Time slot not available
         bookingStatus.value = 'failed';
-        handleBookingConflict(response.availableSlots, venue);
+        showError('Waktu yang dipilih sudah dibooking. Silakan pilih waktu lain.');
       }
     } catch (e) {
       print('ERROR: Booking creation failed: $e');
@@ -432,59 +421,6 @@ class BookingController extends GetxController {
     return true;
   }
 
-  void handleBookingConflict(List<TimeSlot> availableSlots, VenueModel venue) {
-    // Let UI layer handle the dialog display
-    final filteredSlots = _filterOperatingHourSlots(availableSlots);
-
-    // Use callback or event to notify UI layer
-    Get.dialog(ConflictDialog(
-        availableSlots: filteredSlots,
-        venue: venue,
-        onSlotSelected: (TimeSlot slot) => useAvailableSlot(slot)));
-  }
-
-  // Use the selected available slot
-  void useAvailableSlot(TimeSlot slot) {
-    try {
-      // Parse start time from available slot
-      final startParts = slot.start.split(':');
-      final startHour = int.parse(startParts[0]);
-      final startMinute = int.parse(startParts[1]);
-
-      // Set start time
-      startTime.value = TimeOfDay(
-        hour: startHour,
-        minute: startMinute,
-      );
-
-      // Calculate end time (1 hour after start time)
-      final startTotalMinutes = startHour * 60 + startMinute;
-      final endTotalMinutes = startTotalMinutes + 60;
-      final endHour = (endTotalMinutes ~/ 60) % 24;
-      final endMinute = endTotalMinutes % 60;
-
-      // Set end time (1 hour duration)
-      endTime.value = TimeOfDay(
-        hour: endHour,
-        minute: endMinute,
-      );
-
-      // Format display times for success message
-      final startTimeDisplay =
-          '${startHour.toString().padLeft(2, '0')}:${startMinute.toString().padLeft(2, '0')}';
-      final endTimeDisplay =
-          '${endHour.toString().padLeft(2, '0')}:${endMinute.toString().padLeft(2, '0')}';
-      final timeRangeDisplay = '$startTimeDisplay - $endTimeDisplay';
-
-      // Use event/callback instead of direct snackbar
-      showSuccess(
-          'Waktu booking diperbarui ke $timeRangeDisplay\nSilakan review detail booking dan tekan "Book Now" jika sudah yakin.');
-
-      print('Time updated successfully: $timeRangeDisplay');
-    } catch (e) {
-      showError('Gagal memperbarui slot waktu: $e');
-    }
-  }
 
   void setStartTime(TimeOfDay time) {
     startTime.value = time;
@@ -756,6 +692,8 @@ class BookingController extends GetxController {
       context: Get.context!,
       message: message,
       type: SnackbarType.error,
+      autoClear: true,
+      enableDebounce: false,
     );
   }
 
@@ -764,14 +702,8 @@ class BookingController extends GetxController {
       context: Get.context!,
       message: message,
       type: SnackbarType.success,
-    );
-  }
-
-  void showValidationWarning(String message) {
-    CustomSnackbar.show(
-      context: Get.context!,
-      message: message,
-      type: SnackbarType.warning,
+      autoClear: true,
+      enableDebounce: false,
     );
   }
 
@@ -780,6 +712,8 @@ class BookingController extends GetxController {
       context: Get.context!,
       message: message,
       type: SnackbarType.info,
+      autoClear: true,
+      enableDebounce: true,
     );
   }
 
