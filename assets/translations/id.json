@@ -170,7 +170,9 @@
       "pending": "Menunggu",
       "confirmed": "Dikonfirmasi",
       "completed": "Selesai",
-      "cancelled": "Dibatalkan"
+      "cancelled": "Dibatalkan",
+      "paid": "Dibayar",
+      "expired": "Kedaluwarsa"
     },
     "sortOptions": {
       "newestIdFirst": "ID Terbaru Lebih Dulu",
@@ -204,6 +206,15 @@
       "noResults": {
         "title": "Tidak Ada Pemesanan",
         "message": "Tidak ada pemesanan ditemukan."
+      },
+      "noPaid": {
+        "title": "Tidak Ada Pemesanan Dibayar",
+        "message": "Tidak ada pemesanan yang dibayar."
+      },
+      "noExpired": {
+        "title": "Tidak Ada Pemesanan Kadaluwarsa",
+
+        "message": "Tidak ada pemesanan yang kadaluwarsa."
       }
     },
     "exploreVenues": "Jelajahi Venue"

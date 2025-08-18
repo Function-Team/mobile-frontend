@@ -25,8 +25,6 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
     super.initState();
     // Restore email from storage if needed (for page refresh)
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final AuthController authController = Get.find<AuthController>();
-      authController.restorePendingVerificationEmail();
     });
   }
 
@@ -332,9 +330,6 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
   // Pull-to-refresh functionality
   Future<void> _refreshPage(AuthController authController) async {
     try {
-      // Restore email from storage if needed
-      await authController.restorePendingVerificationEmail();
-
       // Check if email is available before checking verification status
       if (authController.emailSignUpController.text.trim().isEmpty) {
         if (mounted) {

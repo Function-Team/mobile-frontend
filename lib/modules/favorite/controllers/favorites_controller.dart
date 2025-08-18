@@ -26,7 +26,10 @@ class FavoritesController extends GetxController {
     // Listen to auth changes to reload favorites when user changes
     ever(_authController.user, (user) {
       if (user != null) {
-        loadFavorites();
+        // Add small delay to prevent race condition
+        Future.delayed(const Duration(milliseconds: 100), () {
+          loadFavorites();
+        });
       } else {
         // Clear favorites when user logs out
         favorites.clear();
@@ -37,12 +40,12 @@ class FavoritesController extends GetxController {
   Future<void> loadFavorites() async {
     try {
       isLoading.value = true;
-      favorites.clear();
-
+      
       // Get current user
       final currentUser = _authController.user.value;
       if (currentUser == null) {
         print('No user logged in, cannot load favorites');
+        favorites.clear();
         isLoading.value = false;
         return;
       }
@@ -53,10 +56,13 @@ class FavoritesController extends GetxController {
       // Load favorites from backend API
       try {
         final backendFavorites = await _favoriteService.getFavorites();
+        
+        // Clear and replace favorites to prevent duplicates
+        favorites.clear();
         favorites.addAll(backendFavorites);
 
         // Sync with local storage for offline access
-        final favoriteIds = backendFavorites.map((fav) => fav.id).toList();
+        final favoriteIds = favorites.map((fav) => fav.id).toList();
         await _storageService.saveFavorites(favoriteIds, currentUser.id);
 
         print(
@@ -64,6 +70,7 @@ class FavoritesController extends GetxController {
         debugPrintFavorites(); // Debug print favorites
       } catch (backendError) {
         print('Error loading favorites from backend: $backendError');
+        favorites.clear(); // Clear on error to prevent stale data
 
         CustomSnackbar.show(
             context: Get.context!,
@@ -73,7 +80,7 @@ class FavoritesController extends GetxController {
             enableDebounce: false);
       }
     } catch (e) {
-      print('Unexpected error in loadFavorites: $e');
+      favorites.clear(); // Clear on unexpected error
     } finally {
       isLoading.value = false;
     }
@@ -99,11 +106,14 @@ class FavoritesController extends GetxController {
         // Load venue details and add to favorites list
         final venue = await _venueRepository.getVenueById(venueId);
         if (venue != null) {
-          favorites.add(FavoriteModel(
-            id: venueId,
-            venue: venue,
-            createdAt: DateTime.now(),
-          ));
+          // Check if already exists to prevent duplicates
+          if (!favorites.any((fav) => fav.id == venueId)) {
+            favorites.add(FavoriteModel(
+              id: venueId,
+              venue: venue,
+              createdAt: DateTime.now(),
+            ));
+          }
         }
 
         // Update local storage
@@ -150,11 +160,14 @@ class FavoritesController extends GetxController {
 
             final venue = await _venueRepository.getVenueById(venueId);
             if (venue != null) {
-              favorites.add(FavoriteModel(
-                id: venueId,
-                venue: venue,
-                createdAt: DateTime.now(),
-              ));
+              // Check if already exists to prevent duplicates
+              if (!favorites.any((fav) => fav.id == venueId)) {
+                favorites.add(FavoriteModel(
+                  id: venueId,
+                  venue: venue,
+                  createdAt: DateTime.now(),
+                ));
+              }
             }
 
             CustomSnackbar.show(
@@ -276,7 +289,6 @@ class FavoritesController extends GetxController {
     for (var favorite in favorites) {
       print('- ${favorite.venue.name} (ID: ${favorite.id})');
     }
-    print('=====================');
   }
 
   void goToHome() {

@@ -67,6 +67,8 @@ class BookingDetailPage extends GetView<BookingDetailController> {
               const SizedBox(height: 16),
               _buildBookingInfoSection(context, booking),
               const SizedBox(height: 16),
+              _buildGuestInfoSection(context, booking),
+              const SizedBox(height: 16),
               _buildContactSection(context, booking),
               const SizedBox(height: 16),
               _buildPricingSection(context, booking),
@@ -118,31 +120,9 @@ class BookingDetailPage extends GetView<BookingDetailController> {
   }
 
   Widget _buildStatusChip(BookingModel booking) {
-    Color backgroundColor;
-    Color textColor;
-    String statusText;
-
-    if (booking.isConfirmed && booking.isPaid) {
-      backgroundColor = Colors.green;
-      textColor = Colors.white;
-      statusText = LocalizationHelper.tr(LocaleKeys.booking_status_completed);
-    } else if (booking.isConfirmed && !booking.isPaid) {
-      backgroundColor = Colors.orange;
-      textColor = Colors.white;
-      statusText = LocalizationHelper.tr(LocaleKeys.booking_status_confirmed);
-    } else if (!booking.isConfirmed && booking.isPaid) {
-      backgroundColor = Colors.blue;
-      textColor = Colors.white;
-      statusText = LocalizationHelper.tr(LocaleKeys.booking_status_paid);
-    } else if (booking.paymentStatus == 'cancelled') {
-      backgroundColor = Colors.red;
-      textColor = Colors.white;
-      statusText = LocalizationHelper.tr(LocaleKeys.booking_status_cancelled);
-    } else {
-      backgroundColor = Colors.grey;
-      textColor = Colors.white;
-      statusText = LocalizationHelper.tr(LocaleKeys.booking_status_pending);
-    }
+    // Menggunakan getter dari BookingModel untuk konsistensi
+    final backgroundColor = booking.statusColor;
+    final statusText = booking.statusDisplayName;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -152,8 +132,8 @@ class BookingDetailPage extends GetView<BookingDetailController> {
       ),
       child: Text(
         statusText,
-        style: TextStyle(
-          color: textColor,
+        style: const TextStyle(
+          color: Colors.white,
           fontSize: 12,
           fontWeight: FontWeight.bold,
         ),
@@ -215,7 +195,8 @@ class BookingDetailPage extends GetView<BookingDetailController> {
                           Text(
                             venue?.name ??
                                 booking.placeName ??
-                                LocalizationHelper.tr(LocaleKeys.location_unknownVenue),
+                                LocalizationHelper.tr(
+                                    LocaleKeys.location_unknownVenue),
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -294,17 +275,18 @@ class BookingDetailPage extends GetView<BookingDetailController> {
           ),
           const SizedBox(height: 20),
           _buildInfoTile(
-            icon: Icons.calendar_today,
-            label: LocalizationHelper.tr(LocaleKeys.common_date),
-            value: _formatDate(booking.startDateTime),
-            iconColor: Colors.blue,
-          ),
+              icon: Icons.calendar_today,
+              label: 'Start Date & Time',
+              value: _formatFullDateTime(booking.startDateTime),
+              iconColor: Colors.blue,
+              isMultiline: true),
           const SizedBox(height: 16),
           _buildInfoTile(
-            icon: Icons.access_time,
-            label: LocalizationHelper.tr(LocaleKeys.common_time),
-            value: _formatTimeRange(booking),
-            iconColor: Colors.green,
+            icon: Icons.event,
+            label: 'End Date & Time',
+            value: _formatFullDateTime(booking.endDateTime),
+            iconColor: Colors.red,
+            isMultiline: true,
           ),
           const SizedBox(height: 16),
           _buildInfoTile(
@@ -321,6 +303,103 @@ class BookingDetailPage extends GetView<BookingDetailController> {
               value:
                   DateFormat('MMM dd, yyyy - HH:mm').format(booking.createdAt!),
               iconColor: Colors.purple,
+            ),
+          ],
+          if (booking.amount != null && booking.amount! > 0) ...[
+            const SizedBox(height: 16),
+            _buildInfoTile(
+              icon: Icons.attach_money,
+              label: 'Total Amount',
+              value:
+                  'Rp ${NumberFormat('#,###', 'id_ID').format(booking.amount!)}',
+              iconColor: Colors.green[600]!,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGuestInfoSection(BuildContext context, BookingModel booking) {
+    // Only show guest info section if there's guest information available
+    if (booking.guestName == null &&
+        booking.guestEmail == null &&
+        booking.guestPhone == null &&
+        booking.guestCount == null &&
+        booking.specialRequest == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Guest Information',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 20),
+          if (booking.guestName != null && booking.guestName!.isNotEmpty) ...[
+            _buildInfoTile(
+              icon: Icons.person,
+              label: 'Guest Name',
+              value: booking.guestName!,
+              iconColor: Colors.blue,
+            ),
+            const SizedBox(height: 16),
+          ],
+          if (booking.guestEmail != null && booking.guestEmail!.isNotEmpty) ...[
+            _buildInfoTile(
+              icon: Icons.email,
+              label: 'Email',
+              value: booking.guestEmail!,
+              iconColor: Colors.green,
+            ),
+            const SizedBox(height: 16),
+          ],
+          if (booking.guestPhone != null && booking.guestPhone!.isNotEmpty) ...[
+            _buildInfoTile(
+              icon: Icons.phone,
+              label: 'Phone',
+              value: booking.guestPhone!,
+              iconColor: Colors.orange,
+            ),
+            const SizedBox(height: 16),
+          ],
+          if (booking.guestCount != null) ...[
+            _buildInfoTile(
+              icon: Icons.group,
+              label: 'Guest Count',
+              value:
+                  '${booking.guestCount} ${booking.guestCount == 1 ? 'guest' : 'guests'}',
+              iconColor: Colors.purple,
+            ),
+            const SizedBox(height: 16),
+          ],
+          if (booking.specialRequest != null &&
+              booking.specialRequest!.isNotEmpty) ...[
+            _buildInfoTile(
+              icon: Icons.note,
+              label: 'Special Request',
+              value: booking.specialRequest!,
+              iconColor: Colors.red,
+              isMultiline: true,
             ),
           ],
         ],
@@ -398,7 +477,42 @@ class BookingDetailPage extends GetView<BookingDetailController> {
             ],
           ),
           const SizedBox(height: 16),
-          if (booking.isPaid) ...[
+          if (booking.status == BookingStatus.expired) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.access_time_filled, color: Colors.red[700]),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Booking Expired',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red,
+                          ),
+                        ),
+                        Text(
+                          'This booking has expired and is no longer valid',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else if (booking.isPaid) ...[
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -434,7 +548,9 @@ class BookingDetailPage extends GetView<BookingDetailController> {
                 ],
               ),
             ),
-          ] else if (booking.isConfirmed && !booking.isPaid) ...[
+          ] else if (booking.isConfirmed &&
+              !booking.isPaid &&
+              booking.status != BookingStatus.expired) ...[
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -483,25 +599,34 @@ class BookingDetailPage extends GetView<BookingDetailController> {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+          colors: [Colors.white, Colors.grey.shade100],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            LocalizationHelper.tr(LocaleKeys.booking_paymentSummary),
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+          // Title
+          Row(
+            children: [
+              Text(
+                LocalizationHelper.tr(LocaleKeys.booking_paymentSummary),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 20),
 
@@ -510,18 +635,24 @@ class BookingDetailPage extends GetView<BookingDetailController> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  LocalizationHelper.tr(LocaleKeys.booking_duration),
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
+                Row(
+                  children: [
+                    const Icon(Icons.access_time, size: 18, color: Colors.grey),
+                    const SizedBox(width: 6),
+                    Text(
+                      LocalizationHelper.tr(LocaleKeys.booking_duration),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
                 ),
                 Text(
                   _calculateDuration(booking),
                   style: const TextStyle(
                     fontSize: 14,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -531,50 +662,64 @@ class BookingDetailPage extends GetView<BookingDetailController> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    LocalizationHelper.tr(LocaleKeys.booking_ratePerHour),
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
+                  Row(
+                    children: [
+                      const Icon(Icons.monetization_on,
+                          size: 18, color: Colors.grey),
+                      const SizedBox(width: 6),
+                      Text(
+                        LocalizationHelper.tr(LocaleKeys.booking_ratePerHour),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
                   ),
                   Text(
                     'Rp ${NumberFormat('#,###', 'id_ID').format(venue.price)}/hour',
                     style: const TextStyle(
                       fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
             ],
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
+            Divider(color: Colors.grey.shade300),
+            const SizedBox(height: 12),
           ],
 
-          // Total amount
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                LocalizationHelper.tr(LocaleKeys.booking_totalAmount),
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+          // Total amount (highlighted box)
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            decoration: BoxDecoration(
+              color: amount > 0 ? Colors.green.shade50 : Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  LocalizationHelper.tr(LocaleKeys.booking_totalAmount),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-              Text(
-                amount > 0
-                    ? 'Rp ${NumberFormat('#,###', 'id_ID').format(amount)}'
-                    : LocalizationHelper.tr(LocaleKeys.common_free),
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: amount > 0 ? Colors.green[600] : Colors.blue[600],
+                Text(
+                  amount > 0
+                      ? 'Rp ${NumberFormat('#,###', 'id_ID').format(amount)}'
+                      : LocalizationHelper.tr(LocaleKeys.common_free),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: amount > 0 ? Colors.green[700] : Colors.blue[700],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -586,8 +731,11 @@ class BookingDetailPage extends GetView<BookingDetailController> {
     required String label,
     required String value,
     required Color iconColor,
+    bool isMultiline = false,
   }) {
     return Row(
+      crossAxisAlignment:
+          isMultiline ? CrossAxisAlignment.start : CrossAxisAlignment.center,
       children: [
         Container(
           padding: const EdgeInsets.all(8),
@@ -622,6 +770,9 @@ class BookingDetailPage extends GetView<BookingDetailController> {
                   fontWeight: FontWeight.w600,
                   color: Colors.black87,
                 ),
+                maxLines: isMultiline ? null : 1,
+                overflow:
+                    isMultiline ? TextOverflow.visible : TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -698,9 +849,8 @@ class BookingDetailPage extends GetView<BookingDetailController> {
     );
   }
 
-  // Helper methods
-  String _formatDate(DateTime dateTime) {
-    return DateFormat('EEEE, MMM dd, yyyy').format(dateTime);
+  String _formatFullDateTime(DateTime dateTime) {
+    return DateFormat('EEEE, MMM dd, yyyy - HH:mm').format(dateTime);
   }
 
   String _formatTimeRange(BookingModel booking) {

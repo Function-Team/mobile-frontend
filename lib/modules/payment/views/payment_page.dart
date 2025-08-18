@@ -6,6 +6,8 @@ import 'package:function_mobile/modules/payment/controllers/payment_controller.d
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:function_mobile/common/widgets/buttons/primary_button.dart';
 import 'package:function_mobile/common/widgets/buttons/outline_button.dart';
+import 'package:function_mobile/modules/payment/models/payment_model.dart'
+    as payment;
 
 class PaymentPage extends StatelessWidget {
   final BookingModel booking;
@@ -16,10 +18,10 @@ class PaymentPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final PaymentController controller = Get.put(PaymentController());
 
-    // Initialize payment when page loads
+    // Initialize payment and start payment process when page loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (controller.currentPayment.value == null) {
-        controller.initializePayment(booking);
+        _initializeAndStartPayment(controller);
       }
     });
 
@@ -88,7 +90,8 @@ class PaymentPage extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              LocalizationHelper.tr(LocaleKeys.payment_paymentInitializationFailed),
+              LocalizationHelper.tr(
+                  LocaleKeys.payment_paymentInitializationFailed),
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -137,6 +140,8 @@ class PaymentPage extends StatelessWidget {
           _buildPaymentMethods(),
           const SizedBox(height: 32),
           _buildPaymentActions(context, controller),
+          const SizedBox(height: 16),
+          _buildPaymentInfo(),
         ],
       ),
     );
@@ -162,16 +167,22 @@ class PaymentPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _buildInfoRow(Icons.location_on, 'Venue',
-              booking.place?.name ?? LocalizationHelper.tr(LocaleKeys.location_unknownVenue)),
+          _buildInfoRow(
+              Icons.location_on,
+              'Venue',
+              booking.place?.name ??
+                  LocalizationHelper.tr(LocaleKeys.location_unknownVenue)),
           const SizedBox(height: 12),
           _buildInfoRow(
               Icons.calendar_today, 'Date', _formatDate(booking.startDateTime)),
           const SizedBox(height: 12),
           _buildInfoRow(Icons.access_time, 'Time', _formatTimeRange()),
           const SizedBox(height: 12),
-          _buildInfoRow(Icons.people, 'Capacity',
-              LocalizationHelper.tr(LocaleKeys.booking_status_confirmed)), // Remove capacity display since it's not in model
+          _buildInfoRow(
+              Icons.people,
+              'Capacity',
+              LocalizationHelper.tr(LocaleKeys
+                  .booking_status_confirmed)), // Remove capacity display since it's not in model
         ],
       ),
     );
@@ -234,11 +245,14 @@ class PaymentPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _buildPriceRow(LocalizationHelper.tr(LocaleKeys.booking_venuePrice), 'Rp ${_formatCurrency(amount)}'),
+          _buildPriceRow(LocalizationHelper.tr(LocaleKeys.booking_venuePrice),
+              'Rp ${_formatCurrency(amount)}'),
           const SizedBox(height: 8),
-          _buildPriceRow(LocalizationHelper.tr(LocaleKeys.common_serviceFee), 'Rp ${_formatCurrency(0)}'),
+          _buildPriceRow(LocalizationHelper.tr(LocaleKeys.common_serviceFee),
+              'Rp ${_formatCurrency(0)}'),
           const SizedBox(height: 8),
-          _buildPriceRow(LocalizationHelper.tr(LocaleKeys.common_tax), 'Rp ${_formatCurrency(0)}'),
+          _buildPriceRow(LocalizationHelper.tr(LocaleKeys.common_tax),
+              'Rp ${_formatCurrency(0)}'),
           const Divider(height: 24),
           _buildPriceRow(
             LocalizationHelper.tr(LocaleKeys.common_total),
@@ -369,25 +383,82 @@ class PaymentPage extends StatelessWidget {
     );
   }
 
+  Future<void> _initializeAndStartPayment(PaymentController controller) async {
+    // Initialize payment first
+    final success = await controller.initializePayment(booking);
+
+    if (success) {
+      // Automatically start payment process (redirect to Midtrans)
+      await Future.delayed(const Duration(milliseconds: 1000));
+      final paymentSuccess = await controller.startPaymentProcess();
+
+      if (!paymentSuccess) {
+        // If payment failed, stay on this page to show retry option
+        print('[PaymentPage] Payment process failed, showing retry option');
+      }
+    } else {
+      // Handle initialization failure
+      print('[PaymentPage] Payment initialization failed');
+    }
+  }
+
   Widget _buildPaymentActions(
       BuildContext context, PaymentController controller) {
     return Obx(() {
       return Column(
         children: [
-          PrimaryButton(
-            isLoading: controller.isPaymentProcessing.value,
-            text: controller.isPaymentProcessing.value
-                ? LocalizationHelper.tr(LocaleKeys.booking_processingPayment)
-                : LocalizationHelper.tr(LocaleKeys.booking_payNow),
-            onPressed: controller.isPaymentProcessing.value
-                ? null
-                : () => controller.startPaymentProcess(),
-            width: double.infinity,
-            leftIcon: controller.isPaymentProcessing.value
-                ? Icons.hourglass_empty
-                : Icons.payment,
-          ),
-          const SizedBox(height: 12),
+          if (controller.paymentStatus.value == payment.PaymentStatus.failed ||
+              controller.errorMessage.value.isNotEmpty) ...[
+            PrimaryButton(
+              isLoading: controller.isPaymentProcessing.value,
+              text: LocalizationHelper.tr(LocaleKeys.payment_tryAgain),
+              onPressed: controller.isPaymentProcessing.value
+                  ? null
+                  : () => controller.startPaymentProcess(),
+              width: double.infinity,
+              leftIcon: Icons.refresh,
+            ),
+            const SizedBox(height: 12),
+          ] else ...[
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.blue[200]!),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.blue[600]),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Pembayaran akan dialihkan ke halaman Midtrans secara otomatis.',
+                      style: TextStyle(
+                        color: Colors.blue[800],
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            PrimaryButton(
+              isLoading: controller.isPaymentProcessing.value,
+              text: controller.isPaymentProcessing.value
+                  ? 'Membuka Midtrans...'
+                  : 'Bayar Sekarang',
+              onPressed: controller.isPaymentProcessing.value
+                  ? null
+                  : () => controller.startPaymentProcess(),
+              width: double.infinity,
+              leftIcon: controller.isPaymentProcessing.value
+                  ? Icons.hourglass_empty
+                  : Icons.payment,
+            ),
+            const SizedBox(height: 12),
+          ],
           OutlineButton(
             text: LocalizationHelper.tr(LocaleKeys.booking_cancelPayment),
             onPressed: () => _showExitConfirmation(context, controller),
@@ -399,20 +470,70 @@ class PaymentPage extends StatelessWidget {
     });
   }
 
+  Widget _buildPaymentInfo() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Informasi Pembayaran',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildInfoItem(Icons.security, 'Pembayaran aman dengan Midtrans'),
+          const SizedBox(height: 8),
+          _buildInfoItem(Icons.payment, 'Berbagai metode pembayaran tersedia'),
+          const SizedBox(height: 8),
+          _buildInfoItem(Icons.timer, 'Proses pembayaran real-time'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoItem(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: Colors.grey[600]),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[700],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   void _showExitConfirmation(
       BuildContext context, PaymentController controller) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(LocalizationHelper.tr(LocaleKeys.payment_cancelPaymentTitle)),
+          title: Text(
+              LocalizationHelper.tr(LocaleKeys.payment_cancelPaymentTitle)),
           content: Text(
             LocalizationHelper.tr(LocaleKeys.payment_cancelPaymentConfirm),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text(LocalizationHelper.tr(LocaleKeys.buttons_continuePayment)),
+              child: Text(
+                  LocalizationHelper.tr(LocaleKeys.buttons_continuePayment)),
             ),
             TextButton(
               onPressed: () {

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:get/get.dart';
+import 'package:function_mobile/common/routes/routes.dart';
 
 class BookingCardController extends GetxController {
   Rxn<Duration> remainingTime = Rxn<Duration>();
@@ -19,20 +20,45 @@ class BookingCardController extends GetxController {
     });
   }
 
+  // Method untuk menghentikan timer dari luar (dipanggil ketika status booking berubah)
+  void stopTimer() {
+    _timer?.cancel();
+    _timer = null;
+    remainingTime.value = Duration.zero;
+  }
+
+  // Method untuk mengecek apakah timer harus dihentikan berdasarkan booking status
+  void checkAndStopTimerIfExpired(BookingStatus bookingStatus) {
+    if (bookingStatus == BookingStatus.expired ||
+        bookingStatus == BookingStatus.cancelled ||
+        bookingStatus == BookingStatus.completed) {
+      stopTimer();
+    }
+  }
+
+  void goToDetail(String bookingId) {
+    Get.toNamed(MyRoutes.bookingDetail, arguments: bookingId);
+  }
+
   void startTimer() {
     _timer?.cancel();
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       decreaseTime();
     });
   }
+
   void initializeTimer(DateTime expiresAt) {
+    // Hentikan timer yang sedang berjalan
+    _timer?.cancel();
+
     final now = DateTime.now();
     final remaining = expiresAt.difference(now);
 
-    if (remaining.isNegative) {
+    if (remaining.isNegative || remaining <= Duration.zero) {
+      // ✅ PERBAIKAN: Jangan start timer jika sudah expired
       remainingTime.value = Duration.zero;
       status.value = BookingStatus.expired;
-      return;
+      return; // Keluar tanpa memulai timer
     }
 
     remainingTime.value = remaining;
@@ -44,6 +70,10 @@ class BookingCardController extends GetxController {
       remainingTime.value = remainingTime.value! - const Duration(seconds: 1);
     } else {
       remainingTime.value = Duration.zero;
+      _timer?.cancel();
+      _timer = null;
+      status.value = BookingStatus.expired;
+      update();
     }
   }
 

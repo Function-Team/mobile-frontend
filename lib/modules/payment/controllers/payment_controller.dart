@@ -36,11 +36,21 @@ class PaymentController extends GetxController {
       // Get amount from booking or calculate it
       final amount = booking.place?.price?.toDouble() ?? 0.0;
 
-      // Create payment with amount
-      final response = await _paymentService.createPayment(
-        booking.id,
-        amount: amount,
-      );
+      // First try to get existing payment, then create new one if needed
+      payment.PaymentResponse response;
+      try {
+        // Try to get existing payment first
+        response = await _paymentService.getPaymentByBookingId(booking.id);
+        print('Found existing payment for booking ${booking.id}');
+      } catch (e) {
+        // If no existing payment found, create a new one
+        print(
+            'No existing payment found, creating new payment for booking ${booking.id}');
+        response = await _paymentService.createPayment(
+          booking.id,
+          amount: amount,
+        );
+      }
 
       snapToken.value = response.snapToken ?? '';
       paymentStatus.value = payment.PaymentStatus.pending;
@@ -80,6 +90,9 @@ class PaymentController extends GetxController {
         throw Exception('No payment session available');
       }
 
+      // Show loading message
+      _showInfoSnackbar('Redirecting', 'Opening Midtrans payment page...');
+
       final result =
           await _paymentService.startPayment(snapToken: snapToken.value);
       print('[PaymentController] Midtrans result: $result');
@@ -89,11 +102,30 @@ class PaymentController extends GetxController {
 
       print('[PaymentController] Parsed payment status: $status');
 
+      // Refresh payment status from backend after webview closes
+      if (currentPayment.value != null) {
+        await _refreshPaymentFromBackend();
+      }
+
       if (status == payment.PaymentStatus.success) {
         print(
             '[PaymentController] Payment success detected. Triggering success handler.');
         _handlePaymentSuccess();
         return true;
+      } else if (status == payment.PaymentStatus.pending) {
+        print(
+            '[PaymentController] Payment pending. Checking backend status...');
+        // For pending status, we should check the actual status from backend
+        await Future.delayed(const Duration(seconds: 2));
+        await _refreshPaymentFromBackend();
+
+        if (paymentStatus.value == payment.PaymentStatus.success) {
+          _handlePaymentSuccess();
+          return true;
+        } else {
+          _handlePaymentFailure(paymentStatus.value);
+          return false;
+        }
       } else {
         print(
             '[PaymentController] Payment failed or cancelled. Status: $status');
@@ -108,6 +140,24 @@ class PaymentController extends GetxController {
       return false;
     } finally {
       isPaymentProcessing.value = false;
+    }
+  }
+
+  // Refresh payment status from backend
+  Future<void> _refreshPaymentFromBackend() async {
+    try {
+      if (currentPayment.value != null && currentPayment.value!.id != null) {
+        final updatedStatus =
+            await _paymentService.checkPaymentStatus(currentPayment.value!.id!);
+        paymentStatus.value = updatedStatus;
+        print(
+            '[PaymentController] Updated payment status from backend: $updatedStatus');
+      } else {
+        print(
+            '[PaymentController] Cannot refresh payment status: payment or payment ID is null');
+      }
+    } catch (e) {
+      print('[PaymentController] Failed to refresh payment status: $e');
     }
   }
 

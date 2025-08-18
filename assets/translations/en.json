@@ -169,7 +169,9 @@
       "pending": "Pending",
       "confirmed": "Confirmed",
       "completed": "Completed",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "paid": "Paid",
+      "expired": "Expired"
     },
     "sortOptions": {
       "newestIdFirst": "Newest ID First",
@@ -203,6 +205,14 @@
       "noResults": {
         "title": "No Bookings",
         "message": "No bookings found."
+      },
+      "noExpired": {
+        "title": "No Expired Bookings",
+        "message": "No expired bookings found."
+      },
+      "noPaid": {
+        "title": "No Paid Bookings",
+        "message": "No paid bookings found."
       }
     },
     "exploreVenues": "Explore Venues"
@@ -725,6 +735,7 @@
     "anonymous": "Anonymous",
     "viewAllReviews": "View all {count} reviews",
     "needHelpContactHost": "Need help? Contact Host"
+    
   },
   "pages": {
     "termsOfService": "Terms of Service",

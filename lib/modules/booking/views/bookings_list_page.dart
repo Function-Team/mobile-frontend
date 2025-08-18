@@ -32,15 +32,11 @@ class BookingListPage extends GetView<BookingListController> {
       backgroundColor: Theme.of(context).primaryColor,
       title: Text(
         LocalizationHelper.tr(LocaleKeys.appBarTitles_bookings),
-        style: Theme.of(context)
-            .textTheme
-            .titleLarge!
-            .copyWith(
+        style: Theme.of(context).textTheme.titleLarge!.copyWith(
               color: Colors.white,
               fontWeight: FontWeight.w600,
             ),
       ),
-      centerTitle: true,
       actions: [
         _buildSortButton(context),
         const SizedBox(width: 8),
@@ -365,6 +361,20 @@ class BookingListPage extends GetView<BookingListController> {
         icon = Icons.done_all;
         break;
       case 4:
+        title = LocalizationHelper.tr(
+            LocaleKeys.bookingList_emptyStates_noPaid_title);
+        message = LocalizationHelper.tr(
+            LocaleKeys.bookingList_emptyStates_noPaid_message);
+        icon = Icons.payment;
+        break;
+      case 5:
+        title = LocalizationHelper.tr(
+            LocaleKeys.bookingList_emptyStates_noExpired_title);
+        message = LocalizationHelper.tr(
+            LocaleKeys.bookingList_emptyStates_noExpired_message);
+        icon = Icons.schedule;
+        break;
+      case 6:
         title = LocalizationHelper.tr(
             LocaleKeys.bookingList_emptyStates_noCancelled_title);
         message = LocalizationHelper.tr(

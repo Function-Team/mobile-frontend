@@ -98,7 +98,7 @@ class BookingConflictResponse {
       'error': error,
       'available_slots': availableSlots.map((slot) => slot.toJson()).toList(),
     };
-  } 
+  }
   // Helper methods
 
   bool get hasAvailableSlots => availableSlots.isNotEmpty;
@@ -112,7 +112,6 @@ class BookingConflictResponse {
   String toString() =>
       'BookingConflictResponse(error: $error, slots: ${availableSlots.length})';
 }
-
 
 class DetailedTimeSlot {
   final String start;

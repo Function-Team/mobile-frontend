@@ -7,11 +7,13 @@ import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:function_mobile/modules/booking/models/booking_response_models.dart';
 import 'package:function_mobile/modules/booking/services/booking_service.dart';
 import 'package:function_mobile/modules/booking/services/booking_validation_service.dart';
+import 'package:function_mobile/modules/booking/widgets/conflict_dialog.dart';
 import 'package:function_mobile/modules/navigation/controllers/bottom_nav_controller.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
+import 'dart:convert';
 import 'package:url_launcher/url_launcher.dart';
 
 class BookingController extends GetxController {
@@ -51,6 +53,7 @@ class BookingController extends GetxController {
   // Booking state
   final RxBool isProcessing = false.obs;
   final RxString bookingStatus = 'idle'.obs;
+  final RxInt remainingSeconds = 300.obs;
   final RxInt maxVenueCapacity = 100.obs;
   Timer? _timer;
 
@@ -107,6 +110,25 @@ class BookingController extends GetxController {
     }
   }
 
+  List<TimeSlot> _filterOperatingHourSlots(List<TimeSlot> slots) {
+    return slots.where((slot) {
+      final startHour = int.parse(slot.start.split(':')[0]);
+      final startMinute = int.parse(slot.start.split(':')[1]);
+      final endHour = int.parse(slot.end.split(':')[0]);
+      final endMinute = int.parse(slot.end.split(':')[1]);
+
+      // Convert to minutes for precise comparison
+      final startTotalMinutes = startHour * 60 + startMinute;
+      final endTotalMinutes = endHour * 60 + endMinute;
+      
+      // Operating hours: 08:00 (480 minutes) to 22:00 (1320 minutes)
+      final openingMinutes = 8 * 60; // 08:00
+      final closingMinutes = 22 * 60; // 22:00
+
+      // Only include slots that start >= 08:00 and end <= 22:00
+      return startTotalMinutes >= openingMinutes && endTotalMinutes <= closingMinutes;
+    }).toList();
+  }
 
   Future<void> loadDetailedTimeSlots(int venueId, DateTime date) async {
     try {
@@ -215,7 +237,7 @@ class BookingController extends GetxController {
       } else if (response is BookingConflictResponse) {
         // CONFLICT - Time slot not available
         bookingStatus.value = 'failed';
-        showError('Waktu yang dipilih sudah dibooking. Silakan pilih waktu lain.');
+        handleBookingConflict(response.availableSlots, venue);
       }
     } catch (e) {
       print('ERROR: Booking creation failed: $e');
@@ -228,11 +250,68 @@ class BookingController extends GetxController {
     }
   }
 
-  // friendly error messages
+  // Enhanced friendly error messages with JSON parsing
   String _getUserFriendlyErrorMessage(String error) {
-    final lowerError = error.toLowerCase();
-
     print('🔍 Analyzing error: $error');
+
+    // Try to parse JSON error response from backend
+    try {
+      final Map<String, dynamic> errorData = json.decode(error);
+
+      // Check if it's a structured error response
+      if (errorData.containsKey('detail') && errorData['detail'] is Map) {
+        final detail = errorData['detail'] as Map<String, dynamic>;
+
+        // Return the user-friendly message from backend
+        if (detail.containsKey('message')) {
+          String message = detail['message'];
+
+          // Add suggestion if available
+          if (detail.containsKey('suggestion')) {
+            message += '\n\n💡 ${detail['suggestion']}';
+          }
+
+          // Add valid options for specific errors
+          if (detail.containsKey('valid_latest_slots')) {
+            final validSlots = detail['valid_latest_slots'] as List;
+            message +=
+                '\n\n⏰ Slot terakhir yang valid: ${validSlots.join(', ')}';
+          }
+
+          return message;
+        }
+
+        // Fallback to error type specific messages
+        final errorType = detail['error'] ?? '';
+        switch (errorType) {
+          case 'Invalid start time':
+          case 'Invalid end time':
+            return detail['message'] ?? 'Waktu harus dalam kelipatan 30 menit';
+          case 'Duration too short':
+            return detail['message'] ?? 'Durasi booking minimum 1 jam';
+          case 'Duration too long':
+            return detail['message'] ?? 'Durasi booking maksimum 7 hari';
+          case 'Start time too early':
+          case 'Start time too late':
+          case 'End time too early':
+          case 'End time too late':
+          case 'End time exceeds venue hours':
+            return detail['message'] ??
+                'Waktu booking di luar jam operasional venue';
+          case 'Guest count exceeds capacity':
+            return detail['message'] ?? 'Jumlah tamu melebihi kapasitas venue';
+          case 'Time slot not available':
+            return detail['message'] ?? 'Waktu yang dipilih sudah dibooking';
+          default:
+            return detail['message'] ?? 'Terjadi kesalahan validasi';
+        }
+      }
+    } catch (e) {
+      print('Error parsing JSON, falling back to string analysis: $e');
+    }
+
+    // Fallback to original string-based error detection
+    final lowerError = error.toLowerCase();
 
     // Specific conflict detection - multiple patterns
     if (lowerError.contains('venue not available') ||
@@ -421,6 +500,78 @@ class BookingController extends GetxController {
     return true;
   }
 
+  void handleBookingConflict(List<TimeSlot> availableSlots, VenueModel venue) {
+    // Let UI layer handle the dialog display
+    final filteredSlots = _filterOperatingHourSlots(availableSlots);
+
+    // Use callback or event to notify UI layer
+    Get.dialog(ConflictDialog(
+        availableSlots: filteredSlots,
+        venue: venue,
+        onSlotSelected: (TimeSlot slot) => useAvailableSlot(slot)));
+  }
+
+  // Use the selected available slot
+  void useAvailableSlot(TimeSlot slot) {
+    try {
+      // Parse start time from available slot
+      final startParts = slot.start.split(':');
+      final startHour = int.parse(startParts[0]);
+      final startMinute = int.parse(startParts[1]);
+
+      // Validate slot is within operating hours
+      final startTotalMinutes = startHour * 60 + startMinute;
+      final closingMinutes = 22 * 60; // 22:00
+      final minimumBookingMinutes = 30; // 30 minutes minimum
+      final latestValidStartMinutes = closingMinutes - minimumBookingMinutes;
+      
+      if (startTotalMinutes > latestValidStartMinutes) {
+        showError('Slot tidak dapat digunakan - akan melewati jam operasional');
+        return;
+      }
+
+      // Set start time
+      startTime.value = TimeOfDay(
+        hour: startHour,
+        minute: startMinute,
+      );
+
+      // Calculate end time (1 hour after start time)
+      final endTotalMinutes = startTotalMinutes + 60;
+      
+      // Operating hours constraint: end time cannot exceed 22:00 (1320 minutes)
+      final actualEndMinutes = endTotalMinutes > closingMinutes ? closingMinutes : endTotalMinutes;
+      
+      final endHour = actualEndMinutes ~/ 60;
+      final endMinute = actualEndMinutes % 60;
+
+      // Set end time (1 hour duration or until closing time)
+      endTime.value = TimeOfDay(
+        hour: endHour,
+        minute: endMinute,
+      );
+
+      // Format display times for success message
+      final startTimeDisplay =
+          '${startHour.toString().padLeft(2, '0')}:${startMinute.toString().padLeft(2, '0')}';
+      final endTimeDisplay =
+          '${endHour.toString().padLeft(2, '0')}:${endMinute.toString().padLeft(2, '0')}';
+      final timeRangeDisplay = '$startTimeDisplay - $endTimeDisplay';
+
+      // Show warning if end time was adjusted due to operating hours
+      if (endTotalMinutes > closingMinutes) {
+        showSuccess(
+            'Waktu booking diperbarui ke $timeRangeDisplay\n⚠️ Waktu akhir disesuaikan dengan jam operasional (sampai 22:00)\nSilakan review detail booking dan tekan "Book Now" jika sudah yakin.');
+      } else {
+        showSuccess(
+            'Waktu booking diperbarui ke $timeRangeDisplay\nSilakan review detail booking dan tekan "Book Now" jika sudah yakin.');
+      }
+
+      print('Time updated successfully: $timeRangeDisplay');
+    } catch (e) {
+      showError('Gagal memperbarui slot waktu: $e');
+    }
+  }
 
   void setStartTime(TimeOfDay time) {
     startTime.value = time;
@@ -599,12 +750,22 @@ class BookingController extends GetxController {
         return;
       }
 
-      final paymentData = {
-        'booking_id': booking.id,
-        'amount': booking.place?.price ?? 0,
-      };
-
-      final response = await _apiService.postRequest('/payment', paymentData);
+      // First, try to get existing payment for this booking
+      var response;
+      try {
+        response =
+            await _apiService.getRequest('/payment/booking/${booking.id}');
+        print('Found existing payment for booking ${booking.id}');
+      } catch (e) {
+        // If no existing payment found, create a new one
+        print(
+            'No existing payment found, creating new payment for booking ${booking.id}');
+        final paymentData = {
+          'booking_id': booking.id,
+          'amount': booking.place?.price ?? 0,
+        };
+        response = await _apiService.postRequest('/payment', paymentData);
+      }
 
       if (response != null && response['midtrans'] != null) {
         final snapToken = response['midtrans']['token'];
@@ -628,7 +789,7 @@ class BookingController extends GetxController {
           throw Exception('Could not open payment page');
         }
       } else {
-        throw Exception('Failed to create payment session');
+        throw Exception('Failed to get payment session');
       }
     } catch (e) {
       showError('Payment Error: ${e.toString()}');
@@ -692,8 +853,6 @@ class BookingController extends GetxController {
       context: Get.context!,
       message: message,
       type: SnackbarType.error,
-      autoClear: true,
-      enableDebounce: false,
     );
   }
 
@@ -702,8 +861,14 @@ class BookingController extends GetxController {
       context: Get.context!,
       message: message,
       type: SnackbarType.success,
-      autoClear: true,
-      enableDebounce: false,
+    );
+  }
+
+  void showValidationWarning(String message) {
+    CustomSnackbar.show(
+      context: Get.context!,
+      message: message,
+      type: SnackbarType.warning,
     );
   }
 
@@ -712,15 +877,13 @@ class BookingController extends GetxController {
       context: Get.context!,
       message: message,
       type: SnackbarType.info,
-      autoClear: true,
-      enableDebounce: true,
     );
   }
 
   // NAVIGATION
   Future<void> goToBookingListPage() async {
     Get.offAllNamed(MyRoutes.bottomNav);
-    Get.find<BottomNavController>().changePage(1);
+    Get.find<BottomNavController>().changePage(0);
     Get.find<BookingListController>().refreshBookings();
   }
 }

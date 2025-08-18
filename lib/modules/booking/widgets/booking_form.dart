@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:function_mobile/core/helpers/localization_helper.dart';
 import 'package:function_mobile/generated/locale_keys.g.dart';
 import 'package:function_mobile/modules/booking/controllers/booking_controller.dart';
-import 'package:function_mobile/modules/booking/widgets/time_slot_picker.dart';
+import 'package:function_mobile/modules/booking/widgets/time_display_widget.dart';
 import 'package:function_mobile/modules/booking/widgets/calendar_booking_widget.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:get/get.dart';
@@ -25,23 +25,24 @@ class BookingForm extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Date & Time Selection Card
-          _buildDateTimeCard(),
+          _bookingTitle(),
           const SizedBox(height: 16),
-
-          // Duration & Capacity Card
-          _buildDurationCapacityCard(),
+          // Calendar widget
+          CalendarBookingWidget(
+            bookingController: controller,
+            venueId: venue.id,
+          ),
           const SizedBox(height: 16),
-
-          // Guest Information Card
+          _timeRangePicker(controller),
+          const SizedBox(height: 16),
+          _durationDisplay(controller),
+          const SizedBox(height: 16),
+          _capacitySection(controller),
+          const SizedBox(height: 16),
           _guestInfoForm(controller),
-          const SizedBox(height: 16),
-
-          // Price Summary Card
-          _buildPriceSummaryCard(),
           const SizedBox(height: 24),
-
-          // Book Now Button
+          _totalPriceDisplay(controller),
+          const SizedBox(height: 24),
           _bookNowButton(controller),
         ],
       ),
@@ -73,205 +74,72 @@ class BookingForm extends StatelessWidget {
     }
   }
 
-
-  // Date & Time Selection Card
-  Widget _buildDateTimeCard() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.calendar_today,
-                  color: Theme.of(Get.context!).primaryColor,
-                  size: 24,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    LocalizationHelper.tr(LocaleKeys.booking_selectDate),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey[800],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Calendar widget
-            CalendarBookingWidget(
-              controller: controller,
-              venueId: venue.id,
-            ),
-            const SizedBox(height: 16),
-
-            // Time selection info
-            _timeSelectionInfo(controller),
-          ],
-        ),
+  Widget _bookingTitle() {
+    return Text(
+      'Booking Information',
+      style: TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
       ),
     );
   }
 
-  // Duration & Capacity Card
-  Widget _buildDurationCapacityCard() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.access_time,
-                  color: Theme.of(Get.context!).primaryColor,
-                  size: 24,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    LocalizationHelper.tr(LocaleKeys.booking_duration),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey[800],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Duration Display
-            _durationDisplay(controller),
-            const SizedBox(height: 16),
-
-            // Capacity Section
-            _capacitySection(controller),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Price Summary Card
-  Widget _buildPriceSummaryCard() {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.receipt_long,
-                  color: Theme.of(Get.context!).primaryColor,
-                  size: 24,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    LocalizationHelper.tr(LocaleKeys.booking_priceSummary),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey[800],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Price Display
-            _totalPriceDisplay(controller),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _timeSelectionInfo(BookingController controller) {
+  Widget _timeRangePicker(BookingController controller) {
     return Obx(() {
-      final startTime = controller.startTime.value;
-      final endTime = controller.endTime.value;
-
-      if (startTime == null || endTime == null) {
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.blue[50],
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.blue[200]!),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.info_outline, color: Colors.blue[600], size: 20),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  LocalizationHelper.tr(LocaleKeys.booking_selectTime),
-                  style: TextStyle(
-                    color: Colors.blue[700],
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Info text
+          Container(
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.blue[50],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.blue[200]!),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline, color: Colors.blue[600], size: 20),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Pilih slot waktu yang tersedia di kalender di atas untuk menentukan waktu booking Anda',
+                    style: TextStyle(
+                      color: Colors.blue[700],
+                      fontSize: 13,
+                    ),
                   ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 16),
+          
+          // Time display containers
+          Row(
+            children: [
+              // Start Time Display
+              Expanded(
+                child: TimeDisplayWidget(
+                  label: 'Waktu Mulai',
+                  selectedTime: controller.startTime.value,
+                ),
+              ),
+
+              SizedBox(width: 16),
+
+              // End Time Display
+              Expanded(
+                child: TimeDisplayWidget(
+                  label: 'Waktu Berakhir',
+                  selectedTime: controller.endTime.value,
                 ),
               ),
             ],
           ),
-        );
-      }
-
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.green[50],
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.green[200]!),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.access_time, color: Colors.green[600], size: 20),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                '${LocalizationHelper.tr(LocaleKeys.booking_timeSlot)}: ${_formatTime(startTime)} - ${_formatTime(endTime)}',
-                style: TextStyle(
-                  color: Colors.green[700],
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ],
-        ),
+        ],
       );
     });
-  }
-
-  String _formatTime(TimeOfDay time) {
-    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
 
   Widget _durationDisplay(BookingController controller) {
@@ -306,80 +174,63 @@ class BookingForm extends StatelessWidget {
 
       // Validate minimum duration
       if (duration < Duration(hours: 1)) {
-        return Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.red[50],
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.red[200]!),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.warning, color: Colors.red[600], size: 20),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  LocalizationHelper.tr(LocaleKeys.errors_validationError),
-                  style: TextStyle(
-                    color: Colors.red[700],
-                    fontSize: 14,
-                  ),
+        return Card(
+          color: Colors.red[50],
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Icon(Icons.warning, color: Colors.red),
+                SizedBox(width: 8),
+                Text(
+                  'Minimum booking duration is 1 hour',
+                  style: TextStyle(color: Colors.red),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       }
 
       // Validate maximum duration
       if (duration > Duration(days: 7)) {
-        return Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.red[50],
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.red[200]!),
+        return Card(
+          color: Colors.red[50],
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Icon(Icons.warning, color: Colors.red),
+                SizedBox(width: 8),
+                Text(
+                  'Maximum booking duration is 7 days',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ],
+            ),
           ),
+        );
+      }
+
+      return Card(
+        color: Colors.green[50],
+        child: Padding(
+          padding: EdgeInsets.all(16),
           child: Row(
             children: [
-              Icon(Icons.warning, color: Colors.red[600], size: 20),
-              const SizedBox(width: 8),
+              Icon(Icons.access_time, color: Colors.green),
+              SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  LocalizationHelper.tr(LocaleKeys.errors_validationError),
+                  'Duration: ${controller.formatDuration(duration)}',
                   style: TextStyle(
-                    color: Colors.red[700],
-                    fontSize: 14,
+                    color: Colors.green[700],
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
             ],
           ),
-        );
-      }
-
-      return Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.green[50],
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.green[200]!),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.check_circle, color: Colors.green[600], size: 20),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Duration: ${controller.formatDuration(duration)}',
-                style: TextStyle(
-                  color: Colors.green[700],
-                  fontWeight: FontWeight.w500,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-          ],
         ),
       );
     });
@@ -389,167 +240,171 @@ class BookingForm extends StatelessWidget {
     return Obx(() {
       final maxCapacity = venue.maxCapacity ?? 100;
 
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      return Card(
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                Icons.people_outline,
-                color: Theme.of(Get.context!).primaryColor,
-                size: 20,
+              Row(
+                children: [
+                  Text(
+                    'Number of Guests',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[800],
+                    ),
+                  ),
+                  Spacer(),
+                  Text(
+                    'Max: $maxCapacity',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              Text(
-                LocalizationHelper.tr(LocaleKeys.search_guestCount),
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey[800],
-                ),
-              ),
-              const Spacer(),
+              SizedBox(height: 12),
+
+              // Container dengan style seperti search capacity
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Theme.of(Get.context!).primaryColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey[300]!),
+                  borderRadius: BorderRadius.circular(8),
+                  color: Colors.white,
                 ),
+                child: Row(
+                  children: [
+                    // Icon - matching other fields
+                    Icon(Icons.people_outline,
+                        color: Colors.grey[600], size: 20),
+                    const SizedBox(width: 12),
+
+                    // Input field
+                    Expanded(
+                      child: TextField(
+                        controller: controller.capacityController,
+                        keyboardType: TextInputType.number,
+                        style: TextStyle(
+                          color: Colors.black87,
+                          fontSize: 16,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: LocalizationHelper.tr(LocaleKeys.forms_enterNumberOfGuests),
+                          hintStyle: TextStyle(
+                            color: Colors.grey[600],
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
+                          isDense: true,
+                        ),
+                        onChanged: (value) => _handleCapacityInput(
+                            value, maxCapacity, controller),
+                      ),
+                    ),
+
+                    // Stepper Controls - sama seperti search
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Decrease button
+                        _buildStepperButton(
+                          icon: Icons.remove_circle_outline,
+                          onTap: () => _decrementCapacity(controller),
+                          enabled: true,
+                        ),
+
+                        const SizedBox(width: 4),
+
+                        // Increase button
+                        _buildStepperButton(
+                          icon: Icons.add_circle_outline,
+                          onTap: () =>
+                              _incrementCapacity(controller, maxCapacity),
+                          enabled: true,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // Error message (kalau ada)
+              if (!controller.isCapacityValid.value &&
+                  controller.capacityErrorMessage.value.isNotEmpty)
+                Padding(
+                  padding: EdgeInsets.only(top: 8),
+                  child: Text(
+                    controller.capacityErrorMessage.value,
+                    style: TextStyle(
+                      color: Colors.red[600],
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+
+              // Helper text
+              Padding(
+                padding: EdgeInsets.only(top: 4),
                 child: Text(
-                  '${LocalizationHelper.tr(LocaleKeys.common_capacity)}: $maxCapacity',
+                  'Maximum capacity: $maxCapacity guests',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Theme.of(Get.context!).primaryColor,
-                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[600],
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-
-          // Container dengan style seperti search capacity
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey[300]!),
-              borderRadius: BorderRadius.circular(8),
-              color: Colors.white,
-            ),
-            child: Row(
-              children: [
-                // Input field
-                Expanded(
-                  child: TextField(
-                    controller: controller.capacityController,
-                    keyboardType: TextInputType.number,
-                    style: const TextStyle(
-                      color: Colors.black87,
-                      fontSize: 16,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: LocalizationHelper.tr(
-                          LocaleKeys.forms_enterNumberOfGuests),
-                      hintStyle: TextStyle(
-                        color: Colors.grey[600],
-                      ),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.zero,
-                      isDense: true,
-                    ),
-                    onChanged: (value) =>
-                        _handleCapacityInput(value, maxCapacity, controller),
-                  ),
-                ),
-
-                // Stepper Controls - sama seperti search
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Decrease button
-                    _buildStepperButton(
-                      icon: Icons.remove_circle_outline,
-                      onTap: () => _decrementCapacity(controller),
-                      enabled: true,
-                    ),
-
-                    const SizedBox(width: 4),
-
-                    // Increase button
-                    _buildStepperButton(
-                      icon: Icons.add_circle_outline,
-                      onTap: () => _incrementCapacity(controller, maxCapacity),
-                      enabled: true,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          // Error message (kalau ada)
-          if (!controller.isCapacityValid.value &&
-              controller.capacityErrorMessage.value.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                controller.capacityErrorMessage.value,
-                style: TextStyle(
-                  color: Colors.red[600],
-                  fontSize: 12,
-                ),
-              ),
-            ),
-        ],
+        ),
       );
     });
   }
 
   Widget _guestInfoForm(BookingController controller) {
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.person_outline,
-                  color: Theme.of(Get.context!).primaryColor,
-                  size: 24,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    LocalizationHelper.tr(LocaleKeys.booking_guestInformation),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey[800],
-                    ),
+                Text(
+                  'Guest Information',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
+                Spacer(),
+                // Form completion indicator
+                Obx(() => controller.isFormComplete.value
+                    ? Icon(Icons.check_circle, color: Colors.green, size: 20)
+                    : Icon(Icons.radio_button_unchecked,
+                        color: Colors.grey, size: 20)),
               ],
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 16),
             Obx(() => TextField(
                   controller: controller.guestNameController,
                   decoration: InputDecoration(
-                    labelText:
-                        LocalizationHelper.tr(LocaleKeys.labels_guestNameLabel),
+                    labelText: LocalizationHelper.tr(LocaleKeys.labels_guestNameLabel),
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.person),
                     errorText: controller.nameError.isEmpty
                         ? null
                         : controller.nameError.value,
-                    suffixIcon: controller.nameError.isNotEmpty
-                        ? Icon(Icons.error, color: Colors.red, size: 20)
-                        : null,
+                    suffixIcon: controller.nameError.isEmpty &&
+                            controller.guestNameController.text.isNotEmpty
+                        ? Icon(Icons.check, color: Colors.green, size: 20)
+                        : controller.nameError.isNotEmpty
+                            ? Icon(Icons.error, color: Colors.red, size: 20)
+                            : null,
                   ),
                 )),
             SizedBox(height: 12),
@@ -557,16 +412,18 @@ class BookingForm extends StatelessWidget {
                   controller: controller.guestEmailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
-                    labelText:
-                        LocalizationHelper.tr(LocaleKeys.labels_emailLabel),
+                    labelText: LocalizationHelper.tr(LocaleKeys.labels_emailLabel),
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.email),
                     errorText: controller.emailError.isEmpty
                         ? null
                         : controller.emailError.value,
-                    suffixIcon: controller.emailError.isNotEmpty
-                        ? Icon(Icons.error, color: Colors.red, size: 20)
-                        : null,
+                    suffixIcon: controller.emailError.isEmpty &&
+                            controller.guestEmailController.text.isNotEmpty
+                        ? Icon(Icons.check, color: Colors.green, size: 20)
+                        : controller.emailError.isNotEmpty
+                            ? Icon(Icons.error, color: Colors.red, size: 20)
+                            : null,
                   ),
                 )),
             SizedBox(height: 12),
@@ -574,16 +431,18 @@ class BookingForm extends StatelessWidget {
                   controller: controller.guestPhoneController,
                   keyboardType: TextInputType.phone,
                   decoration: InputDecoration(
-                    labelText:
-                        LocalizationHelper.tr(LocaleKeys.labels_phoneLabel),
+                    labelText: LocalizationHelper.tr(LocaleKeys.labels_phoneLabel),
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.phone),
                     errorText: controller.phoneError.isEmpty
                         ? null
                         : controller.phoneError.value,
-                    suffixIcon: controller.phoneError.isNotEmpty
-                        ? Icon(Icons.error, color: Colors.red, size: 20)
-                        : null,
+                    suffixIcon: controller.phoneError.isEmpty &&
+                            controller.guestPhoneController.text.isNotEmpty
+                        ? Icon(Icons.check, color: Colors.green, size: 20)
+                        : controller.phoneError.isNotEmpty
+                            ? Icon(Icons.error, color: Colors.red, size: 20)
+                            : null,
                   ),
                 )),
             SizedBox(height: 12),
@@ -591,8 +450,7 @@ class BookingForm extends StatelessWidget {
               controller: controller.specialRequestsController,
               maxLines: 3,
               decoration: InputDecoration(
-                labelText: LocalizationHelper.tr(
-                    LocaleKeys.labels_specialRequestsLabel),
+                labelText: LocalizationHelper.tr(LocaleKeys.labels_specialRequestsLabel),
                 border: OutlineInputBorder(),
                 alignLabelWithHint: true,
               ),
@@ -650,18 +508,17 @@ class BookingForm extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              LocalizationHelper.tr(LocaleKeys.booking_priceSummary),
+              'Booking Summary',
               style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
               ),
             ),
             SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(LocalizationHelper.tr(
-                    LocaleKeys.labels_basePricePerHourLabel)),
+                Text(LocalizationHelper.tr(LocaleKeys.labels_basePricePerHourLabel)),
                 Text('Rp ${NumberFormat('#,###').format(venue.price ?? 0)}'),
               ],
             ),
@@ -670,8 +527,7 @@ class BookingForm extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(LocalizationHelper.tr(LocaleKeys.labels_durationLabel)),
-                Text(
-                    '${totalHours.toStringAsFixed(1)} ${LocalizationHelper.tr(LocaleKeys.labels_hoursText)}'),
+                Text('${totalHours.toStringAsFixed(1)} ${LocalizationHelper.tr(LocaleKeys.labels_hoursText)}'),
               ],
             ),
             Divider(height: 24),
@@ -679,17 +535,17 @@ class BookingForm extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  LocalizationHelper.tr(LocaleKeys.booking_totalAmount),
+                  'Total Amount',
                   style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
                   'Rp ${NumberFormat('#,###').format(totalAmount)}',
                   style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                     color: Get.theme.primaryColor,
                   ),
                 ),
@@ -738,7 +594,8 @@ class BookingForm extends StatelessWidget {
                   : null,
               style: ElevatedButton.styleFrom(
                 padding: EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: Get.theme.primaryColor,
+                backgroundColor:
+                    !isProcessing ? Get.theme.primaryColor : Colors.grey[400],
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -757,20 +614,20 @@ class BookingForm extends StatelessWidget {
                         ),
                         SizedBox(width: 12),
                         Text(
-                          LocalizationHelper.tr(LocaleKeys.booking_processingPayment),
+                          'Creating Booking...',
                           style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
                         ),
                       ],
                     )
                   : Text(
-                      LocalizationHelper.tr(LocaleKeys.booking_bookNow),
+                      'Book Now',
                       style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
@@ -785,17 +642,17 @@ class BookingForm extends StatelessWidget {
     return Obx(() {
       final incomplete = <String>[];
 
-      if (controller.selectedDate.value == null) incomplete.add(LocalizationHelper.tr(LocaleKeys.common_date));
+      if (controller.selectedDate.value == null) incomplete.add('Date');
       if (controller.startTime.value == null ||
           controller.endTime.value == null ||
-          controller.dateTimeError.isNotEmpty) incomplete.add(LocalizationHelper.tr(LocaleKeys.common_time));
+          controller.dateTimeError.isNotEmpty) incomplete.add('Time');
       if (controller.guestNameController.text.trim().isEmpty ||
-          controller.nameError.isNotEmpty) incomplete.add(LocalizationHelper.tr(LocaleKeys.forms_guestName));
+          controller.nameError.isNotEmpty) incomplete.add('Name');
       if (controller.guestEmailController.text.trim().isEmpty ||
-          controller.emailError.isNotEmpty) incomplete.add(LocalizationHelper.tr(LocaleKeys.forms_email));
+          controller.emailError.isNotEmpty) incomplete.add('Email');
       if (controller.guestPhoneController.text.trim().isEmpty ||
-          controller.phoneError.isNotEmpty) incomplete.add(LocalizationHelper.tr(LocaleKeys.forms_phoneNumber));
-      if (!controller.isCapacityValid.value) incomplete.add(LocalizationHelper.tr(LocaleKeys.common_capacity));
+          controller.phoneError.isNotEmpty) incomplete.add('Phone');
+      if (!controller.isCapacityValid.value) incomplete.add('Capacity');
 
       if (incomplete.isEmpty) {
         return Container(
@@ -810,7 +667,7 @@ class BookingForm extends StatelessWidget {
               Icon(Icons.check_circle, color: Colors.green[600], size: 18),
               SizedBox(width: 8),
               Text(
-                LocalizationHelper.tr(LocaleKeys.common_success),
+                'Form lengkap dan siap untuk booking!',
                 style: TextStyle(
                   color: Colors.green[700],
                   fontSize: 13,
@@ -835,7 +692,7 @@ class BookingForm extends StatelessWidget {
             SizedBox(width: 8),
             Expanded(
               child: Text(
-                '${LocalizationHelper.tr(LocaleKeys.common_error)}: ${incomplete.join(', ')}',
+                'Lengkapi: ${incomplete.join(', ')}',
                 style: TextStyle(
                   color: Colors.blue[700],
                   fontSize: 13,
@@ -848,21 +705,25 @@ class BookingForm extends StatelessWidget {
     });
   }
 
-  // Optimized: Generate time slots with caching
-  static final List<TimeOfDay> _cachedTimeSlots = _generateTimeSlotsRange(8, 0, 22, 0);
-  
-  List<TimeOfDay> _generateTimeSlots() => _cachedTimeSlots;
+  // Helper: Generate time slots based on venue operating hours
+  List<TimeOfDay> _generateTimeSlots() {
+    return _generateTimeSlotsInRange(8, 0, 22, 0);
+  }
 
-  static List<TimeOfDay> _generateTimeSlotsRange(
+  List<TimeOfDay> _generateTimeSlotsInRange(
       int startHour, int startMinute, int endHour, int endMinute) {
     final slots = <TimeOfDay>[];
+
+    // Start from venue opening time
     int currentHour = startHour;
     int currentMinute = startMinute;
 
+    // Generate 30-minute intervals until closing time
     while (currentHour < endHour ||
         (currentHour == endHour && currentMinute < endMinute)) {
       slots.add(TimeOfDay(hour: currentHour, minute: currentMinute));
-      
+
+      // Add 30 minutes
       currentMinute += 30;
       if (currentMinute >= 60) {
         currentMinute = 0;
@@ -870,69 +731,79 @@ class BookingForm extends StatelessWidget {
       }
     }
 
+    // Add final time slot at closing time
     if (currentHour == endHour && currentMinute == 0) {
       slots.add(TimeOfDay(hour: endHour, minute: 0));
     }
 
     return slots;
   }
+}
 
-  Widget _buildStepperButton({
-    required IconData icon,
-    required VoidCallback onTap,
-    required bool enabled,
-  }) {
-    return GestureDetector(
-      onTap: enabled ? onTap : null,
-      child: Container(
-        padding: EdgeInsets.all(4),
-        child: Icon(
-          icon,
-          size: 20,
-          color: enabled ? Colors.grey[600] : Colors.grey[400],
-        ),
+Widget _buildStepperButton({
+  required IconData icon,
+  required VoidCallback onTap,
+  required bool enabled,
+}) {
+  return GestureDetector(
+    onTap: enabled ? onTap : null,
+    child: Container(
+      padding: EdgeInsets.all(4),
+      child: Icon(
+        icon,
+        size: 20,
+        color: enabled ? Colors.grey[600] : Colors.grey[400],
       ),
-    );
+    ),
+  );
+}
+
+void _handleCapacityInput(String value, int maxCapacity, BookingController controller) {
+  // Allow empty or 0 temporarily untuk input flexibility
+  if (value.isEmpty || value == '0') {
+    return; // Don't auto-correct, let user continue typing
   }
 
-  void _handleCapacityInput(
-      String value, int maxCapacity, BookingController controller) {
-    if (value.isEmpty || value == '0') return;
-
-    final inputValue = int.tryParse(value);
-    if (inputValue == null) {
-      _setCapacityValue(controller, '1');
-      return;
-    }
-
-    if (inputValue > maxCapacity) {
-      _setCapacityValue(controller, maxCapacity.toString());
-      controller.showInfo(LocalizationHelper.tr(LocaleKeys.errors_capacityExceeded));
-    }
-  }
-
-  void _setCapacityValue(BookingController controller, String value) {
-    controller.capacityController.text = value;
+  // Parse input
+  int? inputValue = int.tryParse(value);
+  
+  if (inputValue == null) {
+    // Invalid input - revert to previous valid value or 1
+    controller.capacityController.text = '1';
     controller.capacityController.selection = TextSelection.fromPosition(
-      TextPosition(offset: value.length),
+      TextPosition(offset: controller.capacityController.text.length),
     );
+    return;
   }
 
-  void _decrementCapacity(BookingController controller) {
-    final currentValue = int.tryParse(controller.capacityController.text) ?? 1;
-    if (currentValue > 0) {
-      controller.capacityController.text = (currentValue - 1).toString();
-      controller.validateField('capacity');
-    }
+  // Auto-correct immediately if exceeds max capacity
+  if (inputValue > maxCapacity) {
+    controller.capacityController.text = maxCapacity.toString();
+    controller.capacityController.selection = TextSelection.fromPosition(
+      TextPosition(offset: controller.capacityController.text.length),
+    );
+    controller.showInfo('Maximum capacity is $maxCapacity guests');
   }
+}
 
-  void _incrementCapacity(BookingController controller, int maxCapacity) {
-    final currentValue = int.tryParse(controller.capacityController.text) ?? 0;
-    if (currentValue < maxCapacity) {
-      controller.capacityController.text = (currentValue + 1).toString();
-      controller.validateField('capacity');
-    } else {
-      controller.showInfo(LocalizationHelper.tr(LocaleKeys.errors_capacityExceeded));
-    }
+// Decrease capacity
+void _decrementCapacity(BookingController controller) {
+  final currentValue = int.tryParse(controller.capacityController.text) ?? 1;
+  if (currentValue > 0) {
+    controller.capacityController.text = (currentValue - 1).toString();
+    // Trigger validation after change
+    controller.validateField('capacity');
+  }
+}
+
+// Increase capacity dengan respect max capacity
+void _incrementCapacity(BookingController controller, int maxCapacity) {
+  final currentValue = int.tryParse(controller.capacityController.text) ?? 0;
+  if (currentValue < maxCapacity) {
+    controller.capacityController.text = (currentValue + 1).toString();
+    // Trigger validation after change
+    controller.validateField('capacity');
+  } else {
+    controller.showInfo('Maximum capacity is $maxCapacity guests');
   }
 }

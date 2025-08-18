@@ -30,6 +30,8 @@ class BookingListController extends GetxController {
         LocalizationHelper.tr(LocaleKeys.bookingList_tabs_pending),
         LocalizationHelper.tr(LocaleKeys.bookingList_tabs_confirmed),
         LocalizationHelper.tr(LocaleKeys.bookingList_tabs_completed),
+        LocalizationHelper.tr(LocaleKeys.bookingList_tabs_paid),
+        LocalizationHelper.tr(LocaleKeys.bookingList_tabs_expired),
         LocalizationHelper.tr(LocaleKeys.bookingList_tabs_cancelled)
       ];
 
@@ -37,6 +39,8 @@ class BookingListController extends GetxController {
   final pendingCount = 0.obs;
   final confirmedCount = 0.obs;
   final completedCount = 0.obs;
+  final paidCount = 0.obs;
+  final expiredCount = 0.obs;
   final cancelledCount = 0.obs;
 
   // Sorting and filtering
@@ -176,30 +180,45 @@ class BookingListController extends GetxController {
 
     pendingCount.value = bookings
         .where(
-            (b) => b.status == BookingStatus.pending && !isBookingCompleted(b))
+            (b) => b.status == BookingStatus.pending && !b.isInCancelledSection)
         .length;
 
     confirmedCount.value = bookings
         .where((b) =>
-            b.status == BookingStatus.confirmed && !isBookingCompleted(b))
+            b.status == BookingStatus.confirmed && !b.isInCancelledSection)
         .length;
 
-    completedCount.value = bookings.where((b) => isBookingCompleted(b)).length;
+    completedCount.value =
+        bookings.where((b) => b.status == BookingStatus.completed).length;
 
-    cancelledCount.value = bookings.where((b) => b.isInCancelledSection).length;
+    paidCount.value = bookings
+        .where((b) => b.isPaid && !b.isInCancelledSection)
+        .length;
+
+    expiredCount.value =
+        bookings.where((b) => b.status == BookingStatus.expired).length;
+
+    cancelledCount.value = bookings
+        .where(
+            (b) => b.status == BookingStatus.cancelled || b.isBookingCancelled)
+        .length;
   }
 
   int getTabCount(int index) {
     switch (index) {
-      case 0:
+      case 0: // All
         return allCount.value;
-      case 1:
+      case 1: // Pending
         return pendingCount.value;
-      case 2:
+      case 2: // Confirmed
         return confirmedCount.value;
-      case 3:
+      case 3: // Completed
         return completedCount.value;
-      case 4:
+      case 4: // Paid
+        return paidCount.value;
+      case 5: // Expired
+        return expiredCount.value;
+      case 6: // Cancelled
         return cancelledCount.value;
       default:
         return 0;
@@ -220,30 +239,41 @@ class BookingListController extends GetxController {
     List<BookingModel> filtered = [];
 
     switch (currentTabIndex.value) {
-      case 0:
+      case 0: // All
         filtered = List.from(bookings);
         break;
-      case 1:
+      case 1: // Pending
         filtered = bookings
             .where((b) =>
-                b.status == BookingStatus.pending &&
-                !isBookingCompleted(b) &&
-                !b.isInCancelledSection)
+                b.status == BookingStatus.pending && !b.isInCancelledSection)
             .toList();
         break;
-      case 2:
+      case 2: // Confirmed
         filtered = bookings
             .where((b) =>
-                b.status == BookingStatus.confirmed &&
-                !isBookingCompleted(b) &&
-                !b.isInCancelledSection)
+                b.status == BookingStatus.confirmed && !b.isInCancelledSection)
             .toList();
         break;
-      case 3:
-        filtered = bookings.where((b) => isBookingCompleted(b)).toList();
+      case 3: // Completed
+        filtered =
+            bookings.where((b) => b.status == BookingStatus.completed).toList();
         break;
-      case 4:
-        filtered = bookings.where((b) => b.isInCancelledSection).toList();
+      case 4: // Paid
+        filtered = bookings
+            .where((b) => b.isPaid && !b.isInCancelledSection)
+            .toList();
+        break;
+      case 5: // Expired
+        filtered = bookings
+            .where((b) => b.status == BookingStatus.expired)
+            .toList();
+        break;
+      case 6: // Cancelled
+        filtered = bookings
+            .where((b) =>
+                b.status == BookingStatus.cancelled ||
+                b.isBookingCancelled)
+            .toList();
         break;
     }
 
@@ -475,7 +505,8 @@ class BookingListController extends GetxController {
       });
     }
   }
-   void goToHome() {
-      Get.find<BottomNavController>().changePage(0);
-    }
+
+  void goToHome() {
+    Get.find<BottomNavController>().changePage(0);
+  }
 }

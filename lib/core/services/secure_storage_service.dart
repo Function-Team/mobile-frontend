@@ -171,22 +171,8 @@ class SecureStorageService {
     final refreshToken = await getRefreshToken();
     return accessToken != null && refreshToken != null;
   }
-
-  // Pending verification email methods
-  Future<void> savePendingVerificationEmail(String email) async {
-    await _storage.write(key: AppConstants.pendingVerificationEmailKey, value: email);
-  }
-
-  Future<String?> getPendingVerificationEmail() async {
-    return await _storage.read(key: AppConstants.pendingVerificationEmailKey);
-  }
-
-  Future<void> clearPendingVerificationEmail() async {
-    await _storage.delete(key: AppConstants.pendingVerificationEmailKey);
-  }
-
   // Debug method to list all stored data
-   Future<void> debugPrintAllData() async {
+  Future<void> debugPrintAllData() async {
     final allData = await _storage.readAll();
     print('=== Secure Storage Debug ===');
     for (var entry in allData.entries) {
