@@ -25,10 +25,7 @@ class BookingPage extends StatelessWidget {
         appBar: AppBar(
           title: Text(
             LocalizationHelper.tr(LocaleKeys.appBarTitles_booking),
-            style: Theme.of(context)
-                .textTheme
-                .titleLarge!
-                .copyWith(
+            style: Theme.of(context).textTheme.titleLarge!.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
                 ),
@@ -73,7 +70,8 @@ class BookingPage extends StatelessWidget {
   Future<void> _refreshPageData() async {
     try {
       // Show loading feedback
-      CustomSnackbar.show(context: Get.context!, message: 'Refreshing...', type: SnackbarType.info);
+      controller.showInfo('Refreshing...');
+
 
       final now = DateTime.now();
       final startOfMonth = DateTime(now.year, now.month, 1);
@@ -88,12 +86,9 @@ class BookingPage extends StatelessWidget {
             venue.id, controller.selectedDate.value!);
       }
 
-      // Success feedback
-      CustomSnackbar.show(context: Get.context!, message: 'Updated', type: SnackbarType.success);
-
+      controller.showSuccess('Updated');
     } catch (e) {
-      // Error feedback
-      CustomSnackbar.show(context: Get.context!, message: 'Refresh Failed', type: SnackbarType.error);
+      controller.showError('Refresh Failed');
     }
   }
 

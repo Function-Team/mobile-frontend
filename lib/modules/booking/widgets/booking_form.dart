@@ -35,8 +35,7 @@ class BookingForm extends StatelessWidget {
           const SizedBox(height: 16),
           _timeRangePicker(controller),
           const SizedBox(height: 16),
-          _durationDisplay(controller),
-          const SizedBox(height: 16),
+
           _capacitySection(controller),
           const SizedBox(height: 16),
           _guestInfoForm(controller),
@@ -114,127 +113,23 @@ class BookingForm extends StatelessWidget {
             ),
           ),
           SizedBox(height: 16),
-          
-          // Time display containers
-          Row(
-            children: [
-              // Start Time Display
-              Expanded(
-                child: TimeDisplayWidget(
-                  label: 'Waktu Mulai',
-                  selectedTime: controller.startTime.value,
-                ),
-              ),
 
-              SizedBox(width: 16),
-
-              // End Time Display
-              Expanded(
-                child: TimeDisplayWidget(
-                  label: 'Waktu Berakhir',
-                  selectedTime: controller.endTime.value,
-                ),
-              ),
-            ],
+          // Time display container - Single range display with duration
+          TimeDisplayWidget(
+            label: 'Rentang Waktu Booking',
+            selectedTime: controller.startTime.value,
+            endTime: controller.endTime.value,
+            isRangeMode: true,
+            selectedDate: controller.selectedDate.value,
+            showDuration: true,
+            formatDuration: controller.formatDuration,
           ),
         ],
       );
     });
   }
 
-  Widget _durationDisplay(BookingController controller) {
-    return Obx(() {
-      if (controller.selectedDate.value == null ||
-          controller.startTime.value == null ||
-          controller.endTime.value == null) {
-        return SizedBox.shrink();
-      }
 
-      final selectedDate = controller.selectedDate.value!;
-      final startTime = controller.startTime.value!;
-      final endTime = controller.endTime.value!;
-
-      final start = DateTime(
-        selectedDate.year,
-        selectedDate.month,
-        selectedDate.day,
-        startTime.hour,
-        startTime.minute,
-      );
-
-      final end = DateTime(
-        selectedDate.year,
-        selectedDate.month,
-        selectedDate.day,
-        endTime.hour,
-        endTime.minute,
-      );
-
-      final duration = end.difference(start);
-
-      // Validate minimum duration
-      if (duration < Duration(hours: 1)) {
-        return Card(
-          color: Colors.red[50],
-          child: Padding(
-            padding: EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Icon(Icons.warning, color: Colors.red),
-                SizedBox(width: 8),
-                Text(
-                  'Minimum booking duration is 1 hour',
-                  style: TextStyle(color: Colors.red),
-                ),
-              ],
-            ),
-          ),
-        );
-      }
-
-      // Validate maximum duration
-      if (duration > Duration(days: 7)) {
-        return Card(
-          color: Colors.red[50],
-          child: Padding(
-            padding: EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Icon(Icons.warning, color: Colors.red),
-                SizedBox(width: 8),
-                Text(
-                  'Maximum booking duration is 7 days',
-                  style: TextStyle(color: Colors.red),
-                ),
-              ],
-            ),
-          ),
-        );
-      }
-
-      return Card(
-        color: Colors.green[50],
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Icon(Icons.access_time, color: Colors.green),
-              SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Duration: ${controller.formatDuration(duration)}',
-                  style: TextStyle(
-                    color: Colors.green[700],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    });
-  }
 
   Widget _capacitySection(BookingController controller) {
     return Obx(() {
@@ -294,7 +189,8 @@ class BookingForm extends StatelessWidget {
                           fontSize: 16,
                         ),
                         decoration: InputDecoration(
-                          hintText: LocalizationHelper.tr(LocaleKeys.forms_enterNumberOfGuests),
+                          hintText: LocalizationHelper.tr(
+                              LocaleKeys.forms_enterNumberOfGuests),
                           hintStyle: TextStyle(
                             color: Colors.grey[600],
                           ),
@@ -393,7 +289,8 @@ class BookingForm extends StatelessWidget {
             Obx(() => TextField(
                   controller: controller.guestNameController,
                   decoration: InputDecoration(
-                    labelText: LocalizationHelper.tr(LocaleKeys.labels_guestNameLabel),
+                    labelText:
+                        LocalizationHelper.tr(LocaleKeys.labels_guestNameLabel),
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.person),
                     errorText: controller.nameError.isEmpty
@@ -412,7 +309,8 @@ class BookingForm extends StatelessWidget {
                   controller: controller.guestEmailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
-                    labelText: LocalizationHelper.tr(LocaleKeys.labels_emailLabel),
+                    labelText:
+                        LocalizationHelper.tr(LocaleKeys.labels_emailLabel),
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.email),
                     errorText: controller.emailError.isEmpty
@@ -431,7 +329,8 @@ class BookingForm extends StatelessWidget {
                   controller: controller.guestPhoneController,
                   keyboardType: TextInputType.phone,
                   decoration: InputDecoration(
-                    labelText: LocalizationHelper.tr(LocaleKeys.labels_phoneLabel),
+                    labelText:
+                        LocalizationHelper.tr(LocaleKeys.labels_phoneLabel),
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.phone),
                     errorText: controller.phoneError.isEmpty
@@ -450,7 +349,8 @@ class BookingForm extends StatelessWidget {
               controller: controller.specialRequestsController,
               maxLines: 3,
               decoration: InputDecoration(
-                labelText: LocalizationHelper.tr(LocaleKeys.labels_specialRequestsLabel),
+                labelText: LocalizationHelper.tr(
+                    LocaleKeys.labels_specialRequestsLabel),
                 border: OutlineInputBorder(),
                 alignLabelWithHint: true,
               ),
@@ -518,7 +418,8 @@ class BookingForm extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(LocalizationHelper.tr(LocaleKeys.labels_basePricePerHourLabel)),
+                Text(LocalizationHelper.tr(
+                    LocaleKeys.labels_basePricePerHourLabel)),
                 Text('Rp ${NumberFormat('#,###').format(venue.price ?? 0)}'),
               ],
             ),
@@ -527,7 +428,8 @@ class BookingForm extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(LocalizationHelper.tr(LocaleKeys.labels_durationLabel)),
-                Text('${totalHours.toStringAsFixed(1)} ${LocalizationHelper.tr(LocaleKeys.labels_hoursText)}'),
+                Text(
+                    '${totalHours.toStringAsFixed(1)} ${LocalizationHelper.tr(LocaleKeys.labels_hoursText)}'),
               ],
             ),
             Divider(height: 24),
@@ -705,105 +607,107 @@ class BookingForm extends StatelessWidget {
     });
   }
 
-  // Helper: Generate time slots based on venue operating hours
-  List<TimeOfDay> _generateTimeSlots() {
-    return _generateTimeSlotsInRange(8, 0, 22, 0);
-  }
+  // // Helper: Generate time slots based on venue operating hours
+  // List<TimeOfDay> _generateTimeSlots() {
+  //   return _generateTimeSlotsInRange(8, 0, 22, 0);
+  // }
 
-  List<TimeOfDay> _generateTimeSlotsInRange(
-      int startHour, int startMinute, int endHour, int endMinute) {
-    final slots = <TimeOfDay>[];
+//   List<TimeOfDay> _generateTimeSlotsInRange(
+//       int startHour, int startMinute, int endHour, int endMinute) {
+//     final slots = <TimeOfDay>[];
 
-    // Start from venue opening time
-    int currentHour = startHour;
-    int currentMinute = startMinute;
+//     // Start from venue opening time
+//     int currentHour = startHour;
+//     int currentMinute = startMinute;
 
-    // Generate 30-minute intervals until closing time
-    while (currentHour < endHour ||
-        (currentHour == endHour && currentMinute < endMinute)) {
-      slots.add(TimeOfDay(hour: currentHour, minute: currentMinute));
+//     // Generate 30-minute intervals until closing time
+//     while (currentHour < endHour ||
+//         (currentHour == endHour && currentMinute < endMinute)) {
+//       slots.add(TimeOfDay(hour: currentHour, minute: currentMinute));
 
-      // Add 30 minutes
-      currentMinute += 30;
-      if (currentMinute >= 60) {
-        currentMinute = 0;
-        currentHour++;
-      }
-    }
+//       // Add 30 minutes
+//       currentMinute += 30;
+//       if (currentMinute >= 60) {
+//         currentMinute = 0;
+//         currentHour++;
+//       }
+//     }
 
-    // Add final time slot at closing time
-    if (currentHour == endHour && currentMinute == 0) {
-      slots.add(TimeOfDay(hour: endHour, minute: 0));
-    }
+//     // Add final time slot at closing time
+//     if (currentHour == endHour && currentMinute == 0) {
+//       slots.add(TimeOfDay(hour: endHour, minute: 0));
+//     }
 
-    return slots;
-  }
-}
+//     return slots;
+//   }
+// }
 
-Widget _buildStepperButton({
-  required IconData icon,
-  required VoidCallback onTap,
-  required bool enabled,
-}) {
-  return GestureDetector(
-    onTap: enabled ? onTap : null,
-    child: Container(
-      padding: EdgeInsets.all(4),
-      child: Icon(
-        icon,
-        size: 20,
-        color: enabled ? Colors.grey[600] : Colors.grey[400],
+  Widget _buildStepperButton({
+    required IconData icon,
+    required VoidCallback onTap,
+    required bool enabled,
+  }) {
+    return GestureDetector(
+      onTap: enabled ? onTap : null,
+      child: Container(
+        padding: EdgeInsets.all(4),
+        child: Icon(
+          icon,
+          size: 20,
+          color: enabled ? Colors.grey[600] : Colors.grey[400],
+        ),
       ),
-    ),
-  );
-}
-
-void _handleCapacityInput(String value, int maxCapacity, BookingController controller) {
-  // Allow empty or 0 temporarily untuk input flexibility
-  if (value.isEmpty || value == '0') {
-    return; // Don't auto-correct, let user continue typing
-  }
-
-  // Parse input
-  int? inputValue = int.tryParse(value);
-  
-  if (inputValue == null) {
-    // Invalid input - revert to previous valid value or 1
-    controller.capacityController.text = '1';
-    controller.capacityController.selection = TextSelection.fromPosition(
-      TextPosition(offset: controller.capacityController.text.length),
     );
-    return;
   }
 
-  // Auto-correct immediately if exceeds max capacity
-  if (inputValue > maxCapacity) {
-    controller.capacityController.text = maxCapacity.toString();
-    controller.capacityController.selection = TextSelection.fromPosition(
-      TextPosition(offset: controller.capacityController.text.length),
-    );
-    controller.showInfo('Maximum capacity is $maxCapacity guests');
+  void _handleCapacityInput(
+      String value, int maxCapacity, BookingController controller) {
+    // Allow empty or 0 temporarily untuk input flexibility
+    if (value.isEmpty || value == '0') {
+      return; // Don't auto-correct, let user continue typing
+    }
+
+    // Parse input
+    int? inputValue = int.tryParse(value);
+
+    if (inputValue == null) {
+      // Invalid input - revert to previous valid value or 1
+      controller.capacityController.text = '1';
+      controller.capacityController.selection = TextSelection.fromPosition(
+        TextPosition(offset: controller.capacityController.text.length),
+      );
+      return;
+    }
+
+    // Auto-correct immediately if exceeds max capacity
+    if (inputValue > maxCapacity) {
+      controller.capacityController.text = maxCapacity.toString();
+      controller.capacityController.selection = TextSelection.fromPosition(
+        TextPosition(offset: controller.capacityController.text.length),
+      );
+      controller.showInfo('Maximum capacity is $maxCapacity guests');
+    }
   }
-}
 
 // Decrease capacity
-void _decrementCapacity(BookingController controller) {
-  final currentValue = int.tryParse(controller.capacityController.text) ?? 1;
-  if (currentValue > 0) {
-    controller.capacityController.text = (currentValue - 1).toString();
-    // Trigger validation after change
-    controller.validateField('capacity');
+  void _decrementCapacity(BookingController controller) {
+    final currentValue = int.tryParse(controller.capacityController.text) ?? 1;
+    if (currentValue > 0) {
+      controller.capacityController.text = (currentValue - 1).toString();
+      // Trigger validation after change
+      controller.validateField('capacity');
+    }
   }
-}
 
 // Increase capacity dengan respect max capacity
-void _incrementCapacity(BookingController controller, int maxCapacity) {
-  final currentValue = int.tryParse(controller.capacityController.text) ?? 0;
-  if (currentValue < maxCapacity) {
-    controller.capacityController.text = (currentValue + 1).toString();
-    // Trigger validation after change
-    controller.validateField('capacity');
-  } else {
-    controller.showInfo('Maximum capacity is $maxCapacity guests');
+  void _incrementCapacity(BookingController controller, int maxCapacity) {
+    final currentValue = int.tryParse(controller.capacityController.text) ?? 0;
+    if (currentValue < maxCapacity) {
+      controller.capacityController.text = (currentValue + 1).toString();
+      // Trigger validation after change
+      controller.validateField('capacity');
+    } else {
+      controller.showInfo('Maximum capacity is $maxCapacity guests');
+    }
   }
 }

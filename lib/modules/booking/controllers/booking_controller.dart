@@ -7,7 +7,6 @@ import 'package:function_mobile/modules/booking/models/booking_model.dart';
 import 'package:function_mobile/modules/booking/models/booking_response_models.dart';
 import 'package:function_mobile/modules/booking/services/booking_service.dart';
 import 'package:function_mobile/modules/booking/services/booking_validation_service.dart';
-import 'package:function_mobile/modules/booking/widgets/conflict_dialog.dart';
 import 'package:function_mobile/modules/navigation/controllers/bottom_nav_controller.dart';
 import 'package:function_mobile/modules/venue/data/models/venue_model.dart';
 import 'package:get/get.dart';
@@ -120,13 +119,14 @@ class BookingController extends GetxController {
       // Convert to minutes for precise comparison
       final startTotalMinutes = startHour * 60 + startMinute;
       final endTotalMinutes = endHour * 60 + endMinute;
-      
+
       // Operating hours: 08:00 (480 minutes) to 22:00 (1320 minutes)
       final openingMinutes = 8 * 60; // 08:00
       final closingMinutes = 22 * 60; // 22:00
 
       // Only include slots that start >= 08:00 and end <= 22:00
-      return startTotalMinutes >= openingMinutes && endTotalMinutes <= closingMinutes;
+      return startTotalMinutes >= openingMinutes &&
+          endTotalMinutes <= closingMinutes;
     }).toList();
   }
 
@@ -227,7 +227,7 @@ class BookingController extends GetxController {
       if (response is BookingCreateWithResponse) {
         bookingStatus.value = 'success';
         showSuccess('Booking created successfully!\n'
-            'Duration: ${response.totalHours} hours\n'
+            'Duration: ${response.totalHours.toInt()} hours\n'
             'Total: Rp ${NumberFormat('#,###').format(response.totalAmount)}');
 
         clearForm();
@@ -502,13 +502,17 @@ class BookingController extends GetxController {
 
   void handleBookingConflict(List<TimeSlot> availableSlots, VenueModel venue) {
     // Let UI layer handle the dialog display
-    final filteredSlots = _filterOperatingHourSlots(availableSlots);
+    // final filteredSlots = _filterOperatingHourSlots(availableSlots);
 
     // Use callback or event to notify UI layer
-    Get.dialog(ConflictDialog(
-        availableSlots: filteredSlots,
-        venue: venue,
-        onSlotSelected: (TimeSlot slot) => useAvailableSlot(slot)));
+    // Get.dialog(ConflictDialog(
+    //     availableSlots: filteredSlots,
+    //     venue: venue,
+    //     onSlotSelected: (TimeSlot slot) => useAvailableSlot(slot)));
+    CustomSnackbar.show(
+        context: Get.context!,
+        message: 'already booked',
+        type: SnackbarType.error);
   }
 
   // Use the selected available slot
@@ -524,7 +528,7 @@ class BookingController extends GetxController {
       final closingMinutes = 22 * 60; // 22:00
       final minimumBookingMinutes = 30; // 30 minutes minimum
       final latestValidStartMinutes = closingMinutes - minimumBookingMinutes;
-      
+
       if (startTotalMinutes > latestValidStartMinutes) {
         showError('Slot tidak dapat digunakan - akan melewati jam operasional');
         return;
@@ -538,10 +542,11 @@ class BookingController extends GetxController {
 
       // Calculate end time (1 hour after start time)
       final endTotalMinutes = startTotalMinutes + 60;
-      
+
       // Operating hours constraint: end time cannot exceed 22:00 (1320 minutes)
-      final actualEndMinutes = endTotalMinutes > closingMinutes ? closingMinutes : endTotalMinutes;
-      
+      final actualEndMinutes =
+          endTotalMinutes > closingMinutes ? closingMinutes : endTotalMinutes;
+
       final endHour = actualEndMinutes ~/ 60;
       final endMinute = actualEndMinutes % 60;
 
@@ -581,7 +586,14 @@ class BookingController extends GetxController {
     endTime.value = time;
   }
 
+  void resetTimeSelection() {
+    startTime.value = null;
+    endTime.value = null;
+  }
+
   void setVenueData(VenueModel venue) {
+    resetTimeSelection();
+
     if (venue.maxCapacity != null && venue.maxCapacity! > 0) {
       maxVenueCapacity.value = venue.maxCapacity!;
       final currentCapacity = int.tryParse(capacityController.text) ?? 1;

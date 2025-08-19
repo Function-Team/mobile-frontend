@@ -257,8 +257,9 @@ class CalendarBookingWidget extends GetView<CalendarBookingController> {
       textColor = Colors.white;
     } else {
       backgroundColor = controller.getColorForAvailability(availability);
-      borderColor =
-          isToday ? Colors.blue : controller.getBorderColorForAvailability(availability);
+      borderColor = isToday
+          ? Colors.blue
+          : controller.getBorderColorForAvailability(availability);
 
       if (availability == 'booked') {
         textColor = Colors.grey[500]!;
@@ -437,8 +438,12 @@ class CalendarBookingWidget extends GetView<CalendarBookingController> {
   }
 
   Widget _buildTimeSlotChip(DetailedTimeSlot slot) {
-    final isAvailable = slot.available && controller.isSlotWithinOperatingHours(slot);
+    final isAvailable =
+        slot.available && controller.isSlotWithinOperatingHours(slot);
     final isSelected = controller.isSlotSelected(slot);
+    final isStartTime = controller.isSlotStartTime(slot);
+    final isEndTime = controller.isSlotEndTime(slot);
+    final isInRange = controller.isSlotInSelectedRange(slot);
 
     Color backgroundColor;
     Color borderColor;
@@ -449,8 +454,23 @@ class CalendarBookingWidget extends GetView<CalendarBookingController> {
       backgroundColor = Colors.red[100]!;
       borderColor = Colors.red[300]!;
       textColor = Colors.red[600]!;
-    } else if (isSelected) {
-      // Selected - Blue/Primary
+    } else if (isStartTime) {
+      // Start time - Dark Blue
+      backgroundColor = Get.theme.primaryColor.withOpacity(0.9);
+      borderColor = Get.theme.primaryColor;
+      textColor = Colors.white;
+    } else if (isEndTime) {
+      // End time - Dark Blue
+      backgroundColor = Get.theme.primaryColor.withOpacity(0.9);
+      borderColor = Get.theme.primaryColor;
+      textColor = Colors.white;
+    } else if (isInRange) {
+      // In selected range - Light Blue
+      backgroundColor = Get.theme.primaryColor.withOpacity(0.3);
+      borderColor = Get.theme.primaryColor.withOpacity(0.6);
+      textColor = Get.theme.primaryColor;
+    } else if (isSelected && !isInRange) {
+      // Only start time selected (no end time yet) - Blue
       backgroundColor = Get.theme.primaryColor;
       borderColor = Get.theme.primaryColor;
       textColor = Colors.white;
@@ -470,9 +490,9 @@ class CalendarBookingWidget extends GetView<CalendarBookingController> {
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: borderColor,
-            width: isSelected ? 2 : 1,
+            width: (isSelected || isInRange) ? 2 : 1,
           ),
-          boxShadow: isSelected
+          boxShadow: (isSelected || isInRange)
               ? [
                   BoxShadow(
                     color: Get.theme.primaryColor.withOpacity(0.3),
@@ -483,19 +503,15 @@ class CalendarBookingWidget extends GetView<CalendarBookingController> {
               : null,
         ),
         child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                slot.start,
-                style: TextStyle(
-                  color: textColor,
-                  fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+          child: Text(
+            slot.start,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 11,
+              fontWeight:
+                  (isSelected || isInRange) ? FontWeight.bold : FontWeight.w600,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ),
@@ -510,35 +526,68 @@ class CalendarBookingWidget extends GetView<CalendarBookingController> {
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.grey[200]!),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+      child: Column(
         children: [
-          Flexible(
-            child: _buildSlotLegendItem(
-              Colors.green[50]!,
-              Colors.green[300]!,
-              Colors.green[700]!,
-              'Available',
-              Icons.check_circle_outline,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Flexible(
+                child: _buildSlotLegendItem(
+                  Colors.green[50]!,
+                  Colors.green[300]!,
+                  Colors.green[700]!,
+                  'Available',
+                  Icons.check_circle_outline,
+                ),
+              ),
+              Flexible(
+                child: _buildSlotLegendItem(
+                  Get.theme.primaryColor.withOpacity(0.3),
+                  Get.theme.primaryColor.withOpacity(0.6),
+                  Get.theme.primaryColor,
+                  'In Range',
+                  Icons.linear_scale,
+                ),
+              ),
+              Flexible(
+                child: _buildSlotLegendItem(
+                  Colors.red[100]!,
+                  Colors.red[300]!,
+                  Colors.red[600]!,
+                  'Booked',
+                  Icons.block,
+                ),
+              ),
+            ],
           ),
-          Flexible(
-            child: _buildSlotLegendItem(
-              Get.theme.primaryColor,
-              Get.theme.primaryColor,
-              Colors.white,
-              'Selected',
-              Icons.radio_button_checked,
-            ),
-          ),
-          Flexible(
-            child: _buildSlotLegendItem(
-              Colors.red[100]!,
-              Colors.red[300]!,
-              Colors.red[600]!,
-              'Booked',
-              Icons.block,
-            ),
+          SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Flexible(
+                child: _buildSlotLegendItem(
+                  Get.theme.primaryColor.withOpacity(0.9),
+                  Get.theme.primaryColor,
+                  Colors.white,
+                  'Start/End',
+                  Icons.radio_button_checked,
+                ),
+              ),
+              Flexible(
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: Text(
+                    'Click first slot for start time, second for end time',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.grey[600],
+                      fontStyle: FontStyle.italic,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -598,8 +647,8 @@ class CalendarBookingWidget extends GetView<CalendarBookingController> {
       final endOfMonth = DateTime(currentDate.year, currentDate.month + 1, 0);
 
       // Force refresh both calendar and time slots
-      controller
-          .loadCalendarAvailability(controller.venueId, startOfMonth, endOfMonth);
+      controller.loadCalendarAvailability(
+          controller.venueId, startOfMonth, endOfMonth);
       controller.loadDetailedTimeSlots(controller.venueId, currentDate);
 
       print(
