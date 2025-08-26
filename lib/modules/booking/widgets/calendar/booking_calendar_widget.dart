@@ -185,8 +185,8 @@ class _BookingCalendarWidgetState extends State<BookingCalendarWidget> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: TableCalendar<String>(
-        firstDay: DateTime.utc(2020, 1, 1),
-        lastDay: DateTime.utc(2030, 12, 31),
+        firstDay: DateTime(2020, 1, 1),
+        lastDay: DateTime(2030, 12, 31),
         focusedDay: widget.controller.selectedDate.value ?? DateTime.now(),
         calendarFormat: CalendarFormat.month,
         startingDayOfWeek: StartingDayOfWeek.monday,

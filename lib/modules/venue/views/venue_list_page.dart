@@ -136,21 +136,6 @@ class VenueListPage extends GetView<VenueListController> {
                           horizontal: 12, vertical: 8),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  // Tombol Sort
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.sort, size: 18),
-                    label: Text(LocalizationHelper.tr('buttons.sort')),
-                    onPressed: () {}, // Tambahkan fungsi sort di controller
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black87,
-                      elevation: 0,
-                      side: BorderSide(color: Colors.grey[300]!),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                    ),
-                  ),
                 ],
               ),
             ],
@@ -168,7 +153,6 @@ class VenueListPage extends GetView<VenueListController> {
       ),
     );
   }
-
 
   Widget _buildVenueList() {
     return Obx(

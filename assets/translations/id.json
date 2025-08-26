@@ -96,7 +96,10 @@
     "linkedinHandle": "Function Team",
     "openPlatform": "Buka {platform}?",
     "openPlatformMessage": "Ini akan membuka {platform} di browser atau aplikasi Anda. Anda akan meninggalkan aplikasi ini sementara.",
-    "errorOpening": "Tidak dapat membuka {platform}. Silakan coba lagi atau periksa apakah aplikasi sudah terinstal."
+    "errorOpening": "Tidak dapat membuka {platform}. Silakan coba lagi atau periksa apakah aplikasi sudah terinstal.",
+    "openMaps": "Buka Google Maps?",
+    "openMapsMessage": "Ini akan membuka Google Maps untuk menampilkan lokasi venue. Anda akan meninggalkan aplikasi ini sementara.",
+    "openMapsError": "Tidak dapat membuka Google Maps. Silakan coba lagi atau periksa apakah aplikasi sudah terinstal."
   },
   "common": {
     "change": "Ubah",
@@ -304,6 +307,7 @@
     "totalAmount": "Total Pembayaran",
     "bookedOn": "Dibooking pada",
     "ratePerHour": "Tarif per jam",
+    "bookedBy": "Dibooking oleh",
     "waitingConfirmation": "Menunggu Konfirmasi",
     "waitingPayment": "Menunggu Pembayaran",
     "bookingCompletedPaid": "Booking selesai - Sudah dibayar",
@@ -474,6 +478,7 @@
     "sortRelevance": "Relevansi",
     "searchVenueHint": "Cari venue",
     "selectActivity": "Pilih Aktivitas",
+    "fillAtLeastOne": "Silakan isi minimal satu kriteria pencarian",
     "selectCapacity": "Pilih Kapasitas",
     "selectAll": "Pilih Semua",
     "clearAll": "Hapus Semua",

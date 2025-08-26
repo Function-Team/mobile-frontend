@@ -27,6 +27,7 @@ class PaymentModel {
     );
   }
 
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -198,3 +199,4 @@ extension PaymentStatusExtension on PaymentStatus {
     }
   }
 }
+

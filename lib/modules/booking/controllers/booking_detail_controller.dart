@@ -201,6 +201,9 @@ class BookingDetailController extends GetxController {
 
       await _bookingService.cancelBooking(booking.value!.id);
 
+      // Refresh current booking detail to show updated status
+      await refreshBookingDetail();
+
       // Update booking list
       if (Get.isRegistered<BookingListController>()) {
         final bookingListController = Get.find<BookingListController>();
@@ -321,13 +324,12 @@ class BookingDetailController extends GetxController {
             _showSuccess('Your booking has been confirmed by the venue!');
           }
 
-          // Check if payment was completed
-          if (isBookingCompleted && booking.value?.payment != null) {
-            _showSuccess('Payment completed successfully!');
-            print('🔍 Payment status: ${booking.value!.payment!.status}');
-            print('🔍 Payment_status field: ${booking.value!.paymentStatus}');
-            print('🔍 isPaid result: ${booking.value!.isPaid}');
+          if(booking.value?.isConfirmed == true && booking.value?.status == BookingStatus.confirmed) {
+            _showSuccess('Your booking has been confirmed by the venue!');
           }
+          if (isBookingCompleted && booking.value?.payment != null) {
+          _showSuccess('Payment completed successfully!');
+        }
         } else {
           // If booking is null, it might have been cancelled by admin
           hasError.value = true;
@@ -347,8 +349,8 @@ class BookingDetailController extends GetxController {
 
   // Auto-refresh timer to check for status updates
   void startStatusCheckTimer() {
-    // Check every 30 seconds for updates
-    Timer.periodic(const Duration(seconds: 30), (timer) {
+    // Check every 15 seconds for updates
+    Timer.periodic(const Duration(seconds: 15), (timer) {
       if (Get.currentRoute.contains(MyRoutes.bookingDetail)) {
         refreshBookingDetail();
       } else {

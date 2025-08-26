@@ -294,6 +294,13 @@ class BookingDetailPage extends GetView<BookingDetailController> {
           ),
           const SizedBox(height: 20),
           _buildInfoTile(
+            icon: Icons.person,
+            label: LocalizationHelper.tr(LocaleKeys.booking_bookedBy),
+            value: booking.guestName ?? booking.user?.username ?? 'Guest User',
+            iconColor: Colors.indigo,
+          ),
+          const SizedBox(height: 16),
+          _buildInfoTile(
             icon: Icons.calendar_today,
             label: LocalizationHelper.tr(LocaleKeys.common_date),
             value: _formatDate(booking.startDateTime),
@@ -340,6 +347,8 @@ class BookingDetailPage extends GetView<BookingDetailController> {
   }
 
   Widget _buildStatusSection(BuildContext context, BookingModel booking) {
+    final bool needsPayment = booking.isConfirmed && !booking.isPaid;
+    
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(20),
@@ -357,14 +366,6 @@ class BookingDetailPage extends GetView<BookingDetailController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Booking Status',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
           Row(
             children: [
               Container(
@@ -375,8 +376,7 @@ class BookingDetailPage extends GetView<BookingDetailController> {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Text(
-                  booking
-                      .statusDisplayName, // Menggunakan statusDisplayName untuk konsistensi dengan app bar dan booking list
+                  booking.statusDisplayName,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 14,
@@ -443,21 +443,21 @@ class BookingDetailPage extends GetView<BookingDetailController> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.warning_amber_rounded, color: Colors.orange[700]),
+                  Icon(Icons.schedule, color: Colors.orange[700]),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'Payment Required',
+                          'Payment Deadline',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.orange,
                           ),
                         ),
                         Text(
-                          'Your booking is confirmed but payment is still pending',
+                          _calculatePaymentDeadline(booking),
                           style: TextStyle(
                             fontSize: 13,
                             color: Colors.grey[700],
@@ -835,5 +835,41 @@ class BookingDetailPage extends GetView<BookingDetailController> {
         );
       }),
     );
+  }
+
+
+  String _calculatePaymentDeadline(BookingModel booking) {
+    final now = DateTime.now();
+    final startTime = booking.startDateTime;
+    final hoursToStart = startTime.difference(now).inHours;
+    final minutesToStart = startTime.difference(now).inMinutes;
+    
+    // Format waktu deadline
+    DateTime deadlineTime;
+    String message;
+    
+    if (hoursToStart >= 6) {
+      // Cancel 2 jam sebelum event
+      deadlineTime = startTime.subtract(const Duration(hours: 2));
+      message = 'Please complete payment by ${_formatTime(deadlineTime)} (2 hours before your booking)';
+    } else if (hoursToStart >= 4) {
+      // Cancel 1 jam sebelum event  
+      deadlineTime = startTime.subtract(const Duration(hours: 1));
+      message = 'Please complete payment by ${_formatTime(deadlineTime)} (1 hour before your booking)';
+    } else if (minutesToStart >= 30) {
+      // Cancel 30 menit sebelum event
+      deadlineTime = startTime.subtract(const Duration(minutes: 30));
+      message = 'Please complete payment by ${_formatTime(deadlineTime)} (30 minutes before your booking)';
+    } else {
+      message = 'Payment deadline has passed. Please contact admin for assistance.';
+    }
+    
+    return message;
+  }
+
+  String _formatTime(DateTime dateTime) {
+    final hour = dateTime.hour.toString().padLeft(2, '0');
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
   }
 }

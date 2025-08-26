@@ -19,7 +19,8 @@ class SearchContainer extends StatelessWidget {
     required IconData icon,
     required String hintText,
     required VoidCallback onTap,
-    required RxString textValue, // Tambahkan parameter untuk variabel Rx
+    required RxString textValue,
+    VoidCallback? onClear, // Tambahkan parameter untuk clear function
   }) {
     return InkWell(
       onTap: onTap,
@@ -44,6 +45,21 @@ class SearchContainer extends StatelessWidget {
                         ),
                   )),
             ),
+            // Clear button - only show when there's text
+            Obx(() => textValue.value.isNotEmpty && onClear != null
+                ? InkWell(
+                    onTap: onClear,
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Icon(
+                        Icons.clear,
+                        color: Colors.grey[600],
+                        size: 18,
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink()),
           ],
         ),
       ),
@@ -117,6 +133,24 @@ class SearchContainer extends StatelessWidget {
           ),
         ),
         
+        // Clear button for capacity
+        Obx(() => searchController.capacityText.value.isNotEmpty
+            ? InkWell(
+                onTap: () => searchController.clearCapacity(),
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Icon(
+                    Icons.clear,
+                    color: Colors.grey[600],
+                    size: 18,
+                  ),
+                ),
+              )
+            : const SizedBox.shrink()),
+        
+        const SizedBox(width: 8),
+        
         // Stepper Controls
         Row(
           mainAxisSize: MainAxisSize.min,
@@ -170,7 +204,8 @@ class SearchContainer extends StatelessWidget {
             icon: Icons.search,
             hintText: LocalizationHelper.tr(LocaleKeys.placeholders_searchPlaceActivity),
             onTap: () => searchController.goToSearchActivity(),
-            textValue: searchController.activityText, // Tambahkan variabel Rx
+            textValue: searchController.activityText,
+            onClear: () => searchController.clearActivity(),
           ),
 
           const SizedBox(height: 12),
@@ -182,19 +217,21 @@ class SearchContainer extends StatelessWidget {
             icon: Icons.location_on_outlined,
             hintText: LocalizationHelper.tr(LocaleKeys.placeholders_selectCity),
             onTap: () => searchController.showCityPicker(),
-            textValue: searchController.locationText, // Tambahkan variabel Rx
+            textValue: searchController.locationText,
+            onClear: () => searchController.clearLocation(),
           ),
 
           const SizedBox(height: 12),
 
-          // Enhanced Date Range Selection
+          // Single Date Selection
           _buildSearchField(
             context: context,
             controller: searchController.dateController,
             icon: Icons.date_range_outlined,
             hintText: LocalizationHelper.tr(LocaleKeys.placeholders_selectDate),
-            onTap: () => searchController.selectDateRange(),
-            textValue: searchController.dateText, // Tambahkan variabel Rx
+            onTap: () => searchController.selectDate(),
+            textValue: searchController.dateText,
+            onClear: () => searchController.clearDate(),
           ),
 
           const SizedBox(height: 12),

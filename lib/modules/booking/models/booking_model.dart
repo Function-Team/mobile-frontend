@@ -28,6 +28,12 @@ class BookingModel {
   final String? cancelReason;
   final String? cancelledBy;
 
+  // Guest information fields
+  final String? guestName;
+  final String? guestEmail;
+  final String? guestPhone;
+  final int? guestCount;
+
   // Related models (populated from joins)
   final VenueModel? place;
   final UserModel? user;
@@ -48,6 +54,10 @@ class BookingModel {
     this.isCancelled,
     this.cancelReason,
     this.cancelledBy,
+    this.guestName,
+    this.guestEmail,
+    this.guestPhone,
+    this.guestCount,
     this.place,
     this.user,
     this.reviews,
@@ -65,8 +75,9 @@ class BookingModel {
       return BookingStatus.completed;
     }
 
-    // Priority 3: Check if expired (end time passed and not confirmed/paid)
-    if (endDateTime.isBefore(DateTime.now()) && (!isConfirmed || !isPaid)) {
+    // Priority 3: Check if expired (start time passed and not confirmed/paid)
+    // Match backend logic: booking expires when start time passes without payment
+    if (startDateTime.isBefore(DateTime.now()) && (!isConfirmed || !isPaid)) {
       return BookingStatus.expired;
     }
 
@@ -181,21 +192,6 @@ class BookingModel {
     return DateFormat('dd MMM yyyy, HH:mm', 'id_ID').format(createdAt!);
   }
 
-  String get createdAtDisplay {
-    if (createdAt == null) return '';
-    final now = DateTime.now();
-    final difference = now.difference(createdAt!);
-
-    if (difference.inDays > 0) {
-      return 'Dibuat ${difference.inDays} hari lalu';
-    } else if (difference.inHours > 0) {
-      return 'Dibuat ${difference.inHours} jam lalu';
-    } else if (difference.inMinutes > 0) {
-      return 'Dibuat ${difference.inMinutes} menit lalu';
-    } else {
-      return 'Baru dibuat';
-    }
-  }
 
   bool get isCompleted {
     return status == BookingStatus.completed;
@@ -244,43 +240,26 @@ class BookingModel {
 
     if (value is String) {
       try {
-        DateTime parsedDateTime;
-
         if (value.contains('T')) {
-          // Handle ISO 8601 format from API
-          if (value.contains('Z') ||
-              value.contains('+') ||
-              value.contains('-')) {
-            // This is already in UTC or has timezone info
-            parsedDateTime = DateTime.parse(value);
-
-            // Convert UTC to local time (Indonesia is UTC+7)
-            if (value.contains('Z')) {
-              // UTC time, convert to local
-              parsedDateTime = parsedDateTime.add(Duration(hours: 7));
-            }
+          if (value.contains('Z')) {
+            // UTC time with Z indicator - let Dart handle conversion
+            return DateTime.parse(value)
+                .toLocal(); // ✅ AUTO CONVERT UTC to LOCAL
           } else {
             // ISO format without timezone, treat as local
-            parsedDateTime = DateTime.parse(value);
+            return DateTime.parse(value);
           }
         } else {
           // Other formats, parse as is
-          parsedDateTime = DateTime.parse(value);
+          return DateTime.parse(value);
         }
-
-        return parsedDateTime;
       } catch (e) {
         print('Error parsing datetime: $value, error: $e');
         return DateTime.now();
       }
     }
 
-    if (value is DateTime) {
-      // Return as-is if already DateTime object
-      return value;
-    }
-
-    return DateTime.now();
+    return value is DateTime ? value : DateTime.now();
   }
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
@@ -299,14 +278,17 @@ class BookingModel {
       startDateTime: parseDateTime(json['start_datetime']),
       endDateTime: parseDateTime(json['end_datetime']),
       isConfirmed: json['is_confirmed'] ?? false,
-      createdAt:
-          json['created_at'] != null ? parseDateTime(json['created_at']) : null,
+      createdAt: parseDateTime(json['created_at']),
       amount: parseAmount(json['amount']),
       paymentStatus: json['payment_status'],
       placeName: json['place_name'],
       isCancelled: json['is_cancelled'] as bool?,
       cancelReason: json['cancel_reason'] as String?,
       cancelledBy: json['cancelled_by'] as String?,
+      guestName: json['guest_name'] as String?,
+      guestEmail: json['guest_email'] as String?,
+      guestPhone: json['guest_phone'] as String?,
+      guestCount: json['guest_count'] as int?,
       place: json['place'] != null ? VenueModel.fromJson(json['place']) : null,
       user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
       reviews: json['reviews'] != null
@@ -363,6 +345,10 @@ class BookingModel {
     bool? isCancelled,
     String? cancelReason,
     String? cancelledBy,
+    String? guestName,
+    String? guestEmail,
+    String? guestPhone,
+    int? guestCount,
     VenueModel? place,
     UserModel? user,
     List<ReviewModel>? reviews,
@@ -382,6 +368,10 @@ class BookingModel {
       isCancelled: isCancelled ?? this.isCancelled,
       cancelReason: cancelReason ?? this.cancelReason,
       cancelledBy: cancelledBy ?? this.cancelledBy,
+      guestName: guestName ?? this.guestName,
+      guestEmail: guestEmail ?? this.guestEmail,
+      guestPhone: guestPhone ?? this.guestPhone,
+      guestCount: guestCount ?? this.guestCount,
       place: place ?? this.place,
       user: user ?? this.user,
       reviews: reviews ?? this.reviews,
@@ -502,8 +492,6 @@ class BookingCreateRequest {
   }
 }
 
-
-
 class PaymentModel {
   final int id;
   final int bookingId;
@@ -526,8 +514,8 @@ class PaymentModel {
       id: json['id'],
       bookingId: json['booking_id'],
       amount: json['amount'],
-      createdAt: DateTime.parse(json['created_at']),
-      expiresAt: DateTime.parse(json['expires_at']),
+      createdAt: BookingModel.parseDateTime(json['created_at']),
+      expiresAt: BookingModel.parseDateTime(json['expires_at']),
       status: json['status'],
     );
   }
@@ -538,6 +526,7 @@ class PaymentModel {
       'booking_id': bookingId,
       'amount': amount,
       'created_at': createdAt.toIso8601String(),
+      'expires_at': expiresAt.toIso8601String(),
       'status': status,
     };
   }
