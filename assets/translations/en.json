@@ -95,7 +95,10 @@
     "linkedinHandle": "Function Team",
     "openPlatform": "Open {platform}?",
     "openPlatformMessage": "This will open {platform} in your browser or app. You'll leave the current app temporarily.",
-    "errorOpening": "Could not open {platform}. Please try again or check if the app is installed."
+    "errorOpening": "Could not open {platform}. Please try again or check if the app is installed.",
+    "openMaps": "Open Google Maps?",
+    "openMapsMessage": "This will open Google Maps to show the venue location. You'll leave the current app temporarily.",
+    "openMapsError": "Could not open Google Maps. Please try again or check if the app is installed."
   },
   "common": {
     "change": "Change",
@@ -303,6 +306,7 @@
     "totalAmount": "Total Amount",
     "bookedOn": "Booked on",
     "ratePerHour": "Rate per hour",
+    "bookedBy": "Booked by",
     "waitingConfirmation": "Waiting for Confirmation",
     "waitingPayment": "Waiting for Payment",
     "bookingCompletedPaid": "Booking completed - Paid",
@@ -473,6 +477,7 @@
     "sortRelevance": "Relevance",
     "searchVenueHint": "Search venue",
     "selectActivity": "Select Activity",
+    "fillAtLeastOne": "Please fill at least one search criteria",
     "selectCapacity": "Select Capacity",
     "selectAll": "Select All",
     "clearAll": "Clear All",

@@ -95,6 +95,15 @@ class BookingListController extends GetxController {
       }
     }
 
+    // Defer reactive operations to prevent setState during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _setupUserListener();
+      fetchBookings();
+      _clearBookingNotifications();
+    });
+  }
+
+  void _setupUserListener() {
     // Listen to user changes and refresh bookings when user switches
     ever(_authController.user, (user) {
       final newUserId = user?.id;
@@ -125,9 +134,6 @@ class BookingListController extends GetxController {
         });
       }
     });
-
-    fetchBookings();
-    _clearBookingNotifications();
   }
 
   Future<void> fetchBookings() async {

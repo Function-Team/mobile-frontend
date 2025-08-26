@@ -89,6 +89,9 @@ abstract class LocaleKeys {
   static const follow_us_openPlatform = 'follow_us.openPlatform';
   static const follow_us_openPlatformMessage = 'follow_us.openPlatformMessage';
   static const follow_us_errorOpening = 'follow_us.errorOpening';
+  static const follow_us_openMaps = 'follow_us.openMaps';
+  static const follow_us_openMapsMessage = 'follow_us.openMapsMessage';
+  static const follow_us_openMapsError = 'follow_us.openMapsError';
   static const settings_settings = 'settings.settings';
   static const settings_profile = 'settings.profile';
   static const settings_account = 'settings.account';
@@ -342,6 +345,7 @@ abstract class LocaleKeys {
   static const booking_totalAmount = 'booking.totalAmount';
   static const booking_bookedOn = 'booking.bookedOn';
   static const booking_ratePerHour = 'booking.ratePerHour';
+  static const booking_bookedBy = 'booking.bookedBy';
   static const venue_details = 'venue.details';
   static const venue_venueDetails = 'venue.venueDetails';
   static const venue_price = 'venue.price';
@@ -485,6 +489,7 @@ abstract class LocaleKeys {
   static const search_searchVenueHint = 'search.searchVenueHint';
   static const search_filterByCategory = 'search.filterByCategory';
   static const search_selectActivity = 'search.selectActivity';
+  static const search_fillAtLeastOne = 'search.fillAtLeastOne';
   static const search_selectCapacity = 'search.selectCapacity';
   static const search = 'search';
   static const search_sortDateDesc = 'search.sortDateDesc';

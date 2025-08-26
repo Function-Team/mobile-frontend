@@ -175,6 +175,42 @@ class BookingValidationService extends GetxService {
 
     return ValidationResult.success();
   }
+  
+  /// Validate advance booking time constraint (2-hour rule for same day)
+  ValidationResult validateAdvanceBooking(DateTime? date, TimeOfDay? startTime) {
+    if (date == null || startTime == null) {
+      return ValidationResult.error('Tanggal dan waktu harus dipilih');
+    }
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final selectedDate = DateTime(date.year, date.month, date.day);
+
+    // Only apply advance booking rule for same day
+    if (!selectedDate.isAtSameMomentAs(today)) {
+      return ValidationResult.success();
+    }
+
+    // Create full datetime for comparison
+    final startDateTime = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      startTime.hour,
+      startTime.minute,
+    );
+
+    // Check if booking is at least 2 hours from now
+    final minimumStartTime = now.add(const Duration(hours: 2));
+    
+    if (startDateTime.isBefore(minimumStartTime)) {
+      return ValidationResult.error(
+        'Booking hari ini minimal 2 jam dari sekarang'
+      );
+    }
+
+    return ValidationResult.success();
+  }
 
   // =============================================
   // TIME VALIDATION
@@ -189,6 +225,10 @@ class BookingValidationService extends GetxService {
     // First check if date is valid
     final dateResult = validateDate(date);
     if (!dateResult.isValid) return dateResult;
+    
+    // Check advance booking constraint (2-hour rule for same day)
+    final advanceResult = validateAdvanceBooking(date, startTime);
+    if (!advanceResult.isValid) return advanceResult;
 
     if (startTime == null || endTime == null) {
       return ValidationResult.error('Pilih waktu mulai dan selesai');

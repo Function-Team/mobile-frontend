@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
@@ -31,9 +32,8 @@ class SearchFilterController extends GetxController {
   final RxString errorMessage = ''.obs;
   final RxString searchQuery = ''.obs;
 
-  // Enhanced search parameters for multi-day support
-  final Rx<DateTime?> startDate = Rx<DateTime?>(null);
-  final Rx<DateTime?> endDate = Rx<DateTime?>(null);
+  // Single day search parameters
+  final Rx<DateTime?> selectedDate = Rx<DateTime?>(null);
   final Rx<TimeOfDay?> startTime = Rx<TimeOfDay?>(null);
   final Rx<TimeOfDay?> endTime = Rx<TimeOfDay?>(null);
   final RxInt selectedCityId = 0.obs;
@@ -99,39 +99,26 @@ class SearchFilterController extends GetxController {
     }
   }
 
-  // Date range selection
-  Future<void> selectDateRange() async {
-    final DateTimeRange? picked = await showDateRangePicker(
+  // Single date selection
+  Future<void> selectDate() async {
+    final DateTime? picked = await showDatePicker(
       context: Get.context!,
+      initialDate: selectedDate.value ?? DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
-      initialDateRange: startDate.value != null && endDate.value != null
-          ? DateTimeRange(start: startDate.value!, end: endDate.value!)
-          : null,
     );
 
     if (picked != null) {
-      startDate.value = picked.start;
-      endDate.value = picked.end;
-
-      // Update the UI text properly
-      if (picked.start == picked.end) {
-        dateController.text =
-            '${picked.start.day}/${picked.start.month}/${picked.start.year}';
-      } else {
-        dateController.text =
-            '${picked.start.day}/${picked.start.month} - ${picked.end.day}/${picked.end.month}';
-      }
-
-      // Update Rx variable
+      selectedDate.value = picked;
+      dateController.text = '${picked.day}/${picked.month}/${picked.year}';
       dateText.value = dateController.text;
       
-      // Reset time if date changes
+      // Set default times if not set
       if (startTime.value == null) {
-        startTime.value = const TimeOfDay(hour: 8, minute: 0); // Default start time 8:00 AM
+        startTime.value = const TimeOfDay(hour: 8, minute: 0);
       }
       if (endTime.value == null) {
-        endTime.value = const TimeOfDay(hour: 22, minute: 0); // Default end time 10:00 PM
+        endTime.value = const TimeOfDay(hour: 22, minute: 0);
       }
     }
   }
@@ -248,16 +235,8 @@ class SearchFilterController extends GetxController {
     String timeInfo = '';
     
     // Format tanggal
-    if (startDate.value != null && endDate.value != null) {
-      if (startDate.value!.day == endDate.value!.day && 
-          startDate.value!.month == endDate.value!.month && 
-          startDate.value!.year == endDate.value!.year) {
-        // Satu hari
-        timeInfo += '${startDate.value!.day}/${startDate.value!.month}/${startDate.value!.year}';
-      } else {
-        // Rentang hari
-        timeInfo += '${startDate.value!.day}/${startDate.value!.month} - ${endDate.value!.day}/${endDate.value!.month}';
-      }
+    if (selectedDate.value != null) {
+      timeInfo += '${selectedDate.value!.day}/${selectedDate.value!.month}/${selectedDate.value!.year}';
       
       // Tambahkan informasi waktu
       if (startTime.value != null && endTime.value != null) {
@@ -384,31 +363,50 @@ class SearchFilterController extends GetxController {
     );
   }
 
-  // Capacity
+  // Capacity with safety checks
   void onCapacityInputChanged(String value) {
-    if (value.isEmpty) {
+    try {
+      if (value.isEmpty) {
+        maxCapacity.value = 0;
+        capacityText.value = '';
+        return;
+      }
+
+      // Remove any non-numeric characters as safety measure
+      final cleanValue = value.replaceAll(RegExp(r'[^\d]'), '');
+      if (cleanValue.isEmpty) {
+        maxCapacity.value = 0;
+        capacityText.value = '';
+        return;
+      }
+
+      final intValue = int.tryParse(cleanValue);
+      if (intValue != null && intValue >= 0 && intValue <= 1000) {
+        maxCapacity.value = intValue;
+        capacityText.value = '$intValue orang';
+      } else if (intValue != null && intValue > 1000) {
+        // Auto-correct to max value
+        maxCapacity.value = 1000;
+        capacityInputController.text = '1000';
+        capacityText.value = '1000 orang';
+
+        // Show feedback
+        CustomSnackbar.show(
+            context: Get.context!,
+            message: LocalizationHelper.tr(LocaleKeys.errors_capacityExceeded),
+            type: SnackbarType.warning,
+            autoClear: true,
+            enableDebounce: true);
+      } else {
+        // Invalid input, reset to safe value
+        maxCapacity.value = 0;
+        capacityText.value = '';
+      }
+    } catch (e) {
+      print('Error in onCapacityInputChanged: $e');
+      // Safe fallback
       maxCapacity.value = 0;
       capacityText.value = '';
-      return;
-    }
-
-    final intValue = int.tryParse(value);
-    if (intValue != null && intValue >= 0 && intValue <= 1000) {
-      maxCapacity.value = intValue;
-      capacityText.value = '$intValue orang';
-    } else if (intValue != null && intValue > 1000) {
-      // Auto-correct to max value
-      maxCapacity.value = 1000;
-      capacityInputController.text = '1000';
-      capacityText.value = '1000 orang';
-
-      // Show feedback
-      CustomSnackbar.show(
-          context: Get.context!,
-          message: LocalizationHelper.tr(LocaleKeys.errors_capacityExceeded),
-          type: SnackbarType.warning,
-          autoClear: true,
-          enableDebounce: true);
     }
   }
 
@@ -472,24 +470,23 @@ class SearchFilterController extends GetxController {
     });
   }
 
-  // Advanced search
+  // Advanced search - now flexible, no mandatory fields
   Future<void> performAdvancedSearch() async {
-    // Validasi field wajib
-    if (activityText.value.isEmpty) {
-      CustomSnackbar.show(
-          context: Get.context!,
-          message: LocalizationHelper.tr(LocaleKeys.search_selectActivity),
-          type: SnackbarType.error,
-          autoClear: true,
-          enableDebounce: false);
+    // Prevent multiple simultaneous requests
+    if (isLoading.value) {
+      print('Search already in progress, ignoring duplicate request');
       return;
     }
-
-    if (locationText.value.isEmpty) {
+    
+    // Validasi minimal ada satu parameter search
+    if (activityText.value.isEmpty && 
+        locationText.value.isEmpty && 
+        capacityText.value.isEmpty && 
+        selectedDate.value == null) {
       CustomSnackbar.show(
           context: Get.context!,
-          message: LocalizationHelper.tr(LocaleKeys.search_selectLocation),
-          type: SnackbarType.error,
+          message: LocalizationHelper.tr(LocaleKeys.search_fillAtLeastOne),
+          type: SnackbarType.warning,
           autoClear: true,
           enableDebounce: false);
       return;
@@ -524,45 +521,77 @@ class SearchFilterController extends GetxController {
         searchParams['max_capacity'] = maxCapacity.value;
       }
 
-      // Date and time filters
-      if (startDate.value != null) {
-        searchParams['start_date'] =
-            startDate.value!.toIso8601String().split('T')[0];
+      // Date and time filters for single day
+      if (selectedDate.value != null) {
+        DateTime startDateTime = selectedDate.value!;
+        DateTime endDateTime = selectedDate.value!;
+        
+        // Apply start time if provided
+        if (startTime.value != null) {
+          startDateTime = DateTime(
+            selectedDate.value!.year,
+            selectedDate.value!.month,
+            selectedDate.value!.day,
+            startTime.value!.hour,
+            startTime.value!.minute,
+          );
+        } else {
+          // Default start time 08:00
+          startDateTime = DateTime(
+            selectedDate.value!.year,
+            selectedDate.value!.month,
+            selectedDate.value!.day,
+            8,
+            0,
+          );
+          startTime.value = const TimeOfDay(hour: 8, minute: 0);
+        }
+        
+        // Apply end time if provided
+        if (endTime.value != null) {
+          endDateTime = DateTime(
+            selectedDate.value!.year,
+            selectedDate.value!.month,
+            selectedDate.value!.day,
+            endTime.value!.hour,
+            endTime.value!.minute,
+          );
+        } else {
+          // Default end time 22:00
+          endDateTime = DateTime(
+            selectedDate.value!.year,
+            selectedDate.value!.month,
+            selectedDate.value!.day,
+            22,
+            0,
+          );
+          endTime.value = const TimeOfDay(hour: 22, minute: 0);
+        }
+        
+        searchParams['start_datetime'] = startDateTime.toIso8601String();
+        searchParams['end_datetime'] = endDateTime.toIso8601String();
       }
 
-      if (endDate.value != null) {
-        searchParams['end_date'] =
-            endDate.value!.toIso8601String().split('T')[0];
+      final results = await _venueRepository.searchAvailableVenues(searchParams)
+          .timeout(
+            const Duration(seconds: 30), 
+            onTimeout: () {
+              throw TimeoutException('Search request timed out', const Duration(seconds: 30));
+            },
+          );
+      
+      if (results.isNotEmpty) {
+        searchResults.assignAll(results);
+      } else {
+        searchResults.clear();
       }
-
-      if (startTime.value != null) {
-        searchParams['start_time'] =
-            '${startTime.value!.hour.toString().padLeft(2, '0')}:${startTime.value!.minute.toString().padLeft(2, '0')}:00';
-      } else if (startDate.value != null) {
-        // Default start time jika tanggal dipilih tapi waktu tidak
-        searchParams['start_time'] = '08:00:00';
-        startTime.value = const TimeOfDay(hour: 8, minute: 0);
-      }
-
-      if (endTime.value != null) {
-        searchParams['end_time'] =
-            '${endTime.value!.hour.toString().padLeft(2, '0')}:${endTime.value!.minute.toString().padLeft(2, '0')}:00';
-      } else if (endDate.value != null) {
-        // Default end time jika tanggal dipilih tapi waktu tidak
-        searchParams['end_time'] = '22:00:00';
-        endTime.value = const TimeOfDay(hour: 22, minute: 0);
-      }
-
-      final results =
-          await _venueRepository.searchAvailableVenues(searchParams);
-      searchResults.assignAll(results);
 
       // Buat ringkasan parameter pencarian untuk ditampilkan
       Map<String, dynamic> searchSummary = {
-        'activity': activityText.value,
-        'location': locationText.value,
-        'capacity': capacityText.value,
-        'date': dateText.value,
+        'activity': activityText.value.isNotEmpty ? activityText.value : null,
+        'location': locationText.value.isNotEmpty ? locationText.value : null,
+        'capacity': capacityText.value.isNotEmpty ? capacityText.value : null,
+        'date': dateText.value.isNotEmpty ? dateText.value : null,
         'startTime': startTime.value != null
             ? '${startTime.value!.hour.toString().padLeft(2, '0')}:${startTime.value!.minute.toString().padLeft(2, '0')}'
             : null,
@@ -590,6 +619,35 @@ class SearchFilterController extends GetxController {
     }
   }
 
+  // Individual clear methods
+  void clearActivity() {
+    activityController.clear();
+    activityText.value = '';
+    selectedActivityId.value = 0;
+  }
+
+  void clearLocation() {
+    locationController.clear();
+    locationText.value = '';
+    selectedCityId.value = 0;
+    selectedCity.value = '';
+  }
+
+  void clearDate() {
+    dateController.clear();
+    dateText.value = '';
+    selectedDate.value = null;
+    startTime.value = null;
+    endTime.value = null;
+  }
+
+  void clearCapacity() {
+    capacityController.clear();
+    capacityInputController.clear();
+    capacityText.value = '';
+    maxCapacity.value = 0;
+  }
+
   // Clear all search filters
   void clearAllFilters() {
     activityController.clear();
@@ -603,8 +661,7 @@ class SearchFilterController extends GetxController {
     locationText.value = '';
     capacityText.value = '';
     dateText.value = '';
-    startDate.value = null;
-    endDate.value = null;
+    selectedDate.value = null;
     startTime.value = null;
     endTime.value = null;
     selectedCityId.value = 0;

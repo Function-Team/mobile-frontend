@@ -37,12 +37,12 @@ class FavoritesController extends GetxController {
   Future<void> loadFavorites() async {
     try {
       isLoading.value = true;
-      favorites.clear();
-
+      
       // Get current user
       final currentUser = _authController.user.value;
       if (currentUser == null) {
         print('No user logged in, cannot load favorites');
+        favorites.clear();
         isLoading.value = false;
         return;
       }
@@ -53,17 +53,27 @@ class FavoritesController extends GetxController {
       // Load favorites from backend API
       try {
         final backendFavorites = await _favoriteService.getFavorites();
-        favorites.addAll(backendFavorites);
+        
+        // Remove duplicates by venue ID before adding
+        final uniqueFavorites = <int, FavoriteModel>{};
+        for (var favorite in backendFavorites) {
+          uniqueFavorites[favorite.venue.id] = favorite;
+        }
+        
+        // Clear and replace favorites list entirely to prevent accumulation
+        favorites.clear();
+        favorites.addAll(uniqueFavorites.values);
 
-        // Sync with local storage for offline access
-        final favoriteIds = backendFavorites.map((fav) => fav.id).toList();
+        // Sync with local storage for offline access  
+        final favoriteIds = uniqueFavorites.keys.toList();
         await _storageService.saveFavorites(favoriteIds, currentUser.id);
 
         print(
-            'Successfully loaded ${favorites.length} favorites from backend');
+            'Successfully loaded ${favorites.length} unique favorites from backend');
         debugPrintFavorites(); // Debug print favorites
       } catch (backendError) {
         print('Error loading favorites from backend: $backendError');
+        favorites.clear(); // Clear on error too
 
         CustomSnackbar.show(
             context: Get.context!,
@@ -74,6 +84,7 @@ class FavoritesController extends GetxController {
       }
     } catch (e) {
       print('Unexpected error in loadFavorites: $e');
+      favorites.clear(); // Clear on any error
     } finally {
       isLoading.value = false;
     }
@@ -99,11 +110,15 @@ class FavoritesController extends GetxController {
         // Load venue details and add to favorites list
         final venue = await _venueRepository.getVenueById(venueId);
         if (venue != null) {
-          favorites.add(FavoriteModel(
-            id: venueId,
-            venue: venue,
-            createdAt: DateTime.now(),
-          ));
+          // Check if not already in favorites to prevent duplicates
+          final isAlreadyFavorite = favorites.any((fav) => fav.venue.id == venueId);
+          if (!isAlreadyFavorite) {
+            favorites.add(FavoriteModel(
+              id: venueId,
+              venue: venue,
+              createdAt: DateTime.now(),
+            ));
+          }
         }
 
         // Update local storage
@@ -115,7 +130,7 @@ class FavoritesController extends GetxController {
             autoClear: true,
             enableDebounce: true);
       } else if (result['action'] == 'removed') {
-        favorites.removeWhere((fav) => fav.id == venueId);
+        favorites.removeWhere((fav) => fav.venue.id == venueId);
 
         // Update local storage
         await _storageService.removeFavorite(venueId, currentUser.id);
@@ -138,7 +153,7 @@ class FavoritesController extends GetxController {
 
           if (favoriteIds.contains(venueId)) {
             await _storageService.removeFavorite(venueId, currentUser.id);
-            favorites.removeWhere((fav) => fav.id == venueId);
+            favorites.removeWhere((fav) => fav.venue.id == venueId);
             CustomSnackbar.show(
                 context: Get.context!,
                 message: LocalizationHelper.tr(LocaleKeys.venue_removeFromFavorites),
@@ -150,11 +165,15 @@ class FavoritesController extends GetxController {
 
             final venue = await _venueRepository.getVenueById(venueId);
             if (venue != null) {
-              favorites.add(FavoriteModel(
-                id: venueId,
-                venue: venue,
-                createdAt: DateTime.now(),
-              ));
+              // Check if not already in favorites to prevent duplicates
+              final isAlreadyFavorite = favorites.any((fav) => fav.venue.id == venueId);
+              if (!isAlreadyFavorite) {
+                favorites.add(FavoriteModel(
+                  id: venueId,
+                  venue: venue,
+                  createdAt: DateTime.now(),
+                ));
+              }
             }
 
             CustomSnackbar.show(
@@ -235,7 +254,7 @@ class FavoritesController extends GetxController {
 
   // Check if venue is in favorites list (from memory, faster than storage)
   bool isVenueInFavorites(int venueId) {
-    final result = favorites.any((favorite) => favorite.id == venueId);
+    final result = favorites.any((favorite) => favorite.venue.id == venueId);
     print(
         'FavoritesController: Checking if venue $venueId is in favorites (memory): $result');
     return result;
@@ -248,7 +267,7 @@ class FavoritesController extends GetxController {
       if (currentUser == null) return;
 
       await _storageService.removeFavorite(venueId, currentUser.id);
-      favorites.removeWhere((favorite) => favorite.id == venueId);
+      favorites.removeWhere((favorite) => favorite.venue.id == venueId);
 
       CustomSnackbar.show(
           context: Get.context!,

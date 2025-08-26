@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
@@ -66,10 +68,13 @@ class BookingController extends GetxController {
     _formValidation();
 
     // Set default time slots
-    startTime.value = TimeOfDay.now();
+    final now = TimeOfDay.now();
+    startTime.value = now;
+    // Ensure end time is always after start time
+    final endHour = now.hour < 22 ? now.hour + 2 : 22;
     endTime.value = TimeOfDay(
-      hour: (TimeOfDay.now().hour + 2) % 24,
-      minute: TimeOfDay.now().minute,
+      hour: endHour,
+      minute: now.minute,
     );
   }
 
@@ -106,7 +111,6 @@ class BookingController extends GetxController {
       isLoadingCalendar.value = false;
     }
   }
-
 
   Future<void> loadDetailedTimeSlots(int venueId, DateTime date) async {
     try {
@@ -205,17 +209,17 @@ class BookingController extends GetxController {
       if (response is BookingCreateWithResponse) {
         bookingStatus.value = 'success';
         showSuccess('Booking created successfully!\n'
-            'Duration: ${response.totalHours} hours\n'
+            'Duration: ${response.totalHours.toInt()} hours\n'
             'Total: Rp ${NumberFormat('#,###').format(response.totalAmount)}');
 
-        clearForm();
         await Future.delayed(Duration(seconds: 2));
         Get.back();
         goToBookingListPage();
+        clearForm();
       } else if (response is BookingConflictResponse) {
         // CONFLICT - Time slot not available
         bookingStatus.value = 'failed';
-        showError('Waktu yang dipilih sudah dibooking. Silakan pilih waktu lain.');
+        handleBookingConflict(response.availableSlots, venue);
       }
     } catch (e) {
       print('ERROR: Booking creation failed: $e');
@@ -228,11 +232,77 @@ class BookingController extends GetxController {
     }
   }
 
-  // friendly error messages
-  String _getUserFriendlyErrorMessage(String error) {
-    final lowerError = error.toLowerCase();
+  void handleBookingConflict(List<TimeSlot> availableSlots, VenueModel venue) {
+    // Simplified conflict handling - just show error message
+    CustomSnackbar.show(
+      context: Get.context!,
+      message: 'Waktu yang dipilih sudah dibooking. Silakan pilih waktu lain.',
+      type: SnackbarType.error,
+    );
+  }
 
+  // Enhanced friendly error messages with JSON parsing
+  String _getUserFriendlyErrorMessage(String error) {
     print('🔍 Analyzing error: $error');
+
+    // Try to parse JSON error response from backend
+    try {
+      final Map<String, dynamic> errorData = json.decode(error);
+
+      // Check if it's a structured error response
+      if (errorData.containsKey('detail') && errorData['detail'] is Map) {
+        final detail = errorData['detail'] as Map<String, dynamic>;
+
+        // Return the user-friendly message from backend
+        if (detail.containsKey('message')) {
+          String message = detail['message'];
+
+          // Add suggestion if available
+          if (detail.containsKey('suggestion')) {
+            message += '\n\n💡 ${detail['suggestion']}';
+          }
+
+          // Add valid options for specific errors
+          if (detail.containsKey('valid_latest_slots')) {
+            final validSlots = detail['valid_latest_slots'] as List;
+            message +=
+                '\n\n⏰ Slot terakhir yang valid: ${validSlots.join(', ')}';
+          }
+
+          return message;
+        }
+
+        // Fallback to error type specific messages
+        final errorType = detail['error'] ?? '';
+        switch (errorType) {
+          case 'Invalid start time':
+          case 'Invalid end time':
+            return detail['message'] ?? 'Waktu harus dalam kelipatan 30 menit';
+          case 'Duration too short':
+            return detail['message'] ?? 'Durasi booking minimum 1 jam';
+          case 'Duration too long':
+            return detail['message'] ?? 'Durasi booking maksimum 7 hari';
+          case 'Start time too early':
+          case 'Start time too late':
+          case 'End time too early':
+          case 'End time too late':
+          case 'End time exceeds venue hours':
+            return detail['message'] ??
+                'Waktu booking di luar jam operasional venue';
+          case 'Guest count exceeds capacity':
+            return detail['message'] ?? 'Jumlah tamu melebihi kapasitas venue';
+          case 'Time slot not available':
+            return detail['message'] ?? 'Waktu yang dipilih sudah dibooking';
+          default:
+            return detail['message'] ?? 'Terjadi kesalahan validasi';
+        }
+      }
+    } catch (e) {
+      print('Error parsing JSON, falling back to string analysis: $e');
+    }
+
+    // Fallback to original string-based error detection
+    final lowerError = error.toLowerCase();
 
     // Specific conflict detection - multiple patterns
     if (lowerError.contains('venue not available') ||
@@ -421,7 +491,6 @@ class BookingController extends GetxController {
     return true;
   }
 
-
   void setStartTime(TimeOfDay time) {
     startTime.value = time;
   }
@@ -431,6 +500,10 @@ class BookingController extends GetxController {
   }
 
   void setVenueData(VenueModel venue) {
+    // Reset time selection when venue changes
+    startTime.value = null;
+    endTime.value = null;
+
     if (venue.maxCapacity != null && venue.maxCapacity! > 0) {
       maxVenueCapacity.value = venue.maxCapacity!;
       final currentCapacity = int.tryParse(capacityController.text) ?? 1;
@@ -599,12 +672,22 @@ class BookingController extends GetxController {
         return;
       }
 
-      final paymentData = {
-        'booking_id': booking.id,
-        'amount': booking.place?.price ?? 0,
-      };
-
-      final response = await _apiService.postRequest('/payment', paymentData);
+      // First, try to get existing payment for this booking
+      var response;
+      try {
+        response =
+            await _apiService.getRequest('/payment/booking/${booking.id}');
+        print('Found existing payment for booking ${booking.id}');
+      } catch (e) {
+        // If no existing payment found, create a new one
+        print(
+            'No existing payment found, creating new payment for booking ${booking.id}');
+        final paymentData = {
+          'booking_id': booking.id,
+          'amount': booking.place?.price ?? 0,
+        };
+        response = await _apiService.postRequest('/payment', paymentData);
+      }
 
       if (response != null && response['midtrans'] != null) {
         final snapToken = response['midtrans']['token'];
@@ -628,7 +711,7 @@ class BookingController extends GetxController {
           throw Exception('Could not open payment page');
         }
       } else {
-        throw Exception('Failed to create payment session');
+        throw Exception('Failed to get payment session');
       }
     } catch (e) {
       showError('Payment Error: ${e.toString()}');
@@ -641,10 +724,13 @@ class BookingController extends GetxController {
   void clearForm() {
     selectedDate.value = null;
     capacityController.text = '10';
-    startTime.value = TimeOfDay.now();
+    final now = TimeOfDay.now();
+    startTime.value = now;
+    // Ensure end time is always after start time
+    final endHour = now.hour < 22 ? now.hour + 2 : 22;
     endTime.value = TimeOfDay(
-      hour: (TimeOfDay.now().hour + 2) % 24,
-      minute: TimeOfDay.now().minute,
+      hour: endHour,
+      minute: now.minute,
     );
     guestNameController.clear();
     guestEmailController.clear();
@@ -687,6 +773,11 @@ class BookingController extends GetxController {
     }
   }
 
+  void resetTimeSelection() {
+    startTime.value = null;
+    endTime.value = null;
+  }
+
   void showError(String message) {
     CustomSnackbar.show(
       context: Get.context!,
@@ -714,6 +805,14 @@ class BookingController extends GetxController {
       type: SnackbarType.info,
       autoClear: true,
       enableDebounce: true,
+    );
+  }
+
+  void showValidationWarning(String message) {
+    CustomSnackbar.show(
+      context: Get.context!,
+      message: message,
+      type: SnackbarType.warning,
     );
   }
 

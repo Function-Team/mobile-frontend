@@ -295,13 +295,6 @@ class VenueDetailPage extends StatelessWidget {
                   icon: Icons.groups_2,
                 ),
 
-                // Area chip
-                CategoryChip(
-                  label:
-                      controller.venue.value?.size ?? LocalizationHelper.tr(LocaleKeys.labels_sizeNotAvailable),
-                  color: Colors.blue,
-                  icon: Icons.straighten,
-                ),
               ],
             ),
           ),
@@ -521,27 +514,7 @@ class VenueDetailPage extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               IconButton(
-                onPressed: () async {
-                  // Sama dengan GestureDetector onTap di atas
-                  final venue = controller.venue.value;
-
-                  if (venue?.address != null) {
-                    final encodedAddress = Uri.encodeComponent(venue!.address!);
-                    final googleMapsUrl =
-                        'https://www.google.com/maps/search/?api=1&query=$encodedAddress';
-
-                    final uri = Uri.parse(googleMapsUrl);
-
-                    try {
-                      if (await canLaunchUrl(uri)) {
-                        await launchUrl(uri,
-                            mode: LaunchMode.externalApplication);
-                      }
-                    } catch (e) {
-                      print('Error launching maps: $e');
-                    }
-                  }
-                },
+                onPressed: () => _showMapsConfirmationDialog(),
                 icon: Icon(
                   Icons.location_on,
                   color: Theme.of(context).colorScheme.primary,
@@ -788,7 +761,7 @@ class VenueDetailPage extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 alignment: Alignment.center,
                 child: Text(
-                  LocalizationHelper.tr('labels.noReviewsYet'),
+                  'No reviews yet',
                   style: TextStyle(color: Colors.grey[600]),
                 ),
               );
@@ -901,6 +874,127 @@ class VenueDetailPage extends StatelessWidget {
           }),
         ],
       ),
+    );
+  }
+
+  void _showMapsConfirmationDialog() async {
+    final VenueDetailController controller = Get.find<VenueDetailController>();
+    final venue = controller.venue.value;
+
+    if (venue?.address == null) {
+      return;
+    }
+
+    try {
+      final bool? confirmed = await Get.dialog<bool>(
+        AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.map_outlined,
+                color: Get.theme.primaryColor,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  LocalizationHelper.tr(LocaleKeys.follow_us_openMaps),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            LocalizationHelper.tr(LocaleKeys.follow_us_openMapsMessage),
+            style: const TextStyle(fontSize: 14),
+          ),
+          actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          actions: [
+            // Cancel button
+            OutlinedButton(
+              onPressed: () {
+                Get.back(result: false);
+              },
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                side: BorderSide(color: Colors.grey[400]!),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                LocalizationHelper.tr(LocaleKeys.common_cancel),
+                style: TextStyle(color: Colors.grey[700]),
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Open button
+            ElevatedButton(
+              onPressed: () {
+                Get.back(result: true);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Get.theme.primaryColor,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.launch, size: 16),
+                  const SizedBox(width: 4),
+                  Text(LocalizationHelper.tr(LocaleKeys.common_open)),
+                ],
+              ),
+            ),
+          ],
+        ),
+        barrierDismissible: true,
+      );
+
+      // Handle the result
+      if (confirmed == true) {
+        await _launchGoogleMaps(venue!.address!);
+      }
+    } catch (e) {
+      print('Error showing confirmation dialog: $e');
+      // Fallback: directly launch maps if dialog fails
+      await _launchGoogleMaps(venue!.address!);
+    }
+  }
+
+  Future<void> _launchGoogleMaps(String address) async {
+    try {
+      final encodedAddress = Uri.encodeComponent(address);
+      final googleMapsUrl = 'https://www.google.com/maps/search/?api=1&query=$encodedAddress';
+      final uri = Uri.parse(googleMapsUrl);
+
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        _showMapsError();
+      }
+    } catch (e) {
+      print('Error launching Google Maps: $e');
+      _showMapsError();
+    }
+  }
+
+  void _showMapsError() {
+    Get.snackbar(
+      LocalizationHelper.tr(LocaleKeys.common_error),
+      LocalizationHelper.tr(LocaleKeys.follow_us_openMapsError),
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 3),
     );
   }
 }

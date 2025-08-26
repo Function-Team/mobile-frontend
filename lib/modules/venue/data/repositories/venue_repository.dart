@@ -98,20 +98,19 @@ class VenueRepository {
   }
 
   // Get venue reviews
-  Future<List<ReviewModel>> getVenueReviews(int venueId) async {
+  Future<List<ReviewModel>> getVenueReviews(int venueId, {int skip = 0, int limit = 100}) async {
     try {
-      // Ubah endpoint ke endpoint yang benar
-      final response = await _apiService.getRequest('/place/$venueId/reviews');
+      final endpoint = '/place/$venueId/reviews?skip=$skip&limit=$limit';
+      final response = await _apiService.getRequest(endpoint);
 
       if (response is List) {
-        return response.map((json) => ReviewModel.fromJson(json)).toList();
+        final reviews = response.map((json) => ReviewModel.fromJson(json)).toList();
+        return reviews;
       } else {
-        throw Exception(
-            'Failed to load reviews. Status: ${response.statusCode}');
+        throw Exception('Failed to load reviews. Unexpected response format');
       }
     } catch (e) {
       print('Error fetching reviews for venue $venueId: $e');
-      // Return empty list rather than throwing
       return [];
     }
   }

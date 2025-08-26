@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:function_mobile/common/routes/routes.dart';
 import 'package:function_mobile/common/widgets/snackbars/custom_snackbar.dart';
@@ -17,6 +18,9 @@ class SearchActivityController extends GetxController {
   final RxList<VenueModel> filteredVenues = <VenueModel>[].obs;
   final RxBool isLoading = true.obs;
   final RxString errorMessage = ''.obs;
+  
+  // Debounce timer for search
+  Timer? _debounceTimer;
 
   @override
   void onInit() {
@@ -29,59 +33,104 @@ class SearchActivityController extends GetxController {
       isLoading.value = true;
       errorMessage.value = '';
 
-      // Load activities and venues concurrently
+      // Load activities and venues concurrently with timeout
       final results = await Future.wait([
         _venueRepository.getActivities(),
         _venueRepository.getVenues(),
-      ]);
+      ]).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          throw TimeoutException('Loading data timed out', const Duration(seconds: 30));
+        },
+      );
 
-      allActivities.assignAll(results[0] as List<ActivityModel>);
-      filteredActivities.assignAll(results[0] as List<ActivityModel>);
+      // Safe assignment with null checks
+      if (results.isNotEmpty && results[0] is List<ActivityModel>) {
+        final activities = results[0] as List<ActivityModel>;
+        allActivities.assignAll(activities);
+        filteredActivities.assignAll(activities);
+      }
 
-      // Tampilkan semua venue, bukan hanya 5
-      final venues = results[1] as List<VenueModel>;
-      allVenues.assignAll(venues);
-      filteredVenues.assignAll(venues);
+      if (results.length > 1 && results[1] is List<VenueModel>) {
+        final venues = results[1] as List<VenueModel>;
+        allVenues.assignAll(venues);
+        filteredVenues.assignAll(venues);
+      }
     } catch (e) {
       print('Error loading data: $e');
       errorMessage.value = 'Failed to load data: $e';
+      
+      // Safe fallback - ensure lists are not null
+      if (allActivities.isEmpty) {
+        allActivities.assignAll(<ActivityModel>[]);
+        filteredActivities.assignAll(<ActivityModel>[]);
+      }
+      if (allVenues.isEmpty) {
+        allVenues.assignAll(<VenueModel>[]);
+        filteredVenues.assignAll(<VenueModel>[]);
+      }
+      
       // Show error message to user
-      CustomSnackbar.show(
-          context: Get.context!, 
-          message: LocalizationHelper.tr(LocaleKeys.errors_networkError), 
-          type: SnackbarType.error,
-          autoClear: true,
-          enableDebounce: false);
+      try {
+        CustomSnackbar.show(
+            context: Get.context!, 
+            message: LocalizationHelper.tr(LocaleKeys.errors_networkError), 
+            type: SnackbarType.error,
+            autoClear: true,
+            enableDebounce: false);
+      } catch (snackbarError) {
+        print('Error showing snackbar: $snackbarError');
+      }
     } finally {
       isLoading.value = false;
     }
   }
 
   void filterItems(String query) {
-    if (query.isEmpty) {
-      // Reset to full list
-      filteredActivities.assignAll(allActivities);
-      filteredVenues.assignAll(allVenues);
-    } else {
-      // Filter based on query
-      final lowercaseQuery = query.toLowerCase();
+    // Cancel previous timer to implement debouncing
+    _debounceTimer?.cancel();
+    
+    // Add debounce to prevent excessive filtering on every keystroke
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      try {
+        if (query.isEmpty) {
+          // Reset to full list
+          filteredActivities.assignAll(allActivities);
+          filteredVenues.assignAll(allVenues);
+        } else {
+          // Filter based on query with safety checks
+          final lowercaseQuery = query.toLowerCase();
 
-      filteredActivities.assignAll(
-        allActivities
-            .where((activity) =>
-                (activity.name ?? '').toLowerCase().contains(lowercaseQuery))
-            .toList(),
-      );
+          // Safe filtering with null checks
+          final safeActivities = allActivities.where((activity) {
+            try {
+              return (activity.name ?? '').toLowerCase().contains(lowercaseQuery);
+            } catch (e) {
+              print('Error filtering activity: $e');
+              return false;
+            }
+          }).toList();
 
-      // Tampilkan semua venue yang cocok, bukan hanya 5
-      final filteredVenueList = allVenues
-          .where((venue) =>
-              (venue.name ?? '').toLowerCase().contains(lowercaseQuery) ||
-              (venue.city?.name ?? '').toLowerCase().contains(lowercaseQuery))
-          .toList();
+          final safeVenues = allVenues.where((venue) {
+            try {
+              return (venue.name ?? '').toLowerCase().contains(lowercaseQuery) ||
+                     (venue.city?.name ?? '').toLowerCase().contains(lowercaseQuery);
+            } catch (e) {
+              print('Error filtering venue: $e');
+              return false;
+            }
+          }).toList();
 
-      filteredVenues.assignAll(filteredVenueList);
-    }
+          filteredActivities.assignAll(safeActivities);
+          filteredVenues.assignAll(safeVenues);
+        }
+      } catch (e) {
+        print('Error in filterItems: $e');
+        // Fallback to show all items if filtering fails
+        filteredActivities.assignAll(allActivities);
+        filteredVenues.assignAll(allVenues);
+      }
+    });
   }
 
   void clearSearch() {
@@ -119,6 +168,7 @@ class SearchActivityController extends GetxController {
 
   @override
   void onClose() {
+    _debounceTimer?.cancel(); // Clean up timer
     searchController.dispose();
     super.onClose();
   }
