@@ -656,7 +656,7 @@
     "password": "Password",
     "username": "Username",
     "confirmPassword": "Confirm Password",
-    "emailOptional": "Email (Optional)",
+    "emailOptional": "Email",
     "enterEmail": "Enter your email",
     "enterPassword": "Enter your password",
     "enterUsername": "Enter your username",

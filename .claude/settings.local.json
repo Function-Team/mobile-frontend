@@ -7,7 +7,8 @@
       "Bash(flutter pub run easy_localization:generate:*)",
       "Bash(find:*)",
       "Bash(dart run easy_localization:generate:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(flutter doctor:*)"
     ],
     "deny": [],
     "ask": []
